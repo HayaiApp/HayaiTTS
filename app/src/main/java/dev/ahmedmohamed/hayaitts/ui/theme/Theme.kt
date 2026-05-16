@@ -13,7 +13,22 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.expressiveLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+
+// Material 3 ships `expressiveLightColorScheme()` in material3 1.5.0-alpha19,
+// but never shipped a dark counterpart. Author the symmetric dark variant
+// locally: the light version softens `on*Container` contrast by moving from
+// baseline Tone 10 → Tone 30, so the dark version mirrors that with Tone 90
+// → Tone 70. Our voice-teal palette in `Color.kt` already sits on the right
+// tonal grid (VoiceTealDarkPrimary = Primary Tone 70), so the overrides we
+// `.copy()` on top of this composite cleanly.
+private fun expressiveDarkColorScheme() = darkColorScheme(
+    onPrimaryContainer = Color(0xFF82D3DE),    // Primary Tone 70
+    onSecondaryContainer = Color(0xFFB1CBD0),  // Secondary Tone 70
+    onTertiaryContainer = Color(0xFFBACADD),   // Tertiary Tone 70
+    onErrorContainer = Color(0xFFFFB4AB),      // Error Tone 70
+)
 
 private val LightScheme: ColorScheme = expressiveLightColorScheme().copy(
     primary = VoiceTealLightPrimary,
@@ -27,12 +42,7 @@ private val LightScheme: ColorScheme = expressiveLightColorScheme().copy(
     onSurface = VoiceTealLightOnBackground,
 )
 
-// material3 1.5.0-alpha18 promoted `expressiveLightColorScheme()` to public API
-// but did NOT promote a dark counterpart — `expressiveDarkColorScheme` is still
-// `internal` in that release. Fall back to the standard `darkColorScheme()` for
-// dark mode; the rest of the design line (motion, shapes, expressive
-// components) still flows through `MaterialExpressiveTheme` below.
-private val DarkScheme: ColorScheme = darkColorScheme(
+private val DarkScheme: ColorScheme = expressiveDarkColorScheme().copy(
     primary = VoiceTealDarkPrimary,
     onPrimary = VoiceTealDarkOnPrimary,
     primaryContainer = VoiceTealDarkPrimaryContainer,
