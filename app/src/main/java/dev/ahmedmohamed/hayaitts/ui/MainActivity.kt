@@ -4,7 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Surface
-import dev.ahmedmohamed.hayaitts.ui.library.LibraryScreen
+import androidx.navigation.compose.rememberNavController
+import dev.ahmedmohamed.hayaitts.ui.nav.HayaiTtsNavHost
 import dev.ahmedmohamed.hayaitts.ui.theme.HayaiTtsTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +14,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             HayaiTtsTheme {
                 Surface {
-                    LibraryScreen()
+                    HayaiTtsNavHost(rememberNavController())
                 }
             }
         }

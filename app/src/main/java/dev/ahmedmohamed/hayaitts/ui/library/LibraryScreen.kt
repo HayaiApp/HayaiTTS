@@ -2,65 +2,56 @@
 
 package dev.ahmedmohamed.hayaitts.ui.library
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Cancel
-import androidx.compose.material.icons.outlined.CloudDownload
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.RecordVoiceOver
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.outlined.LibraryMusic
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.R
-import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
+import dev.ahmedmohamed.hayaitts.ui.components.EmptyState
+import dev.ahmedmohamed.hayaitts.ui.components.InstalledVoiceCard
 import org.koin.androidx.compose.koinViewModel
 
+/**
+ * The home tab. Lists installed voices and surfaces a single thumb-reach FAB to
+ * jump into Browse. An empty list switches the body to a centered empty-state
+ * with the same Browse CTA.
+ */
 @Composable
 fun LibraryScreen(
+    onBrowse: () -> Unit,
+    onVoiceClick: (voiceId: String) -> Unit,
     viewModel: LibraryViewModel = koinViewModel(),
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    var pendingUninstall by remember { mutableStateOf<InstalledVoice?>(null) }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -70,193 +61,90 @@ fun LibraryScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                text = { Text(stringResource(R.string.library_browse_action)) },
+                icon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                onClick = onBrowse,
+            )
+        },
     ) { innerPadding ->
-        // Trip the entrance animation once on first composition so the screen
-        // springs in instead of popping.
-        var visible by remember { mutableStateOf(false) }
-        LaunchedEffect(Unit) { visible = true }
-
-        AnimatedVisibility(
-            visible = visible,
-            enter = slideInVertically(
-                initialOffsetY = { it / 4 },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow,
-                ),
-            ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)),
-            modifier = Modifier.padding(innerPadding),
-        ) {
-            Column(
+        if (state.installed.isEmpty()) {
+            EmptyState(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                state.installed.forEach { voice ->
-                    InstalledVoiceCard(voice = voice)
-                }
-
-                SmokeTestDownloadSection(
-                    smokeState = state.downloadStates[LibraryViewModel.SMOKE_TEST_VOICE_ID]
-                        ?: DownloadState.Idle,
-                    alreadyInstalled = state.installed.any {
-                        it.voiceId == LibraryViewModel.SMOKE_TEST_VOICE_ID
-                    },
-                    onEnqueue = { viewModel.enqueueSmokeTest() },
-                    onCancel = { viewModel.cancelSmokeTest() },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun InstalledVoiceCard(voice: InstalledVoice) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.RecordVoiceOver,
-                contentDescription = null,
-                modifier = Modifier.size(40.dp),
-                tint = MaterialTheme.colorScheme.primary,
+                    .padding(innerPadding),
+                icon = Icons.Outlined.LibraryMusic,
+                title = stringResource(R.string.library_empty_title),
+                subtitle = stringResource(R.string.library_empty_subtitle),
+                ctaLabel = stringResource(R.string.library_browse_action),
+                onCta = onBrowse,
             )
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(text = voice.title, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    text = buildSubtitle(voice),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (voice.bundled) {
-                    AssistChip(
-                        onClick = {},
-                        enabled = false,
-                        label = { Text(stringResource(R.string.voice_chip_bundled)) },
-                        colors = AssistChipDefaults.assistChipColors(
-                            disabledLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        ),
-                    )
-                }
-            }
-            FilledTonalIconButton(onClick = { /* preview wired in 4b */ }) {
-                Icon(
-                    imageVector = Icons.Outlined.PlayArrow,
-                    contentDescription = stringResource(R.string.voice_preview_action),
-                )
-            }
+        } else {
+            LibraryList(
+                voices = state.installed,
+                defaultedLocalesFor = { state.defaultedLocales(it.voiceId) },
+                onToggleDefault = { voice, locale ->
+                    viewModel.toggleDefault(locale, voice.voiceId)
+                },
+                onUninstall = { pendingUninstall = it },
+                onClickVoice = { onVoiceClick(it.voiceId) },
+                contentPadding = innerPadding,
+            )
         }
+    }
+
+    val target = pendingUninstall
+    if (target != null) {
+        AlertDialog(
+            onDismissRequest = { pendingUninstall = null },
+            title = { Text(stringResource(R.string.uninstall_confirm_title)) },
+            text = { Text(stringResource(R.string.uninstall_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.uninstall(target.voiceId)
+                    pendingUninstall = null
+                }) {
+                    Text(stringResource(R.string.action_uninstall))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingUninstall = null }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
     }
 }
 
-private fun buildSubtitle(voice: InstalledVoice): String {
-    val lang = voice.languages.firstOrNull() ?: "—"
-    val family = voice.family.name.lowercase().replaceFirstChar { it.uppercase() }
-    val tier = voice.tier.name.lowercase().replaceFirstChar { it.uppercase() }
-    return "$lang • $family • $tier"
-}
-
 @Composable
-private fun SmokeTestDownloadSection(
-    smokeState: DownloadState,
-    alreadyInstalled: Boolean,
-    onEnqueue: () -> Unit,
-    onCancel: () -> Unit,
+private fun LibraryList(
+    voices: List<InstalledVoice>,
+    defaultedLocalesFor: (InstalledVoice) -> Set<String>,
+    onToggleDefault: (InstalledVoice, String) -> Unit,
+    onUninstall: (InstalledVoice) -> Unit,
+    onClickVoice: (InstalledVoice) -> Unit,
+    contentPadding: PaddingValues,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        contentPadding = PaddingValues(
+            top = contentPadding.calculateTopPadding(),
+            bottom = contentPadding.calculateBottomPadding() + 96.dp,
         ),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            val labelRes = if (alreadyInstalled) {
-                R.string.library_test_download_again
-            } else R.string.library_test_download
-
-            when (smokeState) {
-                is DownloadState.Running -> {
-                    Text(
-                        stringResource(R.string.library_downloading),
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                    LinearWavyProgressIndicator(
-                        progress = { smokeState.pct },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    OutlinedButton(onClick = onCancel) {
-                        Icon(Icons.Outlined.Cancel, contentDescription = null)
-                        Spacer(Modifier.size(8.dp))
-                        Text("Cancel")
-                    }
-                }
-
-                DownloadState.Queued, DownloadState.Extracting -> {
-                    Text(
-                        stringResource(
-                            if (smokeState is DownloadState.Extracting) R.string.library_extracting
-                            else R.string.library_downloading,
-                        ),
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                    LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
-
-                is DownloadState.Failed -> {
-                    Text(
-                        stringResource(R.string.library_download_failed, smokeState.reason),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    SmokeTestEnqueueButton(labelRes = labelRes, onClick = onEnqueue)
-                }
-
-                DownloadState.Cancelled -> {
-                    Text(
-                        stringResource(R.string.library_download_cancelled),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    SmokeTestEnqueueButton(labelRes = labelRes, onClick = onEnqueue)
-                }
-
-                DownloadState.Done, DownloadState.Idle -> {
-                    SmokeTestEnqueueButton(labelRes = labelRes, onClick = onEnqueue)
-                }
-            }
+        items(items = voices, key = { it.voiceId }) { voice ->
+            InstalledVoiceCard(
+                voice = voice,
+                defaultedLocales = defaultedLocalesFor(voice),
+                onClick = { onClickVoice(voice) },
+                onToggleDefault = { locale -> onToggleDefault(voice, locale) },
+                onUninstall = { onUninstall(voice) },
+                modifier = Modifier,
+            )
         }
-    }
-}
-
-@Composable
-private fun SmokeTestEnqueueButton(labelRes: Int, onClick: () -> Unit) {
-    FilledTonalButton(onClick = onClick) {
-        Icon(Icons.Outlined.CloudDownload, contentDescription = null)
-        Spacer(Modifier.size(8.dp))
-        Text(stringResource(labelRes))
     }
 }

@@ -2,56 +2,64 @@ package dev.ahmedmohamed.hayaitts.ui.library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
-import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
 import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
+import dev.ahmedmohamed.hayaitts.domain.repo.DefaultsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /**
- * ViewModel for the (still minimal) Library screen. Exposes the installed
- * list, the per-voice download state, and a one-shot enqueue helper for the
- * Phase 4a smoke-test button.
+ * Backing state for the Library tab: the installed-voice list plus the
+ * per-locale defaults map. Phase 4a's smoke-test enqueue/cancel helpers are
+ * gone — installation now goes through Browse + Voice Detail.
  *
- * Phase 4b will turn the smoke-test logic into the real Browse / Detail flow
- * — this ViewModel will then back the per-detail card directly.
+ * The defaults map is exposed as a `Map<voiceId, Set<locale>>` so the card can
+ * cheaply check `defaults[voice.voiceId]` for chip rendering.
  */
 class LibraryViewModel(
     private val voiceRepository: VoiceRepository,
     private val downloadRepository: DownloadRepository,
     private val catalogRepository: CatalogRepository,
+    private val defaultsRepository: DefaultsRepository,
 ) : ViewModel() {
 
     data class UiState(
         val installed: List<InstalledVoice> = emptyList(),
-        val catalog: List<VoiceCard> = emptyList(),
-        val downloadStates: Map<String, DownloadState> = emptyMap(),
-    )
+        /** locale (BCP-47) -> voiceId currently set as default. */
+        val defaults: Map<String, String> = emptyMap(),
+    ) {
+        /** Set of locales where this voice is the active default. */
+        fun defaultedLocales(voiceId: String): Set<String> =
+            defaults.filterValues { it == voiceId }.keys
+    }
 
     val uiState: StateFlow<UiState> = combine(
         voiceRepository.installed,
-        catalogRepository.catalog,
-        downloadRepository.states,
-    ) { installed, catalog, downloads ->
-        UiState(installed = installed, catalog = catalog, downloadStates = downloads)
+        defaultsRepository.defaults,
+    ) { installed, defaults ->
+        UiState(installed = installed, defaults = defaults)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), UiState())
 
-    fun enqueueSmokeTest() {
-        val card = uiState.value.catalog.firstOrNull { it.id == SMOKE_TEST_VOICE_ID }
-            ?: return
-        downloadRepository.enqueue(card)
+    /** Toggle whether [voiceId] is the default for [locale]. */
+    fun toggleDefault(locale: String, voiceId: String) {
+        viewModelScope.launch {
+            val current = uiState.value.defaults[locale]
+            if (current == voiceId) {
+                defaultsRepository.clearDefault(locale)
+            } else {
+                defaultsRepository.setDefault(locale, voiceId)
+            }
+        }
     }
 
-    fun cancelSmokeTest() {
-        downloadRepository.cancel(SMOKE_TEST_VOICE_ID)
-    }
-
-    companion object {
-        const val SMOKE_TEST_VOICE_ID = "vits-piper-en_GB-alan-low"
+    fun uninstall(voiceId: String) {
+        viewModelScope.launch {
+            voiceRepository.uninstall(voiceId)
+        }
     }
 }

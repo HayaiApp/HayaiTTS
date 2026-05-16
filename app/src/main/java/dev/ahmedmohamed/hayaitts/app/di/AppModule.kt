@@ -4,6 +4,7 @@ import dev.ahmedmohamed.hayaitts.data.catalog.CatalogRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.db.HayaiTtsDatabase
 import dev.ahmedmohamed.hayaitts.data.defaults.DefaultsRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.download.DownloadRepositoryImpl
+import dev.ahmedmohamed.hayaitts.data.preview.VoicePreviewPlayer
 import dev.ahmedmohamed.hayaitts.data.settings.SettingsRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.voices.VoiceRepositoryImpl
 import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
@@ -11,6 +12,8 @@ import dev.ahmedmohamed.hayaitts.domain.repo.DefaultsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
+import dev.ahmedmohamed.hayaitts.ui.browse.BrowseViewModel
+import dev.ahmedmohamed.hayaitts.ui.detail.VoiceDetailViewModel
 import dev.ahmedmohamed.hayaitts.ui.library.LibraryViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -75,5 +78,19 @@ val appModule = module {
     }
     single<DefaultsRepository> { DefaultsRepositoryImpl(get()) }
 
-    viewModel { LibraryViewModel(get(), get(), get()) }
+    // Phase 4b: short-lived AudioTrack helper for Voice Detail previews.
+    single { VoicePreviewPlayer(androidContext()) }
+
+    viewModel { LibraryViewModel(get(), get(), get(), get()) }
+    viewModel { BrowseViewModel(get(), get(), get()) }
+    viewModel { (voiceId: String) ->
+        VoiceDetailViewModel(
+            voiceId = voiceId,
+            catalogRepository = get(),
+            voiceRepository = get(),
+            downloadRepository = get(),
+            defaultsRepository = get(),
+            previewPlayer = get(),
+        )
+    }
 }
