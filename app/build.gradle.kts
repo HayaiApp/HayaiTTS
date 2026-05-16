@@ -23,6 +23,14 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+
+        // Only ship native ABIs we actually care about. arm64-v8a covers every
+        // modern phone, armeabi-v7a covers the long tail of 32-bit ARM devices,
+        // x86_64 lets the app run in the Android Studio emulator. Shipping x86
+        // (32-bit) would bloat the APK with binaries no real user runs.
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
     }
 
     buildTypes {
@@ -59,6 +67,13 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // Keep .onnx weights uncompressed inside the APK so the sherpa-onnx native
+    // layer can mmap them directly from the install location instead of
+    // inflating ~28 MB into RAM on every cold start.
+    androidResources {
+        noCompress += "onnx"
+    }
 }
 
 dependencies {
@@ -91,4 +106,9 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.workmanager)
     implementation(libs.kermit)
+
+    // Maven Central re-package of the official k2-fsa/sherpa-onnx Android AAR.
+    // The upstream team only ships AARs via GitHub releases; bihe0832 mirrors
+    // them to Maven Central with the bytecode and JNI .so files unmodified.
+    implementation(libs.sherpa.onnx.android)
 }

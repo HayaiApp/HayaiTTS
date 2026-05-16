@@ -1,0 +1,9 @@
+# Piper / sherpa-onnx voice weights are large enough to want LFS, regardless of
+# `git lfs install` state on the contributor's machine — the AAR is unmodified
+# binary, do not let CRLF normalisation touch it.
+*.onnx filter=lfs diff=lfs merge=lfs -text
+
+# The espeak-ng phoneme databases are pre-compiled binary blobs (the *_dict files
+# are not text despite having no extension). Mark the whole voice asset tree as
+# binary so Windows autocrlf cannot corrupt the bytes during checkout / commit.
+app/src/main/assets/voices/** -text

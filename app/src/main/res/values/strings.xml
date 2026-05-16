@@ -4,6 +4,11 @@
     <string name="library_empty_title">No voices installed yet</string>
     <string name="library_empty_subtitle">Browse the catalog to download offline neural voices</string>
     <string name="library_browse_action">Browse models</string>
+    <string name="library_title">Voices</string>
+    <string name="voice_amy_name">Amy</string>
+    <string name="voice_amy_subtitle">English (US) • Piper • Low quality</string>
+    <string name="voice_chip_bundled">Bundled</string>
+    <string name="voice_preview_action">Preview</string>
     <string name="settings_title">Settings</string>
     <string name="settings_license">License: GPL-3.0</string>
 </resources>

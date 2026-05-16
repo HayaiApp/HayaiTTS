@@ -27,6 +27,12 @@ datastore = "1.1.1"
 workManager = "2.10.0"
 kermit = "2.0.4"
 
+# Maven Central re-package of the official k2-fsa/sherpa-onnx Android AAR.
+# Upstream only ships AARs via GitHub releases, so the bihe0832 group republishes
+# the unmodified bytecode + JNI .so files to Maven Central. Version numbers track
+# the upstream release tags (e.g. 6.25.12 == sherpa-onnx v1.10.x era).
+sherpaOnnx = "6.25.12"
+
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
@@ -57,6 +63,8 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 workmanager = { module = "androidx.work:work-runtime-ktx", version.ref = "workManager" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+
+sherpa-onnx-android = { module = "com.bihe0832.android:lib-sherpa-onnx", version.ref = "sherpaOnnx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
