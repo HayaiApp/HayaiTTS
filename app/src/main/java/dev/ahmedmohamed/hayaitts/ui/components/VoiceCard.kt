@@ -21,8 +21,11 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.RecordVoiceOver
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -50,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import dev.ahmedmohamed.hayaitts.R
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
+import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
 
 /**
@@ -115,8 +119,23 @@ fun InstalledVoiceCard(
                         ),
                     )
                 }
+                if (voice.family == ModelFamily.CUSTOM) {
+                    SuggestionChip(
+                        onClick = {},
+                        label = { Text(stringResource(R.string.custom_chip)) },
+                        icon = { Icon(Icons.Outlined.Tune, contentDescription = null) },
+                        colors = SuggestionChipDefaults.suggestionChipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            iconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
+                    )
+                }
                 voice.languages.forEach { LanguageChip(it) }
-                FamilyChip(voice.family)
+                // For custom voices we show the resolved runtime family
+                // (Piper / VITS / Matcha) instead of the placeholder "Custom"
+                // family enum value — far more informative on the card.
+                FamilyChip(voice.effectiveFamily ?: voice.family)
                 TierChip(tier = voice.tier, sizeMb = null)
             }
             if (voice.languages.isNotEmpty()) {

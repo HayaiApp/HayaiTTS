@@ -16,4 +16,10 @@ data class InstalledVoice(
     val installedAt: Long,
     /** True for the in-APK bundled voice (Amy). Bundled voices cannot be uninstalled. */
     val bundled: Boolean = false,
+    /**
+     * Only populated when [family] is [ModelFamily.CUSTOM]. Tells
+     * [dev.ahmedmohamed.hayaitts.tts.SherpaTtsRuntime] which underlying
+     * builder (Piper / VITS / Matcha) to use for the user-supplied bundle.
+     */
+    val effectiveFamily: ModelFamily? = null,
 )

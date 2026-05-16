@@ -1,6 +1,8 @@
 package dev.ahmedmohamed.hayaitts.app.di
 
 import dev.ahmedmohamed.hayaitts.data.catalog.CatalogRepositoryImpl
+import dev.ahmedmohamed.hayaitts.data.custom.CustomBundleAnalyzer
+import dev.ahmedmohamed.hayaitts.data.custom.CustomBundleInstaller
 import dev.ahmedmohamed.hayaitts.data.db.HayaiTtsDatabase
 import dev.ahmedmohamed.hayaitts.data.defaults.DefaultsRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.download.DownloadRepositoryImpl
@@ -13,6 +15,7 @@ import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
 import dev.ahmedmohamed.hayaitts.ui.browse.BrowseViewModel
+import dev.ahmedmohamed.hayaitts.ui.custom.CustomImportViewModel
 import dev.ahmedmohamed.hayaitts.ui.detail.VoiceDetailViewModel
 import dev.ahmedmohamed.hayaitts.ui.library.LibraryViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -26,9 +29,7 @@ import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
 /**
- * Wired up by HayaiTtsApplication.startKoin. Phase 4a adds catalog + voice +
- * download + defaults + settings repositories, plus the LibraryViewModel for
- * the smoke-test button.
+ * Wired up by HayaiTtsApplication.startKoin.
  */
 val appModule = module {
 
@@ -81,6 +82,10 @@ val appModule = module {
     // Phase 4b: short-lived AudioTrack helper for Voice Detail previews.
     single { VoicePreviewPlayer(androidContext()) }
 
+    // Phase 6: custom voice import services.
+    single { CustomBundleAnalyzer(androidContext()) }
+    single { CustomBundleInstaller(androidContext(), get<VoiceRepository>()) }
+
     viewModel { LibraryViewModel(get(), get(), get(), get()) }
     viewModel { BrowseViewModel(get(), get(), get()) }
     viewModel { (voiceId: String) ->
@@ -91,6 +96,13 @@ val appModule = module {
             downloadRepository = get(),
             defaultsRepository = get(),
             previewPlayer = get(),
+        )
+    }
+    viewModel { (encodedUri: String) ->
+        CustomImportViewModel(
+            encodedUri = encodedUri,
+            analyzer = get(),
+            installer = get(),
         )
     }
 }

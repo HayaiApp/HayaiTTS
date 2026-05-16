@@ -1,0 +1,155 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "716c23635ff99fc59f3e1db7a568362b",
+    "entities": [
+      {
+        "tableName": "installed_voices",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`voiceId` TEXT NOT NULL, `family` TEXT NOT NULL, `title` TEXT NOT NULL, `languages` TEXT NOT NULL, `speakersJson` TEXT NOT NULL, `sampleRateHz` INTEGER NOT NULL, `installedPath` TEXT NOT NULL, `tier` TEXT NOT NULL, `installedAt` INTEGER NOT NULL, `effectiveFamily` TEXT, PRIMARY KEY(`voiceId`))",
+        "fields": [
+          {
+            "fieldPath": "voiceId",
+            "columnName": "voiceId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "family",
+            "columnName": "family",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "languages",
+            "columnName": "languages",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speakersJson",
+            "columnName": "speakersJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sampleRateHz",
+            "columnName": "sampleRateHz",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "installedPath",
+            "columnName": "installedPath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tier",
+            "columnName": "tier",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "installedAt",
+            "columnName": "installedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "effectiveFamily",
+            "columnName": "effectiveFamily",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "voiceId"
+          ]
+        }
+      },
+      {
+        "tableName": "download_states",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`voiceId` TEXT NOT NULL, `status` TEXT NOT NULL, `progressBytes` INTEGER NOT NULL, `totalBytes` INTEGER NOT NULL, `errorMessage` TEXT, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`voiceId`))",
+        "fields": [
+          {
+            "fieldPath": "voiceId",
+            "columnName": "voiceId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "progressBytes",
+            "columnName": "progressBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalBytes",
+            "columnName": "totalBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "errorMessage",
+            "columnName": "errorMessage",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "voiceId"
+          ]
+        }
+      },
+      {
+        "tableName": "default_voices",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`locale` TEXT NOT NULL, `voiceId` TEXT NOT NULL, PRIMARY KEY(`locale`))",
+        "fields": [
+          {
+            "fieldPath": "locale",
+            "columnName": "locale",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "voiceId",
+            "columnName": "voiceId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "locale"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '716c23635ff99fc59f3e1db7a568362b')"
+    ]
+  }
+}

@@ -45,6 +45,22 @@ class VoiceRepositoryImpl(
     }
 
     override suspend fun markInstalled(voice: VoiceCard, path: String) {
+        upsertChecked(voice, path, effectiveFamily = null)
+    }
+
+    override suspend fun markInstalledCustom(
+        voice: VoiceCard,
+        path: String,
+        effectiveFamily: ModelFamily,
+    ) {
+        upsertChecked(voice, path, effectiveFamily = effectiveFamily)
+    }
+
+    private suspend fun upsertChecked(
+        voice: VoiceCard,
+        path: String,
+        effectiveFamily: ModelFamily?,
+    ) {
         if (voice.id == BUNDLED_VOICE_ID) {
             log.w { "Refusing to overwrite bundled voice metadata for ${voice.id}" }
             return
@@ -59,9 +75,10 @@ class VoiceRepositoryImpl(
             installedPath = path,
             tier = voice.tier,
             installedAt = System.currentTimeMillis(),
+            effectiveFamily = effectiveFamily?.name?.lowercase(),
         )
         dao.upsert(entity)
-        log.i { "Marked installed: ${voice.id} at $path" }
+        log.i { "Marked installed: ${voice.id} at $path (effective=$effectiveFamily)" }
     }
 
     override suspend fun uninstall(voiceId: String) {
@@ -70,6 +87,10 @@ class VoiceRepositoryImpl(
             return
         }
         val existing = dao.getById(voiceId) ?: return
+        // Always recursively wipe the on-disk voice directory. The path stored
+        // on the row points to the unpacked bundle (filesDir/voices/<id> for
+        // downloaded voices, or .../custom-<uuid> for imports). Skipping this
+        // would leak ~80 MB per uninstall for a typical Piper bundle.
         runCatching { File(existing.installedPath).deleteRecursively() }
             .onFailure { log.w(it) { "Failed to delete $voiceId voice dir" } }
         dao.deleteById(voiceId)
@@ -117,6 +138,7 @@ class VoiceRepositoryImpl(
         tier = Tier.fromCatalog(tier),
         installedAt = installedAt,
         bundled = false,
+        effectiveFamily = effectiveFamily?.let(ModelFamily::fromCatalog),
     )
 }
 

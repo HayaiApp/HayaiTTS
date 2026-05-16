@@ -7,19 +7,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import dev.ahmedmohamed.hayaitts.ui.browse.BrowseScreen
+import dev.ahmedmohamed.hayaitts.ui.custom.CustomImportScreen
 import dev.ahmedmohamed.hayaitts.ui.detail.VoiceDetailScreen
 import dev.ahmedmohamed.hayaitts.ui.library.LibraryScreen
+import java.net.URLEncoder
 
 /**
- * Top-level navigation graph. Three destinations:
+ * Top-level navigation graph. Destinations:
  *
  *  - [Routes.LIBRARY]        : start destination; the installed-voices home.
  *  - [Routes.BROWSE]         : catalog browser with filters + search.
  *  - [Routes.VOICE_DETAIL]   : per-voice detail with preview + install/uninstall.
- *
- * Routes are hand-coded strings (no type-safe nav-3 wrappers) because the
- * graph is tiny and a build-time generator would add KSP cost for marginal
- * gain. The single navigation arg, voiceId, is passed via [NavType.StringType].
+ *  - [Routes.CUSTOM_IMPORT]  : Phase 6 custom voice import wizard.
  */
 @Composable
 fun HayaiTtsNavHost(navController: NavHostController) {
@@ -28,6 +27,9 @@ fun HayaiTtsNavHost(navController: NavHostController) {
             LibraryScreen(
                 onBrowse = { navController.navigate(Routes.BROWSE) },
                 onVoiceClick = { id -> navController.navigate(Routes.voiceDetail(id)) },
+                onImport = { uri ->
+                    navController.navigate(Routes.customImport(uri))
+                },
             )
         }
         composable(Routes.BROWSE) {
@@ -46,6 +48,16 @@ fun HayaiTtsNavHost(navController: NavHostController) {
                 onBack = { navController.popBackStack() },
             )
         }
+        composable(
+            route = Routes.CUSTOM_IMPORT,
+            arguments = listOf(navArgument(Routes.ARG_ENCODED_URI) { type = NavType.StringType }),
+        ) { entry ->
+            val encoded = entry.arguments?.getString(Routes.ARG_ENCODED_URI).orEmpty()
+            CustomImportScreen(
+                encodedUri = encoded,
+                onClose = { navController.popBackStack() },
+            )
+        }
     }
 }
 
@@ -55,5 +67,16 @@ object Routes {
     const val ARG_VOICE_ID = "voiceId"
     const val VOICE_DETAIL = "voiceDetail/{$ARG_VOICE_ID}"
 
+    const val ARG_ENCODED_URI = "encodedUri"
+    const val CUSTOM_IMPORT = "customImport/{$ARG_ENCODED_URI}"
+
     fun voiceDetail(voiceId: String): String = "voiceDetail/$voiceId"
+
+    /**
+     * The picked content URI is double-encoded — once by [URLEncoder] so it
+     * survives the navigation arg path segment (`content://...` would otherwise
+     * collide with route parsing), and then decoded by the destination VM.
+     */
+    fun customImport(rawUri: String): String =
+        "customImport/${URLEncoder.encode(rawUri, "UTF-8")}"
 }

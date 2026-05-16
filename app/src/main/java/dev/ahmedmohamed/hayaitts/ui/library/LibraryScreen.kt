@@ -2,6 +2,8 @@
 
 package dev.ahmedmohamed.hayaitts.ui.library
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,11 +13,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,12 +44,14 @@ import org.koin.androidx.compose.koinViewModel
 /**
  * The home tab. Lists installed voices and surfaces a single thumb-reach FAB to
  * jump into Browse. An empty list switches the body to a centered empty-state
- * with the same Browse CTA.
+ * with the same Browse CTA. A secondary top-bar action opens SAF for the Phase
+ * 6 custom-voice import wizard.
  */
 @Composable
 fun LibraryScreen(
     onBrowse: () -> Unit,
     onVoiceClick: (voiceId: String) -> Unit,
+    onImport: (rawUri: String) -> Unit,
     viewModel: LibraryViewModel = koinViewModel(),
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -53,11 +59,35 @@ fun LibraryScreen(
 
     var pendingUninstall by remember { mutableStateOf<InstalledVoice?>(null) }
 
+    val pickFile = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        // The user can cancel without picking; uri is null in that case.
+        if (uri != null) onImport(uri.toString())
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
                 title = { Text(stringResource(R.string.library_title)) },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            // Broad MIME filter: tar.bz2 has no canonical
+                            // MIME, zip has its own, bare .onnx files surface
+                            // as octet-stream. We pass all three plus `*/*`
+                            // as a fallback so file pickers that whitelist
+                            // strictly still let the user through.
+                            pickFile.launch(IMPORT_MIME_TYPES)
+                        },
+                    ) {
+                        Icon(
+                            Icons.Outlined.UploadFile,
+                            contentDescription = stringResource(R.string.library_import_action),
+                        )
+                    }
+                },
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -148,3 +178,11 @@ private fun LibraryList(
         }
     }
 }
+
+private val IMPORT_MIME_TYPES = arrayOf(
+    "application/x-tar",
+    "application/x-bzip2",
+    "application/zip",
+    "application/octet-stream",
+    "*/*",
+)

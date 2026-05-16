@@ -25,4 +25,10 @@ data class InstalledVoiceEntity(
     val installedPath: String,
     val tier: String,
     val installedAt: Long,
+    /**
+     * For [family]=="custom" only: the real runtime family (`piper` / `vits` /
+     * `matcha`) the imported bundle is wired to. Null for catalog voices.
+     * Added in DB schema v2.
+     */
+    val effectiveFamily: String? = null,
 )

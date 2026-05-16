@@ -100,7 +100,14 @@ class SherpaTtsRuntime private constructor(
                 require(dir.isDirectory) { "Voice $voiceId not installed at $dir" }
             }
         }
-        val family = familyOf(voiceId)
+        val voice = installedVoiceOf(voiceId)
+        val family = if (voice?.family == ModelFamily.CUSTOM) {
+            voice.effectiveFamily ?: error(
+                "Custom voice $voiceId is missing effectiveFamily — re-import the bundle.",
+            )
+        } else {
+            voice?.family ?: ModelFamily.PIPER
+        }
         log.i { "Loading voice $voiceId (family=$family) from $voiceDir" }
         val config = buildConfig(family, voiceDir)
         val tts = OfflineTts(assetManager = null, config = config)
@@ -123,8 +130,8 @@ class SherpaTtsRuntime private constructor(
         ModelFamily.KITTEN -> throw UnsupportedOperationException(
             "Kitten is not supported by lib-sherpa-onnx 6.25.12 (no JNI bindings).",
         )
-        ModelFamily.CUSTOM -> throw UnsupportedOperationException(
-            "Custom model import lands in Phase 6.",
+        ModelFamily.CUSTOM -> throw IllegalStateException(
+            "Custom voices should have been resolved to an effective family before reaching buildConfig.",
         )
     }
 
@@ -211,17 +218,17 @@ class SherpaTtsRuntime private constructor(
     }
 
     /**
-     * Returns the [ModelFamily] for [voiceId] from the Room mirror. Falls back
-     * to PIPER for the bundled voice and for voices missing from the DB
-     * (defensive — should never happen unless the user has corrupted state).
+     * Returns the [InstalledVoice] for [voiceId] from the Room mirror. Null
+     * when the voice is the bundled one or when Koin is not yet up — both
+     * cases are handled by the caller defaulting to Piper.
      */
-    private fun familyOf(voiceId: String): ModelFamily {
-        if (voiceId == BUNDLED_VOICE_ID) return ModelFamily.PIPER
+    private fun installedVoiceOf(voiceId: String): InstalledVoice? {
+        if (voiceId == BUNDLED_VOICE_ID) return null
         val repo = runCatching { GlobalContext.get().get<VoiceRepositoryImpl>() }.getOrNull()
-            ?: return ModelFamily.PIPER
+            ?: return null
         val snapshot = runCatching { runBlocking { repo.installedSnapshot() } }.getOrNull()
-            ?: return ModelFamily.PIPER
-        return snapshot.firstOrNull { it.voiceId == voiceId }?.family ?: ModelFamily.PIPER
+            ?: return null
+        return snapshot.firstOrNull { it.voiceId == voiceId }
     }
 
     private fun bundledMetadata(): InstalledVoice = InstalledVoice(
