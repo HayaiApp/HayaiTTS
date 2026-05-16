@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HayaiTTS</string>
+    <string name="library_empty_title">No voices installed yet</string>
+    <string name="library_empty_subtitle">Browse the catalog to download offline neural voices</string>
+    <string name="library_browse_action">Browse models</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_license">License: GPL-3.0</string>
+</resources>
