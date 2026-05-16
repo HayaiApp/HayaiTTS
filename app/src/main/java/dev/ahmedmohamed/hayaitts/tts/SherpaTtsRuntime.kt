@@ -5,10 +5,12 @@ import android.content.res.AssetManager
 import co.touchlab.kermit.Logger
 import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
+import com.k2fsa.sherpa.onnx.OfflineTtsMatchaModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
 import dev.ahmedmohamed.hayaitts.data.voices.VoiceRepositoryImpl
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
+import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.GlobalContext
 import java.io.File
@@ -98,29 +100,128 @@ class SherpaTtsRuntime private constructor(
                 require(dir.isDirectory) { "Voice $voiceId not installed at $dir" }
             }
         }
+        val family = familyOf(voiceId)
+        log.i { "Loading voice $voiceId (family=$family) from $voiceDir" }
+        val config = buildConfig(family, voiceDir)
+        val tts = OfflineTts(assetManager = null, config = config)
+        log.i { "OfflineTts ready for $voiceId (sampleRate=${tts.sampleRate()})" }
+        return tts
+    }
 
-        val modelPath = File(voiceDir, MODEL_FILE).absolutePath
-        val tokensPath = File(voiceDir, TOKENS_FILE).absolutePath
-        val dataDir = File(voiceDir, ESPEAK_DIR)
+    /**
+     * Picks the right [OfflineTtsConfig] shape for a family. Piper and the
+     * other non-Piper VITS bundles both go through the VITS config because
+     * Piper voices ARE VITS variants under the hood. Kokoro and Kitten throw
+     * — lib-sherpa-onnx 6.25.12 has no JNI for them (Phase 5 finding).
+     */
+    private fun buildConfig(family: ModelFamily, dir: File): OfflineTtsConfig = when (family) {
+        ModelFamily.PIPER, ModelFamily.VITS -> buildVitsConfig(dir)
+        ModelFamily.MATCHA -> buildMatchaConfig(dir)
+        ModelFamily.KOKORO -> throw UnsupportedOperationException(
+            "Kokoro is not supported by lib-sherpa-onnx 6.25.12 (no JNI bindings).",
+        )
+        ModelFamily.KITTEN -> throw UnsupportedOperationException(
+            "Kitten is not supported by lib-sherpa-onnx 6.25.12 (no JNI bindings).",
+        )
+        ModelFamily.CUSTOM -> throw UnsupportedOperationException(
+            "Custom model import lands in Phase 6.",
+        )
+    }
+
+    private fun buildVitsConfig(dir: File): OfflineTtsConfig {
+        val modelPath = resolveModelFile(dir, VITS_MODEL_CANDIDATES)
+        val tokensPath = File(dir, TOKENS_FILE).absolutePath
+        val dataDir = File(dir, ESPEAK_DIR)
         val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
-
-        log.i { "Loading voice $voiceId from $voiceDir" }
-        val config = OfflineTtsConfig(
+        val lexicon = File(dir, LEXICON_FILE)
+        val lexiconPath = if (lexicon.isFile) lexicon.absolutePath else ""
+        val dictDir = File(dir, DICT_DIR)
+        val dictDirPath = if (dictDir.isDirectory) dictDir.absolutePath else ""
+        return OfflineTtsConfig(
             model = OfflineTtsModelConfig(
                 vits = OfflineTtsVitsModelConfig(
                     model = modelPath,
+                    lexicon = lexiconPath,
                     tokens = tokensPath,
                     dataDir = dataDirPath,
+                    dictDir = dictDirPath,
                     lengthScale = 1.0f,
                 ),
                 numThreads = 1,
                 debug = false,
             ),
+            ruleFsts = collectRuleFsts(dir),
             maxNumSentences = 2,
         )
-        val tts = OfflineTts(assetManager = null, config = config)
-        log.i { "OfflineTts ready for $voiceId (sampleRate=${tts.sampleRate()})" }
-        return tts
+    }
+
+    private fun buildMatchaConfig(dir: File): OfflineTtsConfig {
+        val acoustic = resolveModelFile(dir, MATCHA_ACOUSTIC_CANDIDATES)
+        val vocoder = File(dir, VOCODER_FILE)
+        check(vocoder.isFile) { "Matcha voice at $dir is missing $VOCODER_FILE" }
+        val tokensPath = File(dir, TOKENS_FILE).absolutePath
+        val dataDir = File(dir, ESPEAK_DIR)
+        val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
+        val lexicon = File(dir, LEXICON_FILE)
+        val lexiconPath = if (lexicon.isFile) lexicon.absolutePath else ""
+        val dictDir = File(dir, DICT_DIR)
+        val dictDirPath = if (dictDir.isDirectory) dictDir.absolutePath else ""
+        return OfflineTtsConfig(
+            model = OfflineTtsModelConfig(
+                matcha = OfflineTtsMatchaModelConfig(
+                    acousticModel = acoustic,
+                    vocoder = vocoder.absolutePath,
+                    lexicon = lexiconPath,
+                    tokens = tokensPath,
+                    dataDir = dataDirPath,
+                    dictDir = dictDirPath,
+                    lengthScale = 1.0f,
+                ),
+                numThreads = 1,
+                debug = false,
+            ),
+            ruleFsts = collectRuleFsts(dir),
+            maxNumSentences = 2,
+        )
+    }
+
+    private fun resolveModelFile(dir: File, candidates: List<String>): String {
+        candidates.forEach { name ->
+            val candidate = File(dir, name)
+            if (candidate.isFile) return candidate.absolutePath
+        }
+        // Last-resort: pick any .onnx file in the dir so we surface a clearer
+        // error from the native side ("failed to load <path>") instead of a
+        // mystery NPE.
+        val firstOnnx = dir.listFiles()?.firstOrNull { it.isFile && it.extension == "onnx" }
+        if (firstOnnx != null) {
+            log.w { "Unknown bundle layout at $dir, falling back to ${firstOnnx.name}" }
+            return firstOnnx.absolutePath
+        }
+        error("No .onnx weight file found in $dir (tried $candidates)")
+    }
+
+    /** Concatenated comma-separated list of `*.fst` rule files for Chinese voices. */
+    private fun collectRuleFsts(dir: File): String {
+        val present = RULE_FST_FILES.mapNotNull { name ->
+            val f = File(dir, name)
+            if (f.isFile) f.absolutePath else null
+        }
+        return present.joinToString(",")
+    }
+
+    /**
+     * Returns the [ModelFamily] for [voiceId] from the Room mirror. Falls back
+     * to PIPER for the bundled voice and for voices missing from the DB
+     * (defensive — should never happen unless the user has corrupted state).
+     */
+    private fun familyOf(voiceId: String): ModelFamily {
+        if (voiceId == BUNDLED_VOICE_ID) return ModelFamily.PIPER
+        val repo = runCatching { GlobalContext.get().get<VoiceRepositoryImpl>() }.getOrNull()
+            ?: return ModelFamily.PIPER
+        val snapshot = runCatching { runBlocking { repo.installedSnapshot() } }.getOrNull()
+            ?: return ModelFamily.PIPER
+        return snapshot.firstOrNull { it.voiceId == voiceId }?.family ?: ModelFamily.PIPER
     }
 
     private fun bundledMetadata(): InstalledVoice = InstalledVoice(
@@ -201,11 +302,43 @@ class SherpaTtsRuntime private constructor(
         /** Subdirectory inside `assets/` where the bundled voice lives. */
         const val VOICE_ASSET_SUBDIR = "voices/en_US-amy-low"
 
-        private const val MODEL_FILE = "model.onnx"
         private const val TOKENS_FILE = "tokens.txt"
+        private const val LEXICON_FILE = "lexicon.txt"
+        private const val VOCODER_FILE = "vocos-22khz-univ.onnx"
         private const val ESPEAK_DIR = "espeak-ng-data"
+        private const val DICT_DIR = "dict"
         private const val MANIFEST_FILE = ".mirror-manifest"
         private const val MAX_LOADED_VOICES = 2
+
+        /**
+         * Filenames where a VITS / Piper bundle commonly stores its weights.
+         * Most bundles use `model.onnx`; VCTK ships `vits-vctk.onnx` and the
+         * int8 variant ships `vits-vctk.int8.onnx`. We probe in order and
+         * fall back to "first .onnx in the dir" if none match.
+         */
+        private val VITS_MODEL_CANDIDATES = listOf(
+            "model.onnx",
+            "vits-vctk.onnx",
+            "vits-vctk.int8.onnx",
+        )
+
+        /**
+         * Matcha bundles ship `model-steps-3.onnx` (the 3-step diffusion
+         * checkpoint). We probe for two alternatives that some upstream
+         * bundles use before failing through to a generic .onnx scan.
+         */
+        private val MATCHA_ACOUSTIC_CANDIDATES = listOf(
+            "model-steps-3.onnx",
+            "model-steps-6.onnx",
+            "acoustic.onnx",
+        )
+
+        /**
+         * Comma-joined into [OfflineTtsConfig.ruleFsts] when present. These
+         * are sherpa-onnx text-normalisation FSTs shipped with Chinese
+         * voices for digit / date / number expansion.
+         */
+        private val RULE_FST_FILES = listOf("date.fst", "number.fst", "phone.fst")
 
         @Volatile
         private var instance: SherpaTtsRuntime? = null

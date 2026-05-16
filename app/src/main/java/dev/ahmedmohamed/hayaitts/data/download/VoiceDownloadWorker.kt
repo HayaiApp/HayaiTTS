@@ -11,6 +11,7 @@ import dev.ahmedmohamed.hayaitts.data.catalog.catalogJson
 import dev.ahmedmohamed.hayaitts.data.db.dao.DownloadStateDao
 import dev.ahmedmohamed.hayaitts.data.db.entities.DownloadStateEntity
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
+import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
 import kotlinx.coroutines.Dispatchers
@@ -129,17 +130,28 @@ class VoiceDownloadWorker(
             )
         }
 
-        // 4. Validate the extracted tree.
-        val modelFile = File(voiceDir, "model.onnx")
-        val tokensFile = File(voiceDir, "tokens.txt")
-        if (!modelFile.isFile || !tokensFile.isFile) {
+        // 4. Optional secondary asset (matcha vocoder lives in a different release).
+        if (!voice.vocoderUrl.isNullOrBlank() && !voice.vocoderFileName.isNullOrBlank()) {
+            val target = File(voiceDir, voice.vocoderFileName)
+            val sideResult = runCatching { downloadAuxiliary(voice.vocoderUrl, target) }
+            if (sideResult.isFailure) {
+                return@withContext failPersisted(
+                    voice.id,
+                    "Vocoder download failed: ${sideResult.exceptionOrNull()?.message}",
+                )
+            }
+        }
+
+        // 5. Validate the extracted tree using family-aware required-file lists.
+        val missing = missingRequiredFiles(voice, voiceDir)
+        if (missing.isNotEmpty()) {
             return@withContext failPersisted(
                 voice.id,
-                "Bundle missing model.onnx or tokens.txt after extraction",
+                "Bundle missing required files: ${missing.joinToString()}",
             )
         }
 
-        // 5. Mark installed + done.
+        // 6. Mark installed + done.
         voiceRepository.markInstalled(voice, voiceDir.absolutePath)
         upsertState(voice.id, DownloadState.STATUS_DONE, totalBytes, totalBytes, null)
         finalFile.delete()
@@ -197,6 +209,73 @@ class VoiceDownloadWorker(
         }
         response.close()
         return if (totalBytes > 0) totalBytes else downloaded
+    }
+
+    /**
+     * Pulls a secondary asset (currently only the Matcha-tts vocoder, which
+     * lives in the `vocoder-models` release rather than `tts-models`). The
+     * download is streamed straight to disk; no progress is reported because
+     * it is small relative to the main bundle (~50 MB vs ~80 MB acoustic).
+     */
+    private fun downloadAuxiliary(url: String, target: File) {
+        target.parentFile?.mkdirs()
+        val request = Request.Builder().url(url).build()
+        val response = okHttp.newCall(request).execute()
+        response.use {
+            check(it.isSuccessful) { "HTTP ${it.code}" }
+            val src = it.body?.byteStream() ?: error("Empty body for $url")
+            FileOutputStream(target).use { sink -> src.copyTo(sink) }
+        }
+        log.i { "Auxiliary asset saved: $target (${target.length()}B)" }
+    }
+
+    /**
+     * Returns the list of required filenames missing from [dir] for this
+     * voice's family. Bundles vary in layout — VCTK calls its weights
+     * `vits-vctk.onnx` rather than `model.onnx`, Matcha uses
+     * `model-steps-3.onnx`, etc — so we accept the catalog-provided
+     * [VoiceCard.modelFileName] override when set and otherwise fall back to
+     * a family-specific candidate list.
+     */
+    private fun missingRequiredFiles(voice: VoiceCard, dir: File): List<String> {
+        val tokens = "tokens.txt"
+        val present = mutableListOf<String>()
+        val missing = mutableListOf<String>()
+
+        fun requireOneOf(label: String, candidates: List<String>) {
+            val hit = candidates.firstOrNull { File(dir, it).isFile }
+            if (hit != null) present += hit else missing += label
+        }
+
+        when (voice.modelFamily) {
+            ModelFamily.PIPER, ModelFamily.VITS -> {
+                val modelCandidates = listOfNotNull(
+                    voice.modelFileName, "model.onnx", "vits-vctk.onnx", "vits-vctk.int8.onnx",
+                )
+                requireOneOf(voice.modelFileName ?: "model.onnx", modelCandidates)
+                if (!File(dir, tokens).isFile) missing += tokens
+            }
+            ModelFamily.MATCHA -> {
+                val acoustic = listOfNotNull(
+                    voice.modelFileName, "model-steps-3.onnx", "model-steps-6.onnx", "acoustic.onnx",
+                )
+                requireOneOf(voice.modelFileName ?: "model-steps-3.onnx", acoustic)
+                if (!File(dir, tokens).isFile) missing += tokens
+                // Vocoder is downloaded as a sidecar — fail if it didn't land.
+                val vocoderName = voice.vocoderFileName ?: "vocos-22khz-univ.onnx"
+                if (!File(dir, vocoderName).isFile) missing += vocoderName
+            }
+            ModelFamily.KOKORO, ModelFamily.KITTEN, ModelFamily.CUSTOM -> {
+                // These never reach the worker today (catalog marks them
+                // available=false and the UI disables Install) but we still
+                // guard the path so a future JNI upgrade can validate them
+                // without surprise.
+                if (!File(dir, "model.onnx").isFile) missing += "model.onnx"
+                if (!File(dir, tokens).isFile) missing += tokens
+            }
+        }
+        if (present.isNotEmpty()) log.i { "Validated bundle files: $present" }
+        return missing
     }
 
     private fun extractTarBz2(archive: File, destRoot: File) {

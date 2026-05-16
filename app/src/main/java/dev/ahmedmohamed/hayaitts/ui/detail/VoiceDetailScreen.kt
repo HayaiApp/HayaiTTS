@@ -348,12 +348,28 @@ private fun ActionRow(
                     }
                 }
             }
-            state.card != null -> {
+            state.card != null && state.card.available -> {
                 FilledTonalButton(onClick = onInstall) {
                     Icon(Icons.Outlined.CloudDownload, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
                     Text(stringResource(R.string.action_install))
                 }
+            }
+            state.card != null && !state.card.available -> {
+                AssistChip(
+                    onClick = {},
+                    enabled = false,
+                    label = { Text(stringResource(R.string.voice_chip_coming_soon)) },
+                    colors = AssistChipDefaults.assistChipColors(
+                        disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        disabledLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    ),
+                )
+                Text(
+                    text = stringResource(R.string.voice_detail_coming_soon_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

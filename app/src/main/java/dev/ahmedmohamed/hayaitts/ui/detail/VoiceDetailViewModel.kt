@@ -65,6 +65,7 @@ class VoiceDetailViewModel(
 
     fun install() {
         val card = uiState.value.card ?: return
+        if (!card.available) return
         downloadRepository.enqueue(card)
     }
 

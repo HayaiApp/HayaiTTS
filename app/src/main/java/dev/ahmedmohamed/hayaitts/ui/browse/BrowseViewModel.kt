@@ -100,7 +100,13 @@ class BrowseViewModel(
     fun clearLanguages() = filters.update { it.copy(languages = emptySet()) }
     fun clearFamilies() = filters.update { it.copy(families = emptySet()) }
 
-    fun enqueue(card: VoiceCard) = downloadRepository.enqueue(card)
+    fun enqueue(card: VoiceCard) {
+        // Defensive: the UI also disables Install for unavailable cards but a
+        // direct call from e.g. a future deep link should not silently kick
+        // off a 700 MB download for a voice the engine cannot synthesise.
+        if (!card.available) return
+        downloadRepository.enqueue(card)
+    }
     fun cancel(voiceId: String) = downloadRepository.cancel(voiceId)
 
     private fun List<VoiceCard>.applyFilters(f: Filters): List<VoiceCard> = filter { card ->

@@ -104,6 +104,125 @@
       "license": "MIT",
       "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-zh_CN-huayan-medium.tar.bz2",
       "sha256": null
+    },
+    {
+      "id": "vits-icefall-zh-aishell3",
+      "family": "vits",
+      "title": "AIShell-3 (Multi-speaker)",
+      "languages": ["zh-CN"],
+      "speakers": [
+        {"id": 0, "name": "Speaker 0", "gender": "N"},
+        {"id": 1, "name": "Speaker 1", "gender": "N"},
+        {"id": 2, "name": "Speaker 2", "gender": "N"}
+      ],
+      "sampleRateHz": 8000,
+      "approxSizeMb": 35,
+      "tier": "mid",
+      "license": "Apache-2.0",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-icefall-zh-aishell3.tar.bz2",
+      "sha256": null,
+      "lexiconFileName": "lexicon.txt",
+      "dictDirName": "dict"
+    },
+    {
+      "id": "vits-vctk",
+      "family": "vits",
+      "title": "VCTK (109 speakers)",
+      "languages": ["en-GB"],
+      "speakers": [
+        {"id": 0, "name": "p225", "gender": "F"},
+        {"id": 1, "name": "p226", "gender": "M"},
+        {"id": 2, "name": "p227", "gender": "M"}
+      ],
+      "sampleRateHz": 22050,
+      "approxSizeMb": 116,
+      "tier": "mid",
+      "license": "ODC-By",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-vctk.tar.bz2",
+      "sha256": null,
+      "modelFileName": "vits-vctk.onnx"
+    },
+    {
+      "id": "matcha-icefall-en_US-ljspeech",
+      "family": "matcha",
+      "title": "LJSpeech (Matcha)",
+      "languages": ["en-US"],
+      "speakers": [{"id": 0, "name": "ljspeech", "gender": "F"}],
+      "sampleRateHz": 22050,
+      "approxSizeMb": 122,
+      "tier": "high",
+      "license": "CC-BY-4.0",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/matcha-icefall-en_US-ljspeech.tar.bz2",
+      "sha256": null,
+      "modelFileName": "model-steps-3.onnx",
+      "vocoderUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/vocoder-models/vocos-22khz-univ.onnx",
+      "vocoderFileName": "vocos-22khz-univ.onnx"
+    },
+    {
+      "id": "matcha-icefall-zh-baker",
+      "family": "matcha",
+      "title": "Baker (Matcha)",
+      "languages": ["zh-CN"],
+      "speakers": [{"id": 0, "name": "baker", "gender": "F"}],
+      "sampleRateHz": 22050,
+      "approxSizeMb": 123,
+      "tier": "high",
+      "license": "CC-BY-4.0",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/matcha-icefall-zh-baker.tar.bz2",
+      "sha256": null,
+      "modelFileName": "model-steps-3.onnx",
+      "lexiconFileName": "lexicon.txt",
+      "dictDirName": "dict",
+      "vocoderUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/vocoder-models/vocos-22khz-univ.onnx",
+      "vocoderFileName": "vocos-22khz-univ.onnx"
+    },
+    {
+      "id": "kokoro-multi-lang-v1_0",
+      "family": "kokoro",
+      "title": "Kokoro Multilingual v1.0",
+      "languages": ["en-US", "zh-CN"],
+      "speakers": [
+        {"id": 0, "name": "af_sarah", "gender": "F"},
+        {"id": 1, "name": "am_michael", "gender": "M"}
+      ],
+      "sampleRateHz": 24000,
+      "approxSizeMb": 700,
+      "tier": "high",
+      "license": "Apache-2.0",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2",
+      "sha256": null,
+      "available": false
+    },
+    {
+      "id": "kokoro-en-v0_19",
+      "family": "kokoro",
+      "title": "Kokoro English v0.19",
+      "languages": ["en-US"],
+      "speakers": [
+        {"id": 0, "name": "af_sarah", "gender": "F"},
+        {"id": 1, "name": "am_michael", "gender": "M"}
+      ],
+      "sampleRateHz": 24000,
+      "approxSizeMb": 670,
+      "tier": "high",
+      "license": "Apache-2.0",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-en-v0_19.tar.bz2",
+      "sha256": null,
+      "available": false
+    },
+    {
+      "id": "kitten-nano-en-v0_1",
+      "family": "kitten",
+      "title": "Kitten Nano EN",
+      "languages": ["en-US"],
+      "speakers": [{"id": 0, "name": "default", "gender": "N"}],
+      "sampleRateHz": 24000,
+      "approxSizeMb": 45,
+      "tier": "low",
+      "license": "Apache-2.0",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kitten-nano-en-v0_1.tar.bz2",
+      "sha256": null,
+      "available": false
     }
   ]
 }

@@ -195,6 +195,17 @@ fun CatalogVoiceCard(
                 card.languages.forEach { LanguageChip(it) }
                 FamilyChip(card.modelFamily)
                 TierChip(tier = card.tierEnum, sizeMb = card.approxSizeMb)
+                if (!card.available) {
+                    AssistChip(
+                        onClick = {},
+                        enabled = false,
+                        label = { Text(stringResource(R.string.voice_chip_coming_soon)) },
+                        colors = AssistChipDefaults.assistChipColors(
+                            disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            disabledLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        ),
+                    )
+                }
             }
             Spacer(Modifier.height(12.dp))
 
@@ -202,6 +213,14 @@ fun CatalogVoiceCard(
                 downloadState is DownloadState.Extracting ||
                 downloadState is DownloadState.Queued
             when {
+                !card.available -> {
+                    // Voice is in the catalog as a teaser but the JNI does
+                    // not support its family yet. Disable Install and surface
+                    // the same Coming Soon affordance on the action row.
+                    OutlinedButton(onClick = {}, enabled = false) {
+                        Text(stringResource(R.string.voice_chip_coming_soon))
+                    }
+                }
                 isInstalled -> {
                     OutlinedButton(onClick = onOpen, enabled = true) {
                         Icon(Icons.Outlined.CheckCircle, contentDescription = null)

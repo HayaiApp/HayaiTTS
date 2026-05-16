@@ -21,6 +21,34 @@ data class VoiceCard(
     val license: String,
     val bundleUrl: String,
     val sha256: String? = null,
+    /**
+     * `true` when the current build of sherpa-onnx can actually load and
+     * synthesise this voice. We set it to `false` for Kokoro and Kitten —
+     * lib-sherpa-onnx 6.25.12 ships no JNI for those families (confirmed by
+     * grepping the .so for `Java_com_k2fsa_sherpa_onnx_OfflineTts*` exports
+     * and for the string "Kokoro" / "Kitten"; both came back empty). The
+     * catalog still lists them so the Browse screen can surface them as
+     * "Coming soon" — Phase 7+ may upgrade the JNI dependency.
+     */
+    val available: Boolean = true,
+    /**
+     * Optional secondary asset (matcha-tts vocoder) downloaded alongside the
+     * main bundle and dropped into the voice directory as [vocoderFileName].
+     * Null for every other family.
+     */
+    val vocoderUrl: String? = null,
+    /** Filename to write [vocoderUrl] to inside the unpacked voice dir. */
+    val vocoderFileName: String? = null,
+    /**
+     * Override the ONNX weight filename when the bundle does not use
+     * `model.onnx` (e.g. VCTK ships `vits-vctk.onnx`, Matcha ships
+     * `model-steps-3.onnx`). Resolved relative to the unpacked voice dir.
+     */
+    val modelFileName: String? = null,
+    /** Optional lexicon file present in some VITS / Matcha bundles. */
+    val lexiconFileName: String? = null,
+    /** Optional dict directory (Chinese VITS / Matcha use jieba dicts). */
+    val dictDirName: String? = null,
 ) {
     val modelFamily: ModelFamily get() = ModelFamily.fromCatalog(family)
     val tierEnum: Tier get() = Tier.fromCatalog(tier)

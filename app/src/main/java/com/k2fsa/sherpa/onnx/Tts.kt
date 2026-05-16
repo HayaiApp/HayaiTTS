@@ -22,6 +22,15 @@
 // Newer sherpa-onnx releases add Kokoro / Kitten / ZipVoice / Pocket / Supertonic
 // model configs plus a richer GenerationConfig — those are intentionally NOT
 // declared here because the 6.25.12 native side does not know how to read them.
+//
+// Phase 5 re-confirmed this with a JNI symbol dump
+// (`grep -ao "OfflineTts[A-Za-z]*ModelConfig" libsherpa-onnx-jni.so`) which
+// returned only OfflineTtsModelConfig, OfflineTtsVitsModelConfig, and
+// OfflineTtsMatchaModelConfig. A second pass for the strings "Kokoro" /
+// "Kitten" / "ZipVoice" / "Supertonic" returned zero hits — they are
+// completely absent from the 6.25.12 native side. The catalog therefore
+// lists Kokoro and Kitten with `available: false` and the runtime throws
+// UnsupportedOperationException from their config builders.
 
 // Copyright (c) 2023 Xiaomi Corporation — original upstream definitions are
 // MIT-licensed (see https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE).

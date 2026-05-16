@@ -65,4 +65,6 @@
     <string name="family_kitten">Kitten</string>
     <string name="family_custom">Custom</string>
     <string name="tier_size_label">~%1$d MB</string>
+    <string name="voice_chip_coming_soon">Coming soon</string>
+    <string name="voice_detail_coming_soon_hint">This model family isn\'t supported by the current sherpa-onnx build. A future update will enable it.</string>
 </resources>
