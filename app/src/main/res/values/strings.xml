@@ -11,4 +11,13 @@
     <string name="voice_preview_action">Preview</string>
     <string name="settings_title">Settings</string>
     <string name="settings_license">License: GPL-3.0</string>
+    <string name="download_channel_name">Voice downloads</string>
+    <string name="download_channel_description">Notifications shown while a voice model is downloading or extracting.</string>
+    <string name="download_in_progress">Downloading neural voice…</string>
+    <string name="library_test_download">Test download (Alan, en-GB)</string>
+    <string name="library_test_download_again">Re-download Alan</string>
+    <string name="library_downloading">Downloading…</string>
+    <string name="library_extracting">Extracting…</string>
+    <string name="library_download_failed">Download failed: %1$s</string>
+    <string name="library_download_cancelled">Download cancelled</string>
 </resources>

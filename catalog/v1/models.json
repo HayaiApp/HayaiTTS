@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "voices": [
+    {
+      "id": "vits-piper-en_US-amy-low",
+      "family": "piper",
+      "title": "Amy",
+      "languages": ["en-US"],
+      "speakers": [{"id": 0, "name": "amy", "gender": "F"}],
+      "sampleRateHz": 16000,
+      "approxSizeMb": 78,
+      "tier": "low",
+      "license": "MIT",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-amy-low.tar.bz2",
+      "sha256": null
+    },
+    {
+      "id": "vits-piper-en_US-libritts_r-medium",
+      "family": "piper",
+      "title": "LibriTTS-R (US)",
+      "languages": ["en-US"],
+      "speakers": [{"id": 0, "name": "libritts_r", "gender": "N"}],
+      "sampleRateHz": 22050,
+      "approxSizeMb": 85,
+      "tier": "mid",
+      "license": "MIT",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-libritts_r-medium.tar.bz2",
+      "sha256": null
+    },
+    {
+      "id": "vits-piper-en_GB-alan-low",
+      "family": "piper",
+      "title": "Alan",
+      "languages": ["en-GB"],
+      "speakers": [{"id": 0, "name": "alan", "gender": "M"}],
+      "sampleRateHz": 16000,
+      "approxSizeMb": 63,
+      "tier": "low",
+      "license": "MIT",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-alan-low.tar.bz2",
+      "sha256": null
+    },
+    {
+      "id": "vits-piper-es_ES-davefx-medium",
+      "family": "piper",
+      "title": "Davefx",
+      "languages": ["es-ES"],
+      "speakers": [{"id": 0, "name": "davefx", "gender": "M"}],
+      "sampleRateHz": 22050,
+      "approxSizeMb": 85,
+      "tier": "mid",
+      "license": "MIT",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-es_ES-davefx-medium.tar.bz2",
+      "sha256": null
+    },
+    {
+      "id": "vits-piper-fr_FR-siwis-medium",
+      "family": "piper",
+      "title": "Siwis",
+      "languages": ["fr-FR"],
+      "speakers": [{"id": 0, "name": "siwis", "gender": "F"}],
+      "sampleRateHz": 22050,
+      "approxSizeMb": 85,
+      "tier": "mid",
+      "license": "MIT",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-fr_FR-siwis-medium.tar.bz2",
+      "sha256": null
+    },
+    {
+      "id": "vits-piper-de_DE-thorsten-medium",
+      "family": "piper",
+      "title": "Thorsten",
+      "languages": ["de-DE"],
+      "speakers": [{"id": 0, "name": "thorsten", "gender": "M"}],
+      "sampleRateHz": 22050,
+      "approxSizeMb": 85,
+      "tier": "mid",
+      "license": "MIT",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-de_DE-thorsten-medium.tar.bz2",
+      "sha256": null
+    },
+    {
+      "id": "vits-piper-ja_JP-kokoro-medium",
+      "family": "piper",
+      "title": "Kokoro (Piper JP)",
+      "languages": ["ja-JP"],
+      "speakers": [{"id": 0, "name": "kokoro", "gender": "F"}],
+      "sampleRateHz": 22050,
+      "approxSizeMb": 85,
+      "tier": "mid",
+      "license": "MIT",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-ja_JP-kokoro-medium.tar.bz2",
+      "sha256": null
+    },
+    {
+      "id": "vits-piper-zh_CN-huayan-medium",
+      "family": "piper",
+      "title": "Huayan",
+      "languages": ["zh-CN"],
+      "speakers": [{"id": 0, "name": "huayan", "gender": "F"}],
+      "sampleRateHz": 22050,
+      "approxSizeMb": 85,
+      "tier": "mid",
+      "license": "MIT",
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-zh_CN-huayan-medium.tar.bz2",
+      "sha256": null
+    }
+  ]
+}

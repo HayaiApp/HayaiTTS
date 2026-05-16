@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
 }
 
@@ -23,6 +24,13 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+
+        // Room schema export. KSP picks this up via the `room` argument and
+        // writes JSON snapshots of each entity into app/schemas/. Schemas are
+        // tracked in git so migrations stay reviewable.
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
 
         // Only ship native ABIs we actually care about. arm64-v8a covers every
         // modern phone, armeabi-v7a covers the long tail of 32-bit ARM devices,
@@ -76,6 +84,20 @@ android {
     }
 }
 
+// Sync the hand-authored catalog at the repo root into the app assets folder
+// so the bundled fallback is always identical to the canonical source. We do
+// not generate this file — the root copy is the source of truth — but copying
+// keeps a single editing surface.
+val syncCatalogAssets = tasks.register<Copy>("syncCatalogAssets") {
+    from(rootProject.layout.projectDirectory.dir("catalog"))
+    into(layout.projectDirectory.dir("src/main/assets/catalog"))
+    include("**/*.json")
+}
+
+tasks.named("preBuild") {
+    dependsOn(syncCatalogAssets)
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -83,6 +105,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
@@ -106,6 +129,8 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.workmanager)
     implementation(libs.kermit)
+    implementation(libs.commons.compress)
+    implementation(libs.kotlinx.serialization.json)
 
     // Maven Central re-package of the official k2-fsa/sherpa-onnx Android AAR.
     // The upstream team only ships AARs via GitHub releases; bihe0832 mirrors
