@@ -89,7 +89,7 @@ class SherpaTtsRuntime private constructor(
             perVoiceKeys.take(drop).forEach { key ->
                 val evicted = loaded.remove(key)
                 evicted?.runCatching { release() }
-                log.i { "Evicted lengthScale bucket ${key.lengthBucket} for $voiceId" }
+                log.i { "Evicted lengthScale bucket ${key.lengthBucket} for $currentVoiceId" }
             }
         }
         // Step 2: classic LRU over the whole cache.

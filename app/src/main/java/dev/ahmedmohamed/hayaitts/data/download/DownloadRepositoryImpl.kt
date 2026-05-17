@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 /**
@@ -135,6 +136,24 @@ class DownloadRepositoryImpl(
                     updatedAt = System.currentTimeMillis(),
                 ),
             )
+        }
+    }
+
+    override suspend fun clearOne(voiceId: String) {
+        withContext(Dispatchers.IO) { downloadStateDao.deleteById(voiceId) }
+    }
+
+    override suspend fun clearCompleted() {
+        withContext(Dispatchers.IO) {
+            val terminalStatuses = setOf(
+                DownloadState.STATUS_DONE,
+                DownloadState.STATUS_FAILED,
+                DownloadState.STATUS_CANCELLED,
+            )
+            val rows = downloadStateDao.getAll().first()
+            rows.asSequence()
+                .filter { it.status in terminalStatuses }
+                .forEach { downloadStateDao.deleteById(it.voiceId) }
         }
     }
 }

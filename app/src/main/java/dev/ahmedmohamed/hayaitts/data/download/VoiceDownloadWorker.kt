@@ -232,17 +232,28 @@ class VoiceDownloadWorker(
             finalFile.delete()
             success = true
             log.i { "Voice ${voice.id} installed at $voiceDir" }
+            // P2: post one-shot completion notification on the secondary
+            // channel so the user gets a "Installed Amy" toast even after the
+            // active foreground notification disappears.
+            runCatching {
+                DownloadNotifications.postInstalledNotification(
+                    applicationContext,
+                    voiceId = voice.id,
+                    title = voice.title,
+                )
+            }
             Result.success()
         } finally {
             // Cleanup on every non-success path: scrap the partial tarball and
             // (only if we created it this run) the partially-populated voice
-            // directory. Leaving 200 MB of half-extracted Kokoro shards around
-            // when the user retries was the Phase 4a TODO this addresses.
+            // directory.
             if (!success) {
                 partFile.takeIf { it.exists() }?.delete()
                 finalFile.takeIf { it.exists() }?.delete()
                 if (!voiceDirPreexisted) voiceDir.takeIf { it.exists() }?.deleteRecursively()
             }
+            // P2: always drop the foreground notification when worker exits.
+            DownloadNotifications.cancelActive(applicationContext)
         }
     }
 
@@ -528,6 +539,16 @@ class VoiceDownloadWorker(
     private suspend fun failPersisted(voiceId: String, reason: String): Result {
         log.e { "Download for $voiceId failed: $reason" }
         upsertState(voiceId, DownloadState.STATUS_FAILED, 0L, 0L, reason)
+        // P2: surface failure on the completion channel with a Retry action.
+        runCatching {
+            val title = inputData.getString(KEY_TITLE) ?: voiceId
+            DownloadNotifications.postFailedNotification(
+                applicationContext,
+                voiceId = voiceId,
+                title = title,
+                reason = reason,
+            )
+        }
         return Result.failure()
     }
 

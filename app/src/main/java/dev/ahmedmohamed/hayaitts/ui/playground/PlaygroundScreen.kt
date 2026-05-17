@@ -447,7 +447,7 @@ private fun HistoryRow(entry: PlaygroundSampleEntity, onReplay: () -> Unit, onDe
 
 private fun formatMultiplier(value: Float): String {
     val rounded = (value * 10f).roundToInt() / 10f
-    return "$roundedx"
+    return "${rounded}x"
 }
 
 @Composable

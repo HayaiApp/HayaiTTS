@@ -272,4 +272,45 @@
     <string name="playground_time_minutes">%1$d min ago</string>
     <string name="playground_time_hours">%1$d hr ago</string>
     <string name="playground_time_days">%1$d d ago</string>
+
+    <!-- P2: Downloads Manager screen + hardened notifications -->
+    <string name="downloads_title">Downloads</string>
+    <string name="downloads_subtitle_active">%1$d active</string>
+    <string name="downloads_subtitle_idle">No active downloads</string>
+    <string name="downloads_open">Open downloads</string>
+    <string name="downloads_clear_completed">Clear completed</string>
+    <string name="downloads_section_active">Active</string>
+    <string name="downloads_section_failed">Failed</string>
+    <string name="downloads_section_completed">Recently completed</string>
+    <string name="downloads_empty_title">Nothing downloading</string>
+    <string name="downloads_empty_subtitle">Downloads you start from Browse will appear here.</string>
+    <string name="downloads_status_queued">Queued</string>
+    <string name="downloads_status_running">%1$s / %2$s · %3$d%%</string>
+    <string name="downloads_status_extracting">Extracting…</string>
+    <string name="downloads_status_failed">Failed: %1$s</string>
+    <string name="downloads_status_completed">Completed</string>
+    <string name="downloads_status_completed_ago">Completed %1$s ago</string>
+    <string name="downloads_action_retry">Retry</string>
+    <string name="downloads_action_redownload">Re-download</string>
+    <string name="downloads_action_remove_history">Remove from history</string>
+    <string name="downloads_action_cancel">Cancel</string>
+    <string name="downloads_size_kb">%1$d KB</string>
+    <string name="downloads_size_mb">%1$d MB</string>
+    <string name="downloads_size_unknown">--</string>
+    <string name="downloads_time_just_now">just now</string>
+    <string name="downloads_time_minutes">%1$d min</string>
+    <string name="downloads_time_hours">%1$d hr</string>
+    <string name="downloads_time_days">%1$d d</string>
+    <string name="download_active_channel_name">Voice downloads (active)</string>
+    <string name="download_active_channel_description">Ongoing voice download progress.</string>
+    <string name="download_complete_channel_name">Voice downloads (completed)</string>
+    <string name="download_complete_channel_description">One-shot install / failure notifications.</string>
+    <string name="download_notification_big_text">Downloading neural voice (%1$s / %2$s)</string>
+    <string name="download_notification_big_text_indeterminate">Downloading neural voice…</string>
+    <string name="download_notification_installed_title">Installed %1$s</string>
+    <string name="download_notification_installed_text">Voice ready to use.</string>
+    <string name="download_notification_failed_title">Download failed: %1$s</string>
+    <string name="download_notification_failed_text">%1$s — tap to retry</string>
+    <string name="download_notification_action_cancel">Cancel</string>
+    <string name="download_notification_action_retry">Retry</string>
 </resources>

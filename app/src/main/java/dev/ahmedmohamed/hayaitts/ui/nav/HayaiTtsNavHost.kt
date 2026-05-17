@@ -6,7 +6,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import dev.ahmedmohamed.hayaitts.ui.browse.BrowseScreen
+import dev.ahmedmohamed.hayaitts.ui.downloads.DownloadsScreen
 import dev.ahmedmohamed.hayaitts.ui.custom.CustomImportScreen
 import dev.ahmedmohamed.hayaitts.ui.detail.VoiceDetailScreen
 import dev.ahmedmohamed.hayaitts.ui.help.HelpScreen
@@ -55,6 +57,7 @@ fun HayaiTtsNavHost(
                     navController.navigate(Routes.customImport(uri))
                 },
                 onOpenQuickSwitch = onOpenQuickSwitch,
+                onOpenDownloads = { navController.navigate(Routes.DOWNLOADS) },
             )
         }
         composable(Routes.BROWSE) {
@@ -99,7 +102,14 @@ fun HayaiTtsNavHost(
                 onBack = { navController.popBackStack() },
             )
         }
-    }
+            composable(
+            route = Routes.DOWNLOADS,
+            // Deep link so notification taps land on this screen even on cold launch.
+            deepLinks = listOf(navDeepLink { uriPattern = "hayaitts://downloads" }),
+        ) {
+            DownloadsScreen(onBack = { navController.popBackStack() })
+        }
+}
 }
 
 object Routes {
@@ -107,6 +117,7 @@ object Routes {
     const val HELP = "help"
     const val LIBRARY = "library"
     const val BROWSE = "browse"
+    const val DOWNLOADS = "downloads"
     const val ARG_VOICE_ID = "voiceId"
     const val VOICE_DETAIL = "voiceDetail/{$ARG_VOICE_ID}"
     const val PLAYGROUND = "playground/{$ARG_VOICE_ID}"

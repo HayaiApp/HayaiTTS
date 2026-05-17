@@ -100,5 +100,15 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+    
+        <!-- P2: handles Cancel + Retry actions on download notifications. -->
+        <receiver
+            android:name=".data.download.DownloadActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="dev.ahmedmohamed.hayaitts.action.CANCEL_DOWNLOAD" />
+                <action android:name="dev.ahmedmohamed.hayaitts.action.RETRY_DOWNLOAD" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

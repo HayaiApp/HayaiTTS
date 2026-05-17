@@ -23,6 +23,8 @@ import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
 import dev.ahmedmohamed.hayaitts.ui.browse.BrowseViewModel
 import dev.ahmedmohamed.hayaitts.ui.custom.CustomImportViewModel
 import dev.ahmedmohamed.hayaitts.ui.detail.VoiceDetailViewModel
+import dev.ahmedmohamed.hayaitts.ui.downloads.DownloadsHistory
+import dev.ahmedmohamed.hayaitts.ui.downloads.DownloadsViewModel
 import dev.ahmedmohamed.hayaitts.ui.library.LibraryViewModel
 import dev.ahmedmohamed.hayaitts.ui.library.preferences.LibraryUiPreferences
 import dev.ahmedmohamed.hayaitts.ui.playground.PlaygroundViewModel
@@ -118,6 +120,9 @@ val appModule = module {
     // ui/ so the data + domain layers stay independent of presentation state.
     single { LibraryUiPreferences(androidContext()) }
 
+    // P2: DataStore-backed completion history for the Downloads Manager.
+    single { DownloadsHistory(androidContext()) }
+
     // First-launch onboarding flag, separate DataStore so a future "reset
     // onboarding" action can wipe it without touching engine settings.
     single { OnboardingPreferences(androidContext()) }
@@ -171,6 +176,14 @@ val appModule = module {
             settings = get(),
             checker = get(),
             installer = get(),
+        )
+    }
+    viewModel {
+        DownloadsViewModel(
+            downloadRepository = get(),
+            catalogRepository = get(),
+            voiceRepository = get(),
+            history = get(),
         )
     }
 }

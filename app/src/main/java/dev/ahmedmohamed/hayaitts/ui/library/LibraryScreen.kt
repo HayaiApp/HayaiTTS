@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
@@ -38,6 +39,8 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
@@ -66,12 +69,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.R
+import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
+import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
 import dev.ahmedmohamed.hayaitts.ui.components.EmptyState
 import dev.ahmedmohamed.hayaitts.ui.components.FeaturedVoiceCard
 import dev.ahmedmohamed.hayaitts.ui.components.HayaiRichTooltipBox
 import dev.ahmedmohamed.hayaitts.ui.components.InstalledVoiceCard
+import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 /**
  * The home tab. Hosts:
@@ -89,11 +96,25 @@ fun LibraryScreen(
     onVoiceClick: (voiceId: String) -> Unit,
     onImport: (rawUri: String) -> Unit,
     onOpenQuickSwitch: () -> Unit,
+    onOpenDownloads: () -> Unit = {},
     viewModel: LibraryViewModel = koinViewModel(),
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
+
+    // P2: count active downloads for the top-bar badge. Sourced from Koin so
+    // we do not have to grow the LibraryViewModel.
+    val downloadRepository: DownloadRepository = koinInject()
+    val activeDownloadCount by remember(downloadRepository) {
+        downloadRepository.states.map { snapshot ->
+            snapshot.values.count { s ->
+                s is DownloadState.Queued ||
+                    s is DownloadState.Running ||
+                    s is DownloadState.Extracting
+            }
+        }
+    }.collectAsStateWithLifecycle(initialValue = 0)
 
     var pendingUninstall by remember { mutableStateOf<InstalledVoice?>(null) }
     var reorderMode by remember { mutableStateOf(false) }
