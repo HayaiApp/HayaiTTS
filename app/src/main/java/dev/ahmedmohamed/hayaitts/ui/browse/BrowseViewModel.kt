@@ -49,6 +49,12 @@ class BrowseViewModel(
         val languages: Set<String> = emptySet(),
         val tier: Tier? = null,
         val families: Set<ModelFamily> = emptySet(),
+        /**
+         * Selected speaker genders. Values are normalised lower-case tokens
+         * ("f", "m", "unknown") — see [normaliseGender] for the mapping from
+         * raw catalog strings. Empty set = no filter.
+         */
+        val genders: Set<String> = emptySet(),
         val query: String = "",
     ) {
         val activeCount: Int get() {
@@ -56,6 +62,7 @@ class BrowseViewModel(
             if (languages.isNotEmpty()) n++
             if (tier != null) n++
             if (families.isNotEmpty()) n++
+            if (genders.isNotEmpty()) n++
             if (query.isNotBlank()) n++
             return n
         }
@@ -67,6 +74,7 @@ class BrowseViewModel(
         val downloads: Map<String, DownloadState> = emptyMap(),
         val availableLanguages: List<String> = emptyList(),
         val availableFamilies: List<ModelFamily> = emptyList(),
+        val availableGenders: List<String> = emptyList(),
         val filters: Filters = Filters(),
         /**
          * Voice tier the device is rated for. Browse sorts cards matching
@@ -100,6 +108,11 @@ class BrowseViewModel(
             downloads = downloads,
             availableLanguages = catalog.flatMap { it.languages }.distinct().sorted(),
             availableFamilies = catalog.map { it.modelFamily }.distinct(),
+            availableGenders = catalog
+                .flatMap { card -> card.speakers.map { normaliseGender(it.gender) } }
+                .distinct()
+                // Stable order: F, M, then unknown last.
+                .sortedBy { g -> when (g) { "f" -> 0; "m" -> 1; else -> 2 } },
             filters = f,
             recommendedTier = recommended,
         )
@@ -116,6 +129,12 @@ class BrowseViewModel(
         val next = it.families.toMutableSet()
         if (!next.add(fam)) next.remove(fam)
         it.copy(families = next)
+    }
+    fun toggleGender(gender: String) = filters.update {
+        val normalised = normaliseGender(gender)
+        val next = it.genders.toMutableSet()
+        if (!next.add(normalised)) next.remove(normalised)
+        it.copy(genders = next)
     }
     fun clearLanguages() = filters.update { it.copy(languages = emptySet()) }
     fun clearFamilies() = filters.update { it.copy(families = emptySet()) }
@@ -134,7 +153,21 @@ class BrowseViewModel(
         (f.languages.isEmpty() || card.languages.any { it in f.languages }) &&
             (f.tier == null || card.tierEnum == f.tier) &&
             (f.families.isEmpty() || card.modelFamily in f.families) &&
+            (f.genders.isEmpty() ||
+                card.speakers.any { normaliseGender(it.gender) in f.genders }) &&
             (f.query.isBlank() || card.title.contains(f.query.trim(), ignoreCase = true))
+    }
+
+    /**
+     * Catalog speaker `gender` strings are inconsistent across sources — some
+     * use single-letter codes ("F"/"M"), some use full words, some are blank
+     * or "unknown". Collapse them onto a stable 3-bucket token so the filter
+     * compares cleanly.
+     */
+    private fun normaliseGender(raw: String): String = when (raw.trim().lowercase()) {
+        "f", "female" -> "f"
+        "m", "male" -> "m"
+        else -> "unknown"
     }
 
     @Suppress("unused")

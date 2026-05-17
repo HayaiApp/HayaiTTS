@@ -35,7 +35,6 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,8 +71,10 @@ import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
  * family is communicated by a single icon glyph on a secondaryContainer
  * background, and by the FamilyChip rendered in the chip strip.
  *
- * During downloads, a [CircularWavyProgressIndicator] wraps the family badge
- * so progress is legible at the card's hero spot.
+ * Download progress lives in a single inline [DownloadProgress] block below
+ * the chip strip — we do NOT also wrap the family badge in a circular
+ * progress indicator. Earlier iterations stacked both and the card grew too
+ * tall with two competing wavy indicators.
  */
 
 /** Library variant: an installed voice with default-locale + uninstall affordances. */
@@ -288,9 +289,14 @@ private enum class ActionState { Idle, Running, Installed, Unavailable }
 
 /**
  * Leading-slot circular family badge in secondaryContainer with an icon tint
- * of onSecondaryContainer. During downloads, a wavy circular progress arc
- * wraps the badge.
+ * of onSecondaryContainer. Stays static during downloads — progress lives in
+ * the inline [DownloadProgress] below the card body.
+ *
+ * `downloadState` is preserved on the signature for source-compatibility with
+ * the existing call sites but is intentionally unused — see the file-level
+ * docstring.
  */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 fun FamilyBadge(
     family: ModelFamily,
@@ -298,46 +304,19 @@ fun FamilyBadge(
     size: Dp = 48.dp,
 ) {
     val identity = family.identity()
-    val isRunning = downloadState is DownloadState.Running ||
-        downloadState is DownloadState.Extracting ||
-        downloadState is DownloadState.Queued
-
-    Box(modifier = Modifier.size(size + 8.dp), contentAlignment = Alignment.Center) {
-        AnimatedContent(
-            targetState = isRunning,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "badge-progress",
-        ) { running ->
-            if (running) {
-                if (downloadState is DownloadState.Running) {
-                    CircularWavyProgressIndicator(
-                        progress = { downloadState.pct.coerceIn(0f, 1f) },
-                        modifier = Modifier.size(size + 8.dp),
-                    )
-                } else {
-                    CircularWavyProgressIndicator(
-                        modifier = Modifier.size(size + 8.dp),
-                    )
-                }
-            } else {
-                Spacer(modifier = Modifier.size(size + 8.dp))
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = identity.icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.size((size.value * 0.55f).dp),
-            )
-        }
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.secondaryContainer),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = identity.icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size((size.value * 0.55f).dp),
+        )
     }
 }
 

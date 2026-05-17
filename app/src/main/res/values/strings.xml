@@ -142,6 +142,17 @@
     <string name="browse_subtitle">%1$d voices</string>
     <string name="browse_refresh">Refresh catalog</string>
     <string name="browse_filter_clear_all">Clear filters</string>
+    <string name="browse_filter_gender">Voice type</string>
+    <string name="browse_filter_gender_female">Female</string>
+    <string name="browse_filter_gender_male">Male</string>
+    <string name="browse_filter_gender_unknown">Unspecified</string>
+    <string name="library_open_settings">Settings</string>
+    <string name="voice_detail_actions_overflow">More actions</string>
+    <string name="voice_detail_install_primary">Install voice</string>
+    <string name="voice_detail_cancel_primary">Cancel download</string>
+    <string name="voice_detail_uninstall_action">Uninstall</string>
+    <string name="voice_detail_set_default_action">Set default</string>
+    <string name="voice_detail_clear_default_action">Clear default</string>
     <string name="quick_switch_title">Quick switch</string>
     <string name="quick_switch_subtitle">Pick the default voice for the moment</string>
     <string name="quick_switch_current">Current default</string>

@@ -2,6 +2,7 @@
 
 package dev.ahmedmohamed.hayaitts.ui.library
 
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
@@ -64,6 +66,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -76,6 +79,7 @@ import dev.ahmedmohamed.hayaitts.ui.components.EmptyState
 import dev.ahmedmohamed.hayaitts.ui.components.FeaturedVoiceCard
 import dev.ahmedmohamed.hayaitts.ui.components.HayaiRichTooltipBox
 import dev.ahmedmohamed.hayaitts.ui.components.InstalledVoiceCard
+import dev.ahmedmohamed.hayaitts.ui.settings.SettingsActivity
 import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -128,6 +132,11 @@ fun LibraryScreen(
     val pickFile = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri -> if (uri != null) onImport(uri.toString()) }
+
+    val context = LocalContext.current
+    val openSettings = {
+        context.startActivity(Intent(context, SettingsActivity::class.java))
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -188,6 +197,27 @@ fun LibraryScreen(
                                 ),
                             )
                         }
+                    }
+                    // Downloads entry: badge shows active count when > 0.
+                    BadgedBox(
+                        badge = {
+                            if (activeDownloadCount > 0) {
+                                Badge { Text("$activeDownloadCount") }
+                            }
+                        },
+                    ) {
+                        IconButton(onClick = onOpenDownloads) {
+                            Icon(
+                                Icons.Outlined.CloudDownload,
+                                contentDescription = stringResource(R.string.downloads_open),
+                            )
+                        }
+                    }
+                    IconButton(onClick = openSettings) {
+                        Icon(
+                            Icons.Outlined.Settings,
+                            contentDescription = stringResource(R.string.library_open_settings),
+                        )
                     }
                 },
                 scrollBehavior = scrollBehavior,

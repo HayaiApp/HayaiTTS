@@ -38,6 +38,7 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Female
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.RecordVoiceOver
@@ -45,6 +46,9 @@ import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
@@ -52,7 +56,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -85,16 +88,22 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 /**
- * Per-voice detail screen reached from Browse or Library. The top half is an
- * immersive hero block: family-tinted gradient + a polygonal family glyph +
- * the voice title and chip strip. Below the hero, the preview section shows
- * a live waveform fed by [VoiceDetailViewModel.previewAmplitudes], a 32-bar
- * bar graph whose heights are RMS bins streamed in 60 ms windows during
- * playback. Speakers render as circular avatars; tapping switches the synth
- * sid via [VoiceDetailViewModel.setSpeaker].
+ * Per-voice detail screen reached from Browse or Library.
  *
- * The screen uses [LargeFlexibleTopAppBar] (M3 Expressive's "Large" variant
- * with an optional subtitle slot + flexible collapse motion).
+ * Layout (top-down):
+ *   1. [LargeFlexibleTopAppBar] — back + title + subtitle. Actions slot holds
+ *      Quick-Switch + a 3-dot overflow with Playground / Uninstall.
+ *   2. Hero block — family glyph, title, chip strip, license caption.
+ *   3. Speakers row.
+ *   4. Preview block — waveform + text + play/stop.
+ *   5. Optional "Use as default for X" grouped section (only when installed
+ *      and the voice ships multiple locales).
+ *   6. Sticky-feeling bottom [PrimaryAction] — one button that switches
+ *      between Install / Cancel-download / Set-default / Coming-soon based
+ *      on state.
+ *
+ * Every secondary affordance (Playground, Uninstall, Quick Switch) is in the
+ * top-bar's actions slot so the body has one and only one primary CTA.
  */
 @Composable
 fun VoiceDetailScreen(
@@ -113,6 +122,7 @@ fun VoiceDetailScreen(
     val accent = MaterialTheme.colorScheme.primary
     val installed = state.installed
     val card = state.card
+    var overflowOpen by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -139,6 +149,42 @@ fun VoiceDetailScreen(
                             Icons.Outlined.RecordVoiceOver,
                             contentDescription = stringResource(R.string.quick_switch_title),
                         )
+                    }
+                    Box {
+                        IconButton(onClick = { overflowOpen = true }) {
+                            Icon(
+                                Icons.Outlined.MoreVert,
+                                contentDescription = stringResource(R.string.voice_detail_actions_overflow),
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = overflowOpen,
+                            onDismissRequest = { overflowOpen = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.voice_detail_open_playground)) },
+                                leadingIcon = {
+                                    Icon(Icons.Outlined.Tune, contentDescription = null)
+                                },
+                                enabled = state.isInstalled,
+                                onClick = {
+                                    overflowOpen = false
+                                    onOpenPlayground()
+                                },
+                            )
+                            if (state.isInstalled && installed != null && !installed.bundled) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.voice_detail_uninstall_action)) },
+                                    leadingIcon = {
+                                        Icon(Icons.Outlined.Delete, contentDescription = null)
+                                    },
+                                    onClick = {
+                                        overflowOpen = false
+                                        viewModel.uninstall()
+                                    },
+                                )
+                            }
+                        }
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -167,23 +213,17 @@ fun VoiceDetailScreen(
                 onPlay = viewModel::play,
                 onStop = viewModel::stop,
             )
-            OutlinedButton(
-                onClick = onOpenPlayground,
-                enabled = state.isInstalled,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-            ) {
-                Icon(Icons.Outlined.Tune, contentDescription = null)
-                Spacer(Modifier.size(8.dp))
-                Text(stringResource(R.string.voice_detail_open_playground))
+            if (state.isInstalled && installed != null) {
+                DefaultLocaleSection(
+                    locales = installed.languages,
+                    defaulted = state.defaultedLocales(),
+                    onToggleDefault = viewModel::setDefault,
+                )
             }
-            ActionRow(
+            PrimaryAction(
                 state = state,
                 onInstall = viewModel::install,
                 onCancel = viewModel::cancel,
-                onUninstall = viewModel::uninstall,
-                onSetDefault = viewModel::setDefault,
             )
             Spacer(Modifier.height(40.dp))
         }
@@ -417,12 +457,6 @@ private fun PreviewSection(
     }
 }
 
-/**
- * 20-bar waveform. Each bar height is driven by the matching amplitude bin
- * (we map the 32 RMS bins down to 20 visible bars by taking strides). Idle
- * state shows a flat baseline; the "playing" parameter just animates the
- * baseline a touch higher so the row reads as alive.
- */
 @Composable
 private fun WaveformBars(
     amplitudes: FloatArray,
@@ -458,13 +492,77 @@ private fun WaveformBars(
     }
 }
 
+/**
+ * Groups the per-locale "Set default" toggles into one labeled section. Each
+ * locale renders as a [FilterChip]-style assist chip — selected when this
+ * voice is the current default for that locale.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ActionRow(
+private fun DefaultLocaleSection(
+    locales: List<String>,
+    defaulted: Set<String>,
+    onToggleDefault: (locale: String) -> Unit,
+) {
+    if (locales.isEmpty()) return
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.voice_detail_set_default_header),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            locales.forEach { locale ->
+                val isDefault = locale in defaulted
+                AssistChip(
+                    onClick = { onToggleDefault(locale) },
+                    label = {
+                        Text(
+                            stringResource(
+                                if (isDefault) R.string.voice_default_label
+                                else R.string.voice_set_default,
+                                locale,
+                            ),
+                        )
+                    },
+                    leadingIcon = if (isDefault) {
+                        {
+                            Icon(
+                                Icons.Outlined.CheckCircle,
+                                contentDescription = null,
+                            )
+                        }
+                    } else null,
+                    colors = if (isDefault) {
+                        AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    } else AssistChipDefaults.assistChipColors(),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * One primary action button anchored at the bottom of the scroll body. The
+ * label and behaviour switches between Install / Cancel-download /
+ * Re-install-available / Coming-soon based on the current state. Download
+ * progress (when running) is rendered above the button so we don't stack a
+ * progress strip beside an action.
+ */
+@Composable
+private fun PrimaryAction(
     state: VoiceDetailViewModel.UiState,
     onInstall: () -> Unit,
     onCancel: () -> Unit,
-    onUninstall: () -> Unit,
-    onSetDefault: (locale: String) -> Unit,
 ) {
     val ds = state.downloadState
     val running = ds is DownloadState.Running || ds is DownloadState.Extracting || ds is DownloadState.Queued
@@ -475,52 +573,28 @@ private fun ActionRow(
         when {
             running -> {
                 DownloadProgress(state = ds)
-                OutlinedButton(onClick = onCancel) {
+                Button(
+                    onClick = onCancel,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Icon(Icons.Outlined.Cancel, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
-                    Text(stringResource(R.string.action_cancel))
+                    Text(stringResource(R.string.voice_detail_cancel_primary))
                 }
             }
             state.isInstalled -> {
-                val installed = state.installed!!
-                val defaulted = state.defaultedLocales()
-                Text(
-                    text = stringResource(R.string.voice_detail_set_default_header),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                installed.languages.forEach { locale ->
-                    val isDefault = locale in defaulted
-                    FilledTonalButton(
-                        onClick = { onSetDefault(locale) },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(
-                            imageVector = if (isDefault) Icons.Outlined.CheckCircle else Icons.Outlined.PlayArrow,
-                            contentDescription = null,
-                        )
-                        Spacer(Modifier.size(8.dp))
-                        Text(
-                            stringResource(
-                                if (isDefault) R.string.voice_default_label
-                                else R.string.voice_set_default,
-                                locale,
-                            ),
-                        )
-                    }
-                }
-                if (!installed.bundled) {
-                    OutlinedButton(onClick = onUninstall) {
-                        Icon(Icons.Outlined.Delete, contentDescription = null)
-                        Spacer(Modifier.size(8.dp))
-                        Text(stringResource(R.string.action_uninstall))
-                    }
-                }
+                // Primary action is consumed by the per-locale chips above;
+                // installed voices have no body-level CTA. The toolbar
+                // overflow handles Uninstall and Playground.
             }
             state.card != null && state.card.available -> {
-                FilledTonalButton(onClick = onInstall) {
+                Button(
+                    onClick = onInstall,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Icon(Icons.Outlined.CloudDownload, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
-                    Text(stringResource(R.string.action_install))
+                    Text(stringResource(R.string.voice_detail_install_primary))
                 }
             }
             state.card != null && !state.card.available -> {

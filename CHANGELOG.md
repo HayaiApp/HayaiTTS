@@ -5,6 +5,35 @@ All notable changes to HayaiTTS land here. Format loosely follows
 
 ## [Unreleased]
 
+## [v1.1.1] — 2026-05-17
+
+### Changed
+
+- **Browse search bar** is now a plain inline field that just filters the
+  list below — no more "expanded" state stacking duplicate voice cards
+  inside the bar.
+- **Voice card download UI** consolidated to one indicator. The circular
+  wavy progress that wrapped the family badge during downloads is gone;
+  the inline `LinearWavyProgressIndicator` under the chip strip is the
+  sole progress surface. Cards are shorter and cleaner.
+- **VoiceDetail toolbar** holds every secondary action: Quick Switch lives
+  in the bar's actions slot and a 3-dot overflow exposes Playground and
+  Uninstall. The screen body now has exactly one primary CTA (Install /
+  Cancel / per-locale default chips), with download progress rendered
+  above the button instead of beside scattered controls.
+
+### Added
+
+- **Settings entry on the Library top bar** — gear icon launches
+  `SettingsActivity` directly. Settings was previously only reachable
+  from the system TTS engine ⚙ button, which most users never see.
+- **Downloads entry on the Library top bar** — cloud-download icon with
+  a count badge for active downloads, opening the Downloads Manager.
+- **Gender filter on Browse** — the filter sheet now has a Voice type
+  group (Female / Male / Unspecified) backed by the catalog's per-
+  speaker `gender` field. Active selections render as removable chips
+  alongside the existing tier / language / family chips.
+
 ## [v1.1.0] — 2026-05-17
 
 ### Added
@@ -71,7 +100,8 @@ First public beta — full feature list documented in the commit
 history and the
 [release notes](https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.0.0-b1).
 
-[Unreleased]: https://github.com/HayaiApp/HayaiTTS/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/HayaiApp/HayaiTTS/compare/v1.1.1...HEAD
+[v1.1.1]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.1.1
 [v1.1.0]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.1.0
 [v1.0.0]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.0.0
 [v1.0.0-b1]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.0.0-b1
