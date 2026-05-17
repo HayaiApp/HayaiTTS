@@ -157,11 +157,14 @@ def family_for_slug(slug: str) -> str:
     if slug.startswith("matcha-"): return "matcha"
     if slug.startswith("kokoro-"): return "kokoro"
     if slug.startswith("kitten-"): return "kitten"
-    # Supertonic tarballs ship as ``sherpa-onnx-supertonic-...``; page slugs
-    # use the short form. Match either.
-    if slug.startswith("supertonic-") or "supertonic" in slug: return "supertonic"
-    if slug.startswith("zipvoice-"): return "zipvoice"
-    if slug.startswith("pocket-"): return "pocket"
+    # The three SOTA k2-fsa families ship their bundles (and document their
+    # subpages) under `sherpa-onnx-<family>-...` names. Match the family by
+    # substring rather than by prefix so the heuristic catches both the
+    # `sherpa-onnx-` prefix and any short-form slug a future upstream commit
+    # might use.
+    if "supertonic" in slug: return "supertonic"
+    if "zipvoice" in slug: return "zipvoice"
+    if "pocket-tts" in slug or slug.startswith("pocket-"): return "pocket"
     return "unknown"
 
 
