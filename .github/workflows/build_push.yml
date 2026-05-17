@@ -109,44 +109,57 @@ jobs:
           name: mapping-${{ env.VERSION_TAG }}
           path: app/build/outputs/mapping/release
 
-      # Signs every *-unsigned.apk in the release output dir using the
-      # `null2264/actions/android-signer` action that hayai also uses. The
-      # action pulls the keystore from the SIGNING_KEY base64 secret.
+      # Sign every *-unsigned.apk directly with apksigner instead of the
+      # third-party action (which hardcoded the `app-standard-*.apk` flavor
+      # naming hayai uses and can't see our flavorless APKs). Decode the
+      # base64 keystore secret, align each APK with zipalign, sign with
+      # apksigner, verify, then drop the .idsig sidecar.
       - name: Sign APKs
-        uses: null2264/actions/android-signer@363cb9cf3d66bd9c72ed6860142c6b2c121d7e94
         if: env.VERSION_TAG != ''
-        with:
-          releaseDir: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          keyAlias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          summarise: true
-          buildToolsVersion: 36.0.0
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          ALIAS: ${{ secrets.ALIAS }}
+        run: |
+          set -euo pipefail
+          dir="app/build/outputs/apk/release"
+          keystore="$RUNNER_TEMP/hayaitts-release.jks"
+          echo "$SIGNING_KEY" | base64 -d > "$keystore"
+          buildtools="$ANDROID_SDK_ROOT/build-tools/36.0.0"
+          for unsigned in "$dir"/*-unsigned.apk; do
+            base=$(basename "$unsigned" -unsigned.apk)
+            aligned="$dir/$base-aligned.apk"
+            signed="$dir/$base.apk"
+            "$buildtools/zipalign" -p -f 4 "$unsigned" "$aligned"
+            "$buildtools/apksigner" sign \
+              --ks "$keystore" \
+              --ks-key-alias "$ALIAS" \
+              --ks-pass "pass:$KEY_STORE_PASSWORD" \
+              --key-pass "pass:$KEY_PASSWORD" \
+              --out "$signed" \
+              "$aligned"
+            "$buildtools/apksigner" verify --print-certs "$signed" > /dev/null
+            rm -f "$unsigned" "$aligned"
+            echo "  signed $signed"
+          done
+          rm -f "$keystore"
 
       - name: Rename + checksum signed APKs
         if: env.VERSION_TAG != ''
         run: |
           set -e
           dir="app/build/outputs/apk/release"
-          mv $dir/app-universal-release-signed.apk hayaitts-${{ env.VERSION_TAG }}.apk
+          mv $dir/app-universal-release.apk hayaitts-${{ env.VERSION_TAG }}.apk
           echo "APK_UNIVERSAL_SHA=$(sha256sum hayaitts-${{ env.VERSION_TAG }}.apk | awk '{print $1}')" >> $GITHUB_ENV
-          cp $dir/app-arm64-v8a-release-signed.apk hayaitts-arm64-v8a-${{ env.VERSION_TAG }}.apk
+          mv $dir/app-arm64-v8a-release.apk hayaitts-arm64-v8a-${{ env.VERSION_TAG }}.apk
           echo "APK_ARM64_V8A_SHA=$(sha256sum hayaitts-arm64-v8a-${{ env.VERSION_TAG }}.apk | awk '{print $1}')" >> $GITHUB_ENV
-          cp $dir/app-armeabi-v7a-release-signed.apk hayaitts-armeabi-v7a-${{ env.VERSION_TAG }}.apk
+          mv $dir/app-armeabi-v7a-release.apk hayaitts-armeabi-v7a-${{ env.VERSION_TAG }}.apk
           echo "APK_ARMEABI_V7A_SHA=$(sha256sum hayaitts-armeabi-v7a-${{ env.VERSION_TAG }}.apk | awk '{print $1}')" >> $GITHUB_ENV
-          cp $dir/app-x86_64-release-signed.apk hayaitts-x86_64-${{ env.VERSION_TAG }}.apk
+          mv $dir/app-x86_64-release.apk hayaitts-x86_64-${{ env.VERSION_TAG }}.apk
           echo "APK_X86_64_SHA=$(sha256sum hayaitts-x86_64-${{ env.VERSION_TAG }}.apk | awk '{print $1}')" >> $GITHUB_ENV
 
-      - name: Upload signed nightly artifact
-        if: startsWith(env.VERSION_TAG, 'r')
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-${{ env.VERSION_TAG }}
-          path: hayaitts-*.apk
-          if-no-files-found: error
-
-      - name: Create Release
+      - name: Create Release (stable / beta)
         if: startsWith(env.VERSION_TAG, 'v')
         uses: softprops/action-gh-release@v2
         with:
@@ -178,3 +191,38 @@ jobs:
           prerelease: ${{ github.event.inputs.beta }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Nightly auto-publish to HayaiApp/HayaiTTS-nightly. Cross-repo write
+      # needs a PAT with `contents:write` on the nightly repo; we fall back to
+      # GITHUB_TOKEN when NIGHTLY_PAT is unset (this fails closed and the user
+      # just sees an explicit auth error — no silent in-repo fallback).
+      - name: Create Nightly
+        if: startsWith(env.VERSION_TAG, 'r')
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: HayaiApp/HayaiTTS-nightly
+          tag_name: ${{ env.VERSION_TAG }}
+          name: HayaiTTS Nightly (${{ env.VERSION_TAG }})
+          body: |
+            > [!CAUTION]
+            >
+            > _**This nightly build is for testing only.**_
+            >
+            > Triggered by commit [`${{ env.COMMIT_SHORT_HASH }}`](https://github.com/HayaiApp/HayaiTTS/commit/${{ env.COMMIT_HASH }}). Not production-ready — for stable releases, see https://github.com/HayaiApp/HayaiTTS/releases/latest.
+
+            ### Checksums
+
+            | Variant | SHA-256 |
+            | ------- | ------- |
+            | Universal | ${{ env.APK_UNIVERSAL_SHA }} |
+            | arm64-v8a | ${{ env.APK_ARM64_V8A_SHA }} |
+            | armeabi-v7a | ${{ env.APK_ARMEABI_V7A_SHA }} |
+            | x86_64 | ${{ env.APK_X86_64_SHA }} |
+          files: |
+            hayaitts-${{ env.VERSION_TAG }}.apk
+            hayaitts-arm64-v8a-${{ env.VERSION_TAG }}.apk
+            hayaitts-armeabi-v7a-${{ env.VERSION_TAG }}.apk
+            hayaitts-x86_64-${{ env.VERSION_TAG }}.apk
+          draft: false
+          prerelease: true
+          token: ${{ secrets.NIGHTLY_PAT || secrets.GITHUB_TOKEN }}
