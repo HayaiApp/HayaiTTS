@@ -1,10 +1,11 @@
 package dev.ahmedmohamed.hayaitts.ui.settings
 
 import android.content.Context
-import android.os.Environment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.ahmedmohamed.hayaitts.data.storage.StorageMigrator
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
+import dev.ahmedmohamed.hayaitts.domain.model.MoveProgress
 import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
 import dev.ahmedmohamed.hayaitts.domain.repo.DefaultsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,6 +37,7 @@ class SettingsViewModel(
     private val settings: SettingsRepository,
     private val voices: VoiceRepository,
     private val defaults: DefaultsRepository,
+    private val migrator: StorageMigrator,
 ) : ViewModel() {
 
     data class SettingsUiState(
@@ -44,6 +47,7 @@ class SettingsViewModel(
         val installed: List<InstalledVoice> = emptyList(),
         val defaultsByLocale: Map<String, String> = emptyMap(),
         val totalInstalledBytes: Long = 0L,
+        val moveProgress: MoveProgress = MoveProgress.Idle,
     ) {
         /** Locales covered by the union of installed voices. */
         val installedLocales: List<String>
@@ -51,9 +55,14 @@ class SettingsViewModel(
                 .flatMap { it.languages }
                 .distinct()
                 .sorted()
+
+        /** True while voices are being relocated — the screen disables the toggle. */
+        val isMoving: Boolean
+            get() = moveProgress is MoveProgress.Moving
     }
 
     private val totalBytes = MutableStateFlow(0L)
+    private val moveProgress = MutableStateFlow<MoveProgress>(MoveProgress.Idle)
 
     val uiState: StateFlow<SettingsUiState> = combine(
         settings.wifiOnly,
@@ -61,14 +70,16 @@ class SettingsViewModel(
         voices.installed,
         defaults.defaults,
         totalBytes,
-    ) { wifi, location, installed, defaultsMap, bytes ->
+        moveProgress,
+    ) { values ->
         SettingsUiState(
-            wifiOnly = wifi,
-            storageLocation = location,
-            hasExternalStorage = hasExternalStorage(),
-            installed = installed,
-            defaultsByLocale = defaultsMap,
-            totalInstalledBytes = bytes,
+            wifiOnly = values[0] as Boolean,
+            storageLocation = values[1] as StorageLocation,
+            hasExternalStorage = migrator.hasExternalStorage(),
+            installed = @Suppress("UNCHECKED_CAST") (values[2] as List<InstalledVoice>),
+            defaultsByLocale = @Suppress("UNCHECKED_CAST") (values[3] as Map<String, String>),
+            totalInstalledBytes = values[4] as Long,
+            moveProgress = values[5] as MoveProgress,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -87,8 +98,28 @@ class SettingsViewModel(
         viewModelScope.launch { settings.setWifiOnly(value) }
     }
 
+    /**
+     * Asks the migrator to physically relocate every non-bundled installed
+     * voice to the directory governed by [value]. The migrator only persists
+     * the preference once every voice has moved successfully — partial
+     * failures leave the source location authoritative so subsequent
+     * downloads keep going there until the user retries.
+     */
     fun setStorageLocation(value: StorageLocation) {
-        viewModelScope.launch { settings.setStorageLocation(value) }
+        if (uiState.value.isMoving) return
+        viewModelScope.launch {
+            migrator.moveAllVoices(value).collect { moveProgress.value = it }
+            // Recompute the on-disk total since the source dir was wiped.
+            refreshInstalledSize()
+        }
+    }
+
+    /** Acknowledge a terminal [MoveProgress.Done] or [MoveProgress.Failed] state. */
+    fun consumeMoveResult() {
+        val current = moveProgress.value
+        if (current is MoveProgress.Done || current is MoveProgress.Failed) {
+            moveProgress.value = MoveProgress.Idle
+        }
     }
 
     fun setDefault(locale: String, voiceId: String?) {
@@ -135,15 +166,4 @@ class SettingsViewModel(
         cacheClearedEvents.value = null
     }
 
-    private fun hasExternalStorage(): Boolean {
-        // The first entry of getExternalFilesDirs is the primary external dir
-        // (often emulated /sdcard). A genuine removable SD card surfaces as a
-        // second entry on multi-volume devices. We only consider external
-        // storage available if there's actually a second mount point AND it
-        // reports MOUNTED.
-        val dirs = context.getExternalFilesDirs(null)?.filterNotNull().orEmpty()
-        if (dirs.size < 2) return false
-        val state = runCatching { Environment.getExternalStorageState(dirs[1]) }.getOrNull()
-        return state == Environment.MEDIA_MOUNTED
-    }
 }

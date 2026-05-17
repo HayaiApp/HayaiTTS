@@ -156,13 +156,45 @@ private fun SettingsScreen(
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.SdStorage, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_storage_location)) },
-                    supportingContent = { Text(stringResource(R.string.settings_storage_restart_hint)) },
+                    supportingContent = {
+                        // Hide the "restart required" hint now that the
+                        // migrator actually relocates voices on toggle. Show
+                        // a live progress line instead when a move is in
+                        // flight.
+                        val progress = state.moveProgress
+                        if (progress is dev.ahmedmohamed.hayaitts.domain.model.MoveProgress.Moving) {
+                            val total = progress.totalCount.coerceAtLeast(1)
+                            Text(
+                                stringResource(
+                                    R.string.settings_storage_moving,
+                                    progress.doneCount,
+                                    total,
+                                    progress.currentVoiceId.orEmpty(),
+                                ),
+                            )
+                        } else if (progress is dev.ahmedmohamed.hayaitts.domain.model.MoveProgress.Failed) {
+                            Text(
+                                stringResource(R.string.settings_storage_move_failed, progress.reason),
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    },
                 )
+                if (state.isMoving) {
+                    val progress = state.moveProgress as dev.ahmedmohamed.hayaitts.domain.model.MoveProgress.Moving
+                    androidx.compose.material3.LinearWavyProgressIndicator(
+                        progress = { progress.fraction },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
             }
             item("storage_internal") {
                 StorageRadioRow(
                     label = stringResource(R.string.settings_storage_internal),
                     selected = state.storageLocation == StorageLocation.INTERNAL,
+                    enabled = !state.isMoving,
                     onSelect = { viewModel.setStorageLocation(StorageLocation.INTERNAL) },
                 )
             }
@@ -174,7 +206,7 @@ private fun SettingsScreen(
                         stringResource(R.string.settings_storage_external_unavailable)
                     },
                     selected = state.storageLocation == StorageLocation.EXTERNAL,
-                    enabled = state.hasExternalStorage,
+                    enabled = state.hasExternalStorage && !state.isMoving,
                     onSelect = { viewModel.setStorageLocation(StorageLocation.EXTERNAL) },
                 )
             }

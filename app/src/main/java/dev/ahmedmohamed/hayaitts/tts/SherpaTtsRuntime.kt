@@ -93,16 +93,23 @@ class SherpaTtsRuntime private constructor(
     }
 
     private fun buildEngine(voiceId: String): OfflineTts {
+        val voice = installedVoiceOf(voiceId)
         val voiceDir: File = if (voiceId == BUNDLED_VOICE_ID) {
             val dest = File(context.filesDir, VOICE_ASSET_SUBDIR)
             mirrorBundledAssetTreeIfNeeded(dest)
             dest
         } else {
-            File(context.filesDir, "voices/$voiceId").also { dir ->
+            // The downloader writes voices wherever `SettingsRepository.storageLocation`
+            // pointed at the time of install, and `StorageMigrator.moveAllVoices`
+            // can rewrite `installedPath` later. Trust the Room row over any
+            // hardcoded filesDir layout — that's how external SD-card installs
+            // and post-move dirs are discoverable.
+            val path = voice?.installedPath?.takeIf { it.isNotBlank() }
+                ?: error("Voice $voiceId has no installedPath; reinstall the bundle.")
+            File(path).also { dir ->
                 require(dir.isDirectory) { "Voice $voiceId not installed at $dir" }
             }
         }
-        val voice = installedVoiceOf(voiceId)
         val family = if (voice?.family == ModelFamily.CUSTOM) {
             voice.effectiveFamily ?: error(
                 "Custom voice $voiceId is missing effectiveFamily — re-import the bundle.",

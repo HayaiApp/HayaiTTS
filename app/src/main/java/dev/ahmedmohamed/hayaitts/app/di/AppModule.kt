@@ -8,6 +8,7 @@ import dev.ahmedmohamed.hayaitts.data.defaults.DefaultsRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.download.DownloadRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.preview.VoicePreviewPlayer
 import dev.ahmedmohamed.hayaitts.data.settings.SettingsRepositoryImpl
+import dev.ahmedmohamed.hayaitts.data.storage.StorageMigrator
 import dev.ahmedmohamed.hayaitts.data.voices.VoiceRepositoryImpl
 import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DefaultsRepository
@@ -83,6 +84,16 @@ val appModule = module {
     // Phase 4b: short-lived AudioTrack helper for Voice Detail previews.
     single { VoicePreviewPlayer(androidContext()) }
 
+    // Hardening pass: resolves voice install paths and moves voices between
+    // internal storage and a mounted SD card when the user flips the setting.
+    single {
+        StorageMigrator(
+            context = androidContext(),
+            installedVoiceDao = get(),
+            settings = get(),
+        )
+    }
+
     // Phase 6: custom voice import services.
     single { CustomBundleAnalyzer(androidContext()) }
     single { CustomBundleInstaller(androidContext(), get<VoiceRepository>()) }
@@ -112,6 +123,7 @@ val appModule = module {
             settings = get(),
             voices = get(),
             defaults = get(),
+            migrator = get(),
         )
     }
 }

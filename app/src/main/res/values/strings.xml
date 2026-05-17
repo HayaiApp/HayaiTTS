@@ -103,7 +103,9 @@
     <string name="settings_storage_internal">Internal storage</string>
     <string name="settings_storage_external">External SD card</string>
     <string name="settings_storage_external_unavailable">No external storage detected</string>
-    <string name="settings_storage_restart_hint">Existing voices stay where they are. New downloads will use the selected location. Restart required after switching.</string>
+    <string name="settings_storage_restart_hint">Switching this preference relocates every installed voice to the new location.</string>
+    <string name="settings_storage_moving">Moving voice %1$d / %2$d (%3$s)…</string>
+    <string name="settings_storage_move_failed">Move failed: %1$s</string>
     <string name="settings_section_defaults">Default voices</string>
     <string name="settings_defaults_empty">Install a voice to set per-language defaults.</string>
     <string name="settings_pick_voice_title">Pick default for %1$s</string>
