@@ -128,4 +128,31 @@
     <string name="settings_license_dialog_close">Close</string>
     <string name="settings_size_mb">%1$.1f MB</string>
     <string name="settings_size_gb">%1$.2f GB</string>
+
+    <!-- UI/UX overhaul: quick switcher, featured, reorder, hero, stepper -->
+    <string name="library_subtitle">%1$d installed</string>
+    <string name="library_featured">Featured</string>
+    <string name="library_installed_header">All installed</string>
+    <string name="browse_subtitle">%1$d voices</string>
+    <string name="browse_refresh">Refresh catalog</string>
+    <string name="browse_filter_clear_all">Clear filters</string>
+    <string name="quick_switch_title">Quick switch</string>
+    <string name="quick_switch_subtitle">Pick the default voice for the moment</string>
+    <string name="quick_switch_current">Current default</string>
+    <string name="quick_switch_manage">Manage</string>
+    <string name="quick_switch_add">Add voice</string>
+    <string name="quick_switch_empty">Install a voice to enable quick switching.</string>
+    <string name="voice_favorite">Star voice</string>
+    <string name="voice_unfavorite">Unstar voice</string>
+    <string name="action_reorder">Reorder voices</string>
+    <string name="action_done">Done</string>
+    <string name="action_move_up">Move up</string>
+    <string name="action_move_down">Move down</string>
+    <string name="voice_detail_speakers_count">%1$d speakers</string>
+    <string name="voice_detail_set_default_header">Use as default</string>
+    <string name="import_subtitle">Bring your own voice bundle</string>
+    <string name="import_step_analyze">Analyze</string>
+    <string name="import_step_confirm">Confirm</string>
+    <string name="import_step_install">Install</string>
+    <string name="settings_subtitle">Tune downloads, storage, defaults</string>
 </resources>

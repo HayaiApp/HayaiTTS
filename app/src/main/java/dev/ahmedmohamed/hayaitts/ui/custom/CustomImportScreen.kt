@@ -2,6 +2,8 @@
 
 package dev.ahmedmohamed.hayaitts.ui.custom
 
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cancel
@@ -34,7 +38,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -82,8 +85,9 @@ fun CustomImportScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            androidx.compose.material3.LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.import_title)) },
+                subtitle = { Text(stringResource(R.string.import_subtitle)) },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Icon(
@@ -96,25 +100,109 @@ fun CustomImportScreen(
             )
         },
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            when (val p = phase) {
-                is CustomImportViewModel.Phase.Analyzing -> AnalyzingBody()
-                is CustomImportViewModel.Phase.Confirm -> ConfirmBody(
-                    confirm = p,
-                    onNameChange = viewModel::updateName,
-                    onFamilyChange = viewModel::updateFamily,
-                    onAddLanguage = viewModel::addLanguage,
-                    onRemoveLanguage = viewModel::removeLanguage,
-                    onImport = viewModel::startImport,
-                    onCancel = onClose,
+            ImportStepper(phase = phase)
+            androidx.compose.animation.AnimatedContent(
+                targetState = phase,
+                transitionSpec = {
+                    androidx.compose.animation.slideInHorizontally { it / 4 } +
+                        androidx.compose.animation.fadeIn() togetherWith
+                        androidx.compose.animation.slideOutHorizontally { -it / 4 } +
+                        androidx.compose.animation.fadeOut()
+                },
+                label = "import-step",
+            ) { p ->
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when (p) {
+                        is CustomImportViewModel.Phase.Analyzing -> AnalyzingBody()
+                        is CustomImportViewModel.Phase.Confirm -> ConfirmBody(
+                            confirm = p,
+                            onNameChange = viewModel::updateName,
+                            onFamilyChange = viewModel::updateFamily,
+                            onAddLanguage = viewModel::addLanguage,
+                            onRemoveLanguage = viewModel::removeLanguage,
+                            onImport = viewModel::startImport,
+                            onCancel = onClose,
+                        )
+                        is CustomImportViewModel.Phase.Importing -> ImportingBody(progress = p.progress)
+                        is CustomImportViewModel.Phase.Done -> AnalyzingBody() // brief flash before pop
+                        is CustomImportViewModel.Phase.Failed -> FailedBody(reason = p.reason, onClose = onClose)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Three-step stepper across the top of the import flow: Analyze → Confirm →
+ * Install. The active step grows ~25% with a spring; previous steps go a
+ * solid primary; remaining steps are outlined. Dot labels animate cross-fade
+ * as the user moves through. Failed/Done collapse to the matching dot.
+ */
+@Composable
+private fun ImportStepper(phase: CustomImportViewModel.Phase) {
+    val currentIndex = when (phase) {
+        is CustomImportViewModel.Phase.Analyzing -> 0
+        is CustomImportViewModel.Phase.Confirm -> 1
+        is CustomImportViewModel.Phase.Importing -> 2
+        is CustomImportViewModel.Phase.Done -> 2
+        is CustomImportViewModel.Phase.Failed -> 0
+    }
+    val labels = listOf(
+        stringResource(R.string.import_step_analyze),
+        stringResource(R.string.import_step_confirm),
+        stringResource(R.string.import_step_install),
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        labels.forEachIndexed { idx, label ->
+            val active = idx == currentIndex
+            val done = idx < currentIndex
+            val dotSize by androidx.compose.animation.core.animateDpAsState(
+                targetValue = if (active) 20.dp else 14.dp,
+                label = "step-dot-$idx",
+            )
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(dotSize)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(
+                            when {
+                                done -> MaterialTheme.colorScheme.primary
+                                active -> MaterialTheme.colorScheme.primary
+                                else -> MaterialTheme.colorScheme.surfaceContainer
+                            },
+                        ),
                 )
-                is CustomImportViewModel.Phase.Importing -> ImportingBody(progress = p.progress)
-                is CustomImportViewModel.Phase.Done -> AnalyzingBody() // brief flash before pop
-                is CustomImportViewModel.Phase.Failed -> FailedBody(reason = p.reason, onClose = onClose)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+            if (idx < labels.lastIndex) {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .size(width = 18.dp, height = 2.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant),
+                )
             }
         }
     }

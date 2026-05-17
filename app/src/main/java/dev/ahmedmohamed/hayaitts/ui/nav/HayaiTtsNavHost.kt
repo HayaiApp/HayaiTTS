@@ -19,9 +19,17 @@ import java.net.URLEncoder
  *  - [Routes.BROWSE]         : catalog browser with filters + search.
  *  - [Routes.VOICE_DETAIL]   : per-voice detail with preview + install/uninstall.
  *  - [Routes.CUSTOM_IMPORT]  : Phase 6 custom voice import wizard.
+ *
+ * The voice quick-switcher bottom sheet is owned by [dev.ahmedmohamed.hayaitts.ui.MainActivity];
+ * every leaf screen receives [onOpenQuickSwitch] so its top bar can pop the
+ * sheet from a global icon. Keeping the state outside the nav graph means the
+ * sheet does not flicker when the user navigates between routes.
  */
 @Composable
-fun HayaiTtsNavHost(navController: NavHostController) {
+fun HayaiTtsNavHost(
+    navController: NavHostController,
+    onOpenQuickSwitch: () -> Unit,
+) {
     NavHost(navController = navController, startDestination = Routes.LIBRARY) {
         composable(Routes.LIBRARY) {
             LibraryScreen(
@@ -30,12 +38,14 @@ fun HayaiTtsNavHost(navController: NavHostController) {
                 onImport = { uri ->
                     navController.navigate(Routes.customImport(uri))
                 },
+                onOpenQuickSwitch = onOpenQuickSwitch,
             )
         }
         composable(Routes.BROWSE) {
             BrowseScreen(
                 onBack = { navController.popBackStack() },
                 onVoiceClick = { id -> navController.navigate(Routes.voiceDetail(id)) },
+                onOpenQuickSwitch = onOpenQuickSwitch,
             )
         }
         composable(
@@ -46,6 +56,7 @@ fun HayaiTtsNavHost(navController: NavHostController) {
             VoiceDetailScreen(
                 voiceId = id,
                 onBack = { navController.popBackStack() },
+                onOpenQuickSwitch = onOpenQuickSwitch,
             )
         }
         composable(

@@ -11,6 +11,7 @@ import dev.ahmedmohamed.hayaitts.domain.repo.DefaultsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -24,7 +25,12 @@ import kotlinx.coroutines.launch
  * cross-flow joins.
  *
  * Preview playback is launched from [play] and tracked via [previewJob] so the
- * player gets cleanly released on screen exit ([onCleared]).
+ * player gets cleanly released on screen exit ([onCleared]). The currently
+ * selected speaker id is tracked in [selectedSid] so the speaker chooser can
+ * swap sids without reloading the underlying voice.
+ *
+ * The waveform widget consumes [previewAmplitudes] directly — same StateFlow
+ * the player publishes RMS bins into during playback.
  */
 class VoiceDetailViewModel(
     private val voiceId: String,
@@ -41,6 +47,7 @@ class VoiceDetailViewModel(
         val downloadState: DownloadState = DownloadState.Idle,
         val defaults: Map<String, String> = emptyMap(),
         val previewing: Boolean = false,
+        val selectedSid: Int = 0,
     ) {
         val isInstalled: Boolean get() = installed != null
         fun defaultedLocales(): Set<String> =
@@ -49,17 +56,25 @@ class VoiceDetailViewModel(
 
     private var previewJob: Job? = null
 
+    private val selectedSidFlow = MutableStateFlow(0)
+    private val previewingFlow = MutableStateFlow(false)
+
+    val previewAmplitudes: StateFlow<FloatArray> = previewPlayer.amplitudes
+
     val uiState: StateFlow<UiState> = combine(
         catalogRepository.catalog,
         voiceRepository.installed,
         downloadRepository.states,
         defaultsRepository.defaults,
-    ) { catalog, installed, downloads, defaults ->
+        selectedSidFlow,
+    ) { catalog, installed, downloads, defaults, sid ->
         UiState(
             card = catalog.firstOrNull { it.id == voiceId },
             installed = installed.firstOrNull { it.voiceId == voiceId },
             downloadState = downloads[voiceId] ?: DownloadState.Idle,
             defaults = defaults,
+            previewing = previewingFlow.value,
+            selectedSid = sid,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), UiState())
 
@@ -86,13 +101,19 @@ class VoiceDetailViewModel(
         }
     }
 
+    fun setSpeaker(sid: Int) {
+        selectedSidFlow.value = sid
+    }
+
     fun play(text: String) {
         if (!uiState.value.isInstalled) return
         previewJob?.cancel()
+        previewingFlow.value = true
         previewJob = viewModelScope.launch {
             try {
-                previewPlayer.play(voiceId, text)
+                previewPlayer.play(voiceId, text, sid = uiState.value.selectedSid)
             } finally {
+                previewingFlow.value = false
                 previewJob = null
             }
         }
@@ -101,6 +122,7 @@ class VoiceDetailViewModel(
     fun stop() {
         previewJob?.cancel()
         previewJob = null
+        previewingFlow.value = false
         previewPlayer.stop()
     }
 
