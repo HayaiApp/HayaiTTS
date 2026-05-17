@@ -10,11 +10,13 @@ import co.touchlab.kermit.Logger
 import dev.ahmedmohamed.hayaitts.data.catalog.catalogJson
 import dev.ahmedmohamed.hayaitts.data.db.dao.DownloadStateDao
 import dev.ahmedmohamed.hayaitts.data.db.entities.DownloadStateEntity
+import dev.ahmedmohamed.hayaitts.data.storage.StorageMigrator
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import okhttp3.OkHttpClient
@@ -60,6 +62,7 @@ class VoiceDownloadWorker(
     private val downloadStateDao: DownloadStateDao by lazy { koin.get() }
     private val voiceRepository: VoiceRepository by lazy { koin.get() }
     private val okHttp: OkHttpClient by lazy { koin.get() }
+    private val storageMigrator: StorageMigrator by lazy { koin.get() }
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         val title = inputData.getString(KEY_TITLE) ?: "HayaiTTS"
@@ -93,7 +96,15 @@ class VoiceDownloadWorker(
         val downloadsDir = File(applicationContext.cacheDir, "downloads").apply { mkdirs() }
         val partFile = File(downloadsDir, "${voice.id}.tar.bz2.part")
         val finalFile = File(downloadsDir, "${voice.id}.tar.bz2")
-        val voiceDir = File(applicationContext.filesDir, "voices/${voice.id}")
+        // Resolve the voice extraction root from the current storage-location
+        // preference (Internal filesDir vs. external SD card). The migrator
+        // is responsible for moving previously-installed voices when the user
+        // flips the preference after the fact; this only governs new
+        // downloads.
+        val voicesRoot = runCatching { runBlocking { storageMigrator.currentRoot() } }
+            .getOrElse { File(applicationContext.filesDir, "voices") }
+            .also { it.mkdirs() }
+        val voiceDir = File(voicesRoot, voice.id)
         // Whether the destination dir existed before this run — used so a retry
         // (which doWork() re-runs from scratch) does not wipe a partially
         // populated dir that the previous attempt put there.
@@ -124,13 +135,33 @@ class VoiceDownloadWorker(
             }
 
             // 2. Integrity check — hard error, no retry.
-            if (!voice.sha256.isNullOrBlank()) {
+            //
+            // Policy:
+            //  - sha256 present  -> verify, fail on mismatch, scrap the cache.
+            //  - sha256 absent, voice.fromRemote == false (bundled APK asset)
+            //                    -> warn + proceed; the bytes are already
+            //                       trusted by signed-APK transitivity.
+            //  - sha256 absent, voice.fromRemote == true (raw.githubusercontent
+            //                    payload) -> hard fail; we never run a network
+            //                       binary against an unauthenticated catalog.
+            val expected = voice.sha256
+            if (!expected.isNullOrBlank()) {
                 val actual = sha256(finalFile)
-                if (!actual.equals(voice.sha256, ignoreCase = true)) {
-                    return@withContext failPersisted(voice.id, "Checksum mismatch")
+                if (!actual.equals(expected, ignoreCase = true)) {
+                    finalFile.delete()
+                    return@withContext failPersisted(
+                        voice.id,
+                        "Checksum mismatch: expected $expected, got $actual",
+                    )
                 }
+            } else if (voice.fromRemote) {
+                finalFile.delete()
+                return@withContext failPersisted(
+                    voice.id,
+                    "Catalog entry has no checksum; cannot verify download integrity",
+                )
             } else {
-                log.w { "No sha256 for ${voice.id} — skipping integrity check" }
+                log.w { "No sha256 for ${voice.id} (bundled catalog) — proceeding" }
             }
 
             // 3. Extract.
@@ -151,9 +182,8 @@ class VoiceDownloadWorker(
 
             // 4. Optional secondary asset (matcha vocoder lives in a different release).
             if (!voice.vocoderUrl.isNullOrBlank() && !voice.vocoderFileName.isNullOrBlank()) {
-                val sideResult = runCatching {
-                    downloadAuxiliary(voice.vocoderUrl, File(voiceDir, voice.vocoderFileName))
-                }
+                val target = File(voiceDir, voice.vocoderFileName)
+                val sideResult = runCatching { downloadAuxiliary(voice.vocoderUrl, target) }
                 if (sideResult.isFailure) {
                     val err = sideResult.exceptionOrNull()
                     if (isTransient(err) && runAttemptCount < MAX_RETRIES) {
@@ -164,6 +194,26 @@ class VoiceDownloadWorker(
                         voice.id,
                         "Vocoder download failed: ${err?.message}",
                     )
+                }
+                // Same checksum policy as the main bundle.
+                val voExpected = voice.vocoderSha256
+                if (!voExpected.isNullOrBlank()) {
+                    val voActual = sha256(target)
+                    if (!voActual.equals(voExpected, ignoreCase = true)) {
+                        target.delete()
+                        return@withContext failPersisted(
+                            voice.id,
+                            "Vocoder checksum mismatch: expected $voExpected, got $voActual",
+                        )
+                    }
+                } else if (voice.fromRemote) {
+                    target.delete()
+                    return@withContext failPersisted(
+                        voice.id,
+                        "Catalog vocoder has no checksum; cannot verify download integrity",
+                    )
+                } else {
+                    log.w { "No vocoderSha256 for ${voice.id} (bundled catalog) — proceeding" }
                 }
             }
 

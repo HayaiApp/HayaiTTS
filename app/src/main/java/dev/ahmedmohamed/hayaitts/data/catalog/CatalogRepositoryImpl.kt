@@ -75,7 +75,13 @@ class CatalogRepositoryImpl(
                 null
             } else {
                 val body = response.body?.string() ?: return@use null
-                catalogJson.decodeFromString<CatalogManifest>(body).voices
+                // Stamp every remote-sourced voice with fromRemote=true so the
+                // downloader can apply the strict checksum policy (see
+                // VoiceDownloadWorker). The JSON itself never carries this
+                // field; we synthesize it here from the transport.
+                catalogJson.decodeFromString<CatalogManifest>(body)
+                    .voices
+                    .map { it.copy(fromRemote = true) }
             }
         }
     } catch (t: Throwable) {
@@ -85,8 +91,11 @@ class CatalogRepositoryImpl(
 
     companion object {
         private const val ASSET_PATH = "catalog/v1/models.json"
-        // Pushed in a later phase. Until then this 404s and the asset wins.
+        // The remote URL points at the GitHub `HayaiApp/HayaiTTS` repository on its
+        // default branch. Until the repo is pushed for the first time this 404s
+        // and the bundled asset fallback wins (cf. `loadRemote()`); both paths
+        // are silent on failure so users never see a network error toast.
         private const val REMOTE_URL =
-            "https://raw.githubusercontent.com/ahmedmohamed/HayaiTTS/master/catalog/v1/models.json"
+            "https://raw.githubusercontent.com/HayaiApp/HayaiTTS/main/catalog/v1/models.json"
     }
 }

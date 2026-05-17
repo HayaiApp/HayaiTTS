@@ -6,3 +6,11 @@ captures/
 .externalNativeBuild/
 .idea/
 local.properties
+# Local sha256 cache emitted by tools/catalog/build_catalog.py — not committed.
+.catalog_cache/
+catalog_build.log
+# Release signing — never commit the keystore or its credentials. Only the
+# `signing.properties.template` stub belongs in version control.
+signing.properties
+*.jks
+*.keystore

@@ -49,6 +49,22 @@ data class VoiceCard(
     val lexiconFileName: String? = null,
     /** Optional dict directory (Chinese VITS / Matcha use jieba dicts). */
     val dictDirName: String? = null,
+    /**
+     * SHA-256 of the [vocoderUrl] asset. Verified alongside the main bundle
+     * when present; null obeys the same trust policy as [sha256] (see
+     * [VoiceDownloadWorker] for the rules).
+     */
+    val vocoderSha256: String? = null,
+    /**
+     * Set to `true` by [dev.ahmedmohamed.hayaitts.data.catalog.CatalogRepositoryImpl]
+     * when the catalog was loaded from the remote `raw.githubusercontent.com`
+     * URL rather than the bundled APK asset. The download worker enforces a
+     * stricter integrity policy on remote-sourced entries: a null [sha256] is
+     * a hard error because the bytes weren't shipped with the (signed) APK.
+     * Default is `false` so deserialized JSON (which never sets this field)
+     * defaults to the trusted-asset code path until the repository marks it.
+     */
+    val fromRemote: Boolean = false,
 ) {
     val modelFamily: ModelFamily get() = ModelFamily.fromCatalog(family)
     val tierEnum: Tier get() = Tier.fromCatalog(tier)
