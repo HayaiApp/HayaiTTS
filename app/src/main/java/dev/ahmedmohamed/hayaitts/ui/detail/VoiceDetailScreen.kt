@@ -78,7 +78,6 @@ import dev.ahmedmohamed.hayaitts.ui.components.DownloadProgress
 import dev.ahmedmohamed.hayaitts.ui.components.FamilyChip
 import dev.ahmedmohamed.hayaitts.ui.components.LanguageChip
 import dev.ahmedmohamed.hayaitts.ui.components.TierChip
-import dev.ahmedmohamed.hayaitts.ui.components.heroBrush
 import dev.ahmedmohamed.hayaitts.ui.components.identityOrDefault
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -108,10 +107,9 @@ fun VoiceDetailScreen(
 
     DisposableEffect(Unit) { onDispose { viewModel.stop() } }
 
-    val card = state.card
+    val accent = MaterialTheme.colorScheme.primary
     val installed = state.installed
-    val family = card?.modelFamily ?: installed?.family
-    val identity = family.identityOrDefault()
+    val card = state.card
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -153,16 +151,16 @@ fun VoiceDetailScreen(
         ) {
             HeroBlock(state = state)
             SpeakersSection(
-                speakers = installed?.speakers ?: card?.speakers.orEmpty(),
+                speakers = state.installed?.speakers ?: state.card?.speakers.orEmpty(),
                 selectedSid = state.selectedSid,
                 onPickSpeaker = viewModel::setSpeaker,
-                accent = identity.seed,
+                accent = accent,
             )
             PreviewSection(
                 enabled = state.isInstalled,
                 playing = state.previewing,
                 amplitudes = amplitudes,
-                accent = identity.seed,
+                accent = accent,
                 onPlay = viewModel::play,
                 onStop = viewModel::stop,
             )
@@ -196,7 +194,7 @@ private fun HeroBlock(state: VoiceDetailViewModel.UiState) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(28.dp))
-            .background(identity.heroBrush())
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(20.dp),
     ) {
         Column {
@@ -204,15 +202,15 @@ private fun HeroBlock(state: VoiceDetailViewModel.UiState) {
                 Box(
                     modifier = Modifier
                         .size(72.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(identity.seed.copy(alpha = 0.18f)),
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = identity.icon,
                         contentDescription = null,
                         modifier = Modifier.size(40.dp),
-                        tint = identity.onContainer,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                 }
                 Spacer(Modifier.size(16.dp))

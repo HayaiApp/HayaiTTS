@@ -119,6 +119,7 @@ class BrowseViewModel(
     }
     fun clearLanguages() = filters.update { it.copy(languages = emptySet()) }
     fun clearFamilies() = filters.update { it.copy(families = emptySet()) }
+    fun clearAllFilters() = filters.update { Filters() }
 
     fun enqueue(card: VoiceCard) {
         // Defensive: the UI also disables Install for unavailable cards but a

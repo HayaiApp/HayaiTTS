@@ -9,13 +9,11 @@ import android.speech.tts.Voice
 import co.touchlab.kermit.Logger
 import dev.ahmedmohamed.hayaitts.data.voices.parseLocale
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
-import dev.ahmedmohamed.hayaitts.tts.SherpaTtsRuntime.Companion.BUNDLED_VOICE_ID
 import java.util.Locale
 
 /**
- * System-wide TTS engine. After Phase 4a this iterates every voice the user
- * has installed (Room) plus the bundled Amy voice, exposing each one to the
- * TTS framework via [onGetVoices].
+ * System-wide TTS engine. Iterates every voice the user has installed
+ * (Room), exposing each one to the TTS framework via [onGetVoices].
  *
  * Locale resolution: when the framework picks a [language/country] the
  * framework calls [onIsLanguageAvailable]; we return `LANG_AVAILABLE` if any
@@ -27,7 +25,7 @@ class HayaiTtsService : TextToSpeechService() {
     private val log = Logger.withTag("HayaiTtsService")
 
     @Volatile private var stopRequested: Boolean = false
-    @Volatile private var lastSelectedVoiceId: String = BUNDLED_VOICE_ID
+    @Volatile private var lastSelectedVoiceId: String = ""
 
     override fun onIsLanguageAvailable(lang: String?, country: String?, variant: String?): Int {
         val voices = runtimeOrNull()?.listAvailableVoices().orEmpty()

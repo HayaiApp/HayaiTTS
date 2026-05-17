@@ -26,6 +26,12 @@
     <string name="browse_empty_title">No voices match these filters</string>
     <string name="browse_empty_subtitle">Try widening your language or tier filters.</string>
     <string name="browse_search_placeholder">Search voices</string>
+    <string name="browse_search_placeholder_count">Search %1$d voices</string>
+    <string name="browse_open_filters">Open filters</string>
+    <string name="browse_filter_sheet_title">Filters</string>
+    <string name="browse_filter_reset">Reset</string>
+    <string name="browse_filter_show_results">Show %1$d results</string>
+    <string name="action_clear">Clear</string>
     <string name="browse_filter_language">Language</string>
     <string name="browse_filter_tier">Tier</string>
     <string name="browse_filter_family">Family</string>

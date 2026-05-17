@@ -163,13 +163,13 @@ private fun VoicePickerRow(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(identity.container),
+                .background(MaterialTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = identity.icon,
                 contentDescription = null,
-                tint = identity.onContainer,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
         }
         Spacer(Modifier.size(12.dp))

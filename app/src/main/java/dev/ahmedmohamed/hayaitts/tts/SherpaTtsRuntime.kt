@@ -1,7 +1,6 @@
 package dev.ahmedmohamed.hayaitts.tts
 
 import android.content.Context
-import android.content.res.AssetManager
 import co.touchlab.kermit.Logger
 import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
@@ -19,7 +18,6 @@ import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.GlobalContext
 import java.io.File
-import java.io.FileOutputStream
 
 /**
  * Multi-voice wrapper around sherpa-onnx [OfflineTts]. The runtime holds an
@@ -27,9 +25,10 @@ import java.io.FileOutputStream
  * between two voices keeps both instances hot, swapping to a third evicts the
  * coldest one (releasing the native handle).
  *
- * Voice resolution:
- *   - [BUNDLED_VOICE_ID]  -> assets/voices/en_US-amy-low (mirrored to filesDir)
- *   - anything else       -> filesDir/voices/<voiceId>/ (the downloader writes here)
+ * Every voice is resolved from the `installedPath` Room stores when the
+ * downloader (or the custom-import installer) finishes writing the bundle.
+ * Nothing is bundled in the APK — first-run, `listAvailableVoices()`
+ * returns an empty list and Library shows its empty state.
  */
 class SherpaTtsRuntime private constructor(
     private val context: Context,
@@ -60,18 +59,17 @@ class SherpaTtsRuntime private constructor(
     }
 
     /**
-     * Returns the bundled voice plus every Room-installed voice (via the
-     * Koin-registered [VoiceRepositoryImpl]). Used by
-     * [HayaiTtsService.onGetVoices]; tolerant of Koin not yet being up
-     * (returns just the bundled voice in that case).
+     * Every Room-installed voice (via the Koin-registered [VoiceRepositoryImpl]).
+     * Used by [HayaiTtsService.onGetVoices]. Empty until the user installs
+     * their first voice from Browse.
      */
     fun listAvailableVoices(): List<InstalledVoice> {
         val repo = runCatching { GlobalContext.get().get<VoiceRepositoryImpl>() }.getOrNull()
-            ?: return listOf(bundledMetadata())
+            ?: return emptyList()
         return runCatching { runBlocking { repo.installedSnapshot() } }
             .getOrElse {
-                log.w(it) { "installedSnapshot failed; falling back to bundled-only" }
-                listOf(bundledMetadata())
+                log.w(it) { "installedSnapshot failed; returning empty voice list" }
+                emptyList()
             }
     }
 
@@ -97,21 +95,16 @@ class SherpaTtsRuntime private constructor(
 
     private fun buildEngine(voiceId: String): OfflineTts {
         val voice = installedVoiceOf(voiceId)
-        val voiceDir: File = if (voiceId == BUNDLED_VOICE_ID) {
-            val dest = File(context.filesDir, VOICE_ASSET_SUBDIR)
-            mirrorBundledAssetTreeIfNeeded(dest)
-            dest
-        } else {
-            // The downloader writes voices wherever `SettingsRepository.storageLocation`
-            // pointed at the time of install, and `StorageMigrator.moveAllVoices`
-            // can rewrite `installedPath` later. Trust the Room row over any
-            // hardcoded filesDir layout — that's how external SD-card installs
-            // and post-move dirs are discoverable.
-            val path = voice?.installedPath?.takeIf { it.isNotBlank() }
-                ?: error("Voice $voiceId has no installedPath; reinstall the bundle.")
-            File(path).also { dir ->
-                require(dir.isDirectory) { "Voice $voiceId not installed at $dir" }
-            }
+        // The downloader / custom-import installer writes voices wherever
+        // `SettingsRepository.storageLocation` pointed at the time of
+        // install, and `StorageMigrator.moveAllVoices` can rewrite
+        // `installedPath` later. Trust the Room row over any hardcoded
+        // filesDir layout — that's how external SD-card installs and
+        // post-move dirs are discoverable.
+        val path = voice?.installedPath?.takeIf { it.isNotBlank() }
+            ?: error("Voice $voiceId has no installedPath; reinstall the bundle.")
+        val voiceDir = File(path).also { dir ->
+            require(dir.isDirectory) { "Voice $voiceId not installed at $dir" }
         }
         val family = if (voice?.family == ModelFamily.CUSTOM) {
             voice.effectiveFamily ?: error(
@@ -393,7 +386,6 @@ class SherpaTtsRuntime private constructor(
      * cases are handled by the caller defaulting to Piper.
      */
     private fun installedVoiceOf(voiceId: String): InstalledVoice? {
-        if (voiceId == BUNDLED_VOICE_ID) return null
         val repo = runCatching { GlobalContext.get().get<VoiceRepositoryImpl>() }.getOrNull()
             ?: return null
         val snapshot = runCatching { runBlocking { repo.installedSnapshot() } }.getOrNull()
@@ -401,90 +393,12 @@ class SherpaTtsRuntime private constructor(
         return snapshot.firstOrNull { it.voiceId == voiceId }
     }
 
-    private fun bundledMetadata(): InstalledVoice = InstalledVoice(
-        voiceId = BUNDLED_VOICE_ID,
-        family = dev.ahmedmohamed.hayaitts.domain.model.ModelFamily.PIPER,
-        title = "Amy",
-        languages = listOf("en-US"),
-        speakers = listOf(
-            dev.ahmedmohamed.hayaitts.domain.model.Speaker(
-                id = 0, name = "amy", gender = "F",
-            ),
-        ),
-        sampleRateHz = BUNDLED_VOICE_SAMPLE_RATE,
-        installedPath = File(context.filesDir, VOICE_ASSET_SUBDIR).absolutePath,
-        tier = dev.ahmedmohamed.hayaitts.domain.model.Tier.LOW,
-        installedAt = 0L,
-        bundled = true,
-    )
-
-    // -- Asset mirroring (bundled voice only). -------------------------------
-
-    private fun mirrorBundledAssetTreeIfNeeded(destRoot: File) {
-        val manifestFile = File(destRoot, MANIFEST_FILE)
-        if (destRoot.isDirectory && manifestFile.isFile) {
-            val cached = manifestFile.readText().trim()
-            val actual = manifestOnDisk(destRoot, manifestFile)
-            if (cached == actual) {
-                log.i { "Bundled voice mirror up to date at $destRoot" }
-                return
-            }
-            log.i { "Bundled voice mirror stale (manifest=$cached, disk=$actual)" }
-        }
-        if (destRoot.exists()) destRoot.deleteRecursively()
-        destRoot.mkdirs()
-        val am = context.assets
-        val files = collectAssetFiles(am, VOICE_ASSET_SUBDIR)
-        var totalBytes = 0L
-        files.forEach { rel ->
-            val relative = rel.removePrefix("$VOICE_ASSET_SUBDIR/")
-            val outFile = File(destRoot, relative)
-            outFile.parentFile?.mkdirs()
-            am.open(rel).use { input ->
-                FileOutputStream(outFile).use { output ->
-                    totalBytes += input.copyTo(output)
-                }
-            }
-        }
-        manifestFile.writeText("${files.size}\n$totalBytes\n")
-        log.i { "Mirrored ${files.size} bundled assets (${totalBytes}B) to $destRoot" }
-    }
-
-    private fun collectAssetFiles(am: AssetManager, path: String): List<String> {
-        val entries = am.list(path).orEmpty()
-        if (entries.isEmpty()) {
-            return try {
-                am.open(path).close()
-                listOf(path)
-            } catch (_: Throwable) {
-                emptyList()
-            }
-        }
-        return entries.flatMap { child -> collectAssetFiles(am, "$path/$child") }
-    }
-
-    private fun manifestOnDisk(destRoot: File, manifestFile: File): String {
-        var count = 0
-        var bytes = 0L
-        destRoot.walkTopDown().filter { it.isFile && it != manifestFile }
-            .forEach { count++; bytes += it.length() }
-        return "$count\n$bytes"
-    }
-
     companion object {
-        /** Sentinel id for the bundled-in-APK Piper Amy voice. */
-        const val BUNDLED_VOICE_ID = "vits-piper-en_US-amy-low"
-        /** Piper low-quality models emit at 16 kHz. */
-        const val BUNDLED_VOICE_SAMPLE_RATE = 16000
-        /** Subdirectory inside `assets/` where the bundled voice lives. */
-        const val VOICE_ASSET_SUBDIR = "voices/en_US-amy-low"
-
         private const val TOKENS_FILE = "tokens.txt"
         private const val LEXICON_FILE = "lexicon.txt"
         private const val VOCODER_FILE = "vocos-22khz-univ.onnx"
         private const val ESPEAK_DIR = "espeak-ng-data"
         private const val DICT_DIR = "dict"
-        private const val MANIFEST_FILE = ".mirror-manifest"
         private const val MAX_LOADED_VOICES = 2
 
         /**

@@ -7,7 +7,6 @@ import dev.ahmedmohamed.hayaitts.data.db.dao.InstalledVoiceDao
 import dev.ahmedmohamed.hayaitts.domain.model.MoveProgress
 import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
-import dev.ahmedmohamed.hayaitts.tts.SherpaTtsRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -20,11 +19,6 @@ import java.io.IOException
  * Resolves where installed voice bundles live for a given [StorageLocation]
  * and physically moves them between locations when the user flips the
  * preference.
- *
- * The bundled-in-APK voice (`SherpaTtsRuntime.BUNDLED_VOICE_ID`) is NEVER
- * moved — it is mirrored from `assets/` into [Context.filesDir] every time
- * the runtime initialises, so its on-disk copy is regenerable and lives
- * outside the user's storage choice.
  */
 class StorageMigrator(
     private val context: Context,
@@ -82,7 +76,7 @@ class StorageMigrator(
         val destRoot = targetRoot(target).also { it.mkdirs() }
         val all = installedVoiceDao.getAllSnapshot()
         // Bundled voice is asset-mirrored — never move it.
-        val toMove = all.filter { it.voiceId != SherpaTtsRuntime.BUNDLED_VOICE_ID }
+        val toMove = all
         val needsMove = toMove.filter { entry ->
             val current = File(entry.installedPath).parentFile
             current?.canonicalPath != destRoot.canonicalPath
