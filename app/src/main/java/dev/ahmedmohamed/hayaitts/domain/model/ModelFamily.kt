@@ -1,9 +1,11 @@
 package dev.ahmedmohamed.hayaitts.domain.model
 
 /**
- * Neural TTS model family supported by sherpa-onnx. Phase 4a only wires up
- * [PIPER] end-to-end; the other entries are listed so callers can persist
- * future families without an upgrade migration.
+ * Neural TTS model family supported by sherpa-onnx 1.13.2's JNI surface.
+ * `SherpaTtsRuntime` builds an `OfflineTtsConfig` per family; the catalog
+ * generator's `RUNTIME_SUPPORTED_FAMILIES` set must mirror these enum
+ * entries (minus CUSTOM) so the Browse screen never shows "Coming Soon"
+ * for a family the runtime can actually play.
  */
 enum class ModelFamily {
     PIPER,
@@ -11,6 +13,9 @@ enum class ModelFamily {
     VITS,
     MATCHA,
     KITTEN,
+    ZIPVOICE,
+    POCKET,
+    SUPERTONIC,
     CUSTOM;
 
     companion object {
@@ -20,6 +25,9 @@ enum class ModelFamily {
             "vits" -> VITS
             "matcha" -> MATCHA
             "kitten" -> KITTEN
+            "zipvoice" -> ZIPVOICE
+            "pocket" -> POCKET
+            "supertonic" -> SUPERTONIC
             else -> CUSTOM
         }
     }

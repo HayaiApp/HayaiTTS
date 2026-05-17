@@ -389,6 +389,30 @@ class VoiceDownloadWorker(
                 if (!File(dir, tokens).isFile) missing += tokens
                 if (!File(dir, KOKORO_VOICES_FILE).isFile) missing += KOKORO_VOICES_FILE
             }
+            ModelFamily.ZIPVOICE -> {
+                // ZipVoice ships encoder + decoder + 24 kHz vocoder, plus
+                // tokens.txt and espeak-ng-data (lexicon is optional).
+                requireOneOf("encoder.onnx", listOf("encoder.int8.onnx", "encoder.onnx"))
+                requireOneOf("decoder.onnx", listOf("decoder.int8.onnx", "decoder.onnx"))
+                requireOneOf("vocoder.onnx", listOf("vocos_24khz.onnx", "vocos_22khz.onnx", "vocoder.onnx"))
+                if (!File(dir, tokens).isFile) missing += tokens
+            }
+            ModelFamily.POCKET -> {
+                // Pocket has the most fragmented layout: 5 .onnx files plus
+                // two JSON configs. Tokens come from vocab.json (not tokens.txt).
+                listOf(
+                    "lm_flow.int8.onnx", "lm_main.int8.onnx", "encoder.onnx",
+                    "decoder.int8.onnx", "text_conditioner.onnx",
+                    "vocab.json", "token_scores.json",
+                ).forEach { if (!File(dir, it).isFile) missing += it }
+            }
+            ModelFamily.SUPERTONIC -> {
+                listOf(
+                    "duration_predictor.int8.onnx", "text_encoder.int8.onnx",
+                    "vector_estimator.int8.onnx", "vocoder.int8.onnx",
+                    "tts.json", "unicode_indexer.bin", "voice.bin",
+                ).forEach { if (!File(dir, it).isFile) missing += it }
+            }
             ModelFamily.CUSTOM -> {
                 // CUSTOM never reaches the worker (custom imports skip the
                 // download path entirely) but we still guard so an

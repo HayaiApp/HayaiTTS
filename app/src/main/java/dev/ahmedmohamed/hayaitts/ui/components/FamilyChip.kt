@@ -42,5 +42,8 @@ fun ModelFamily.displayRes(): Int = when (this) {
     ModelFamily.VITS -> R.string.family_vits
     ModelFamily.MATCHA -> R.string.family_matcha
     ModelFamily.KITTEN -> R.string.family_kitten
+    ModelFamily.ZIPVOICE -> R.string.family_zipvoice
+    ModelFamily.POCKET -> R.string.family_pocket
+    ModelFamily.SUPERTONIC -> R.string.family_supertonic
     ModelFamily.CUSTOM -> R.string.family_custom
 }

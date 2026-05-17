@@ -19,7 +19,10 @@ permissions:
 
 jobs:
   refresh:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # Bandwidth-bound (~10 GB streamed across ~190 bundles). Blacksmith's
+    # faster CPUs gain us nothing here, so stay on GitHub-hosted runners to
+    # save Blacksmith minutes for the build workflows.
+    runs-on: ubuntu-latest
     # Generator streams ~5–10 GB across 180+ bundles; allow a generous wall.
     timeout-minutes: 120
     steps:

@@ -9,7 +9,10 @@ import com.k2fsa.sherpa.onnx.OfflineTtsKittenModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsKokoroModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsMatchaModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
+import com.k2fsa.sherpa.onnx.OfflineTtsPocketModelConfig
+import com.k2fsa.sherpa.onnx.OfflineTtsSupertonicModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
+import com.k2fsa.sherpa.onnx.OfflineTtsZipVoiceModelConfig
 import dev.ahmedmohamed.hayaitts.data.voices.VoiceRepositoryImpl
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
@@ -125,16 +128,18 @@ class SherpaTtsRuntime private constructor(
     }
 
     /**
-     * Picks the right [OfflineTtsConfig] shape for a family. Piper and the
-     * other non-Piper VITS bundles both go through the VITS config because
-     * Piper voices ARE VITS variants under the hood. Phase 7 added Kokoro
-     * and Kitten — the upstream v1.13.2 AAR ships JNI for both families.
+     * Picks the right [OfflineTtsConfig] shape for a family. The upstream
+     * sherpa-onnx 1.13.2 AAR exposes JNI for seven families; we wire all of
+     * them so every voice the catalog generator scrapes is actually playable.
      */
     private fun buildConfig(family: ModelFamily, dir: File): OfflineTtsConfig = when (family) {
         ModelFamily.PIPER, ModelFamily.VITS -> buildVitsConfig(dir)
         ModelFamily.MATCHA -> buildMatchaConfig(dir)
         ModelFamily.KOKORO -> buildKokoroConfig(dir)
         ModelFamily.KITTEN -> buildKittenConfig(dir)
+        ModelFamily.ZIPVOICE -> buildZipVoiceConfig(dir)
+        ModelFamily.POCKET -> buildPocketConfig(dir)
+        ModelFamily.SUPERTONIC -> buildSupertonicConfig(dir)
         ModelFamily.CUSTOM -> throw IllegalStateException(
             "Custom voices should have been resolved to an effective family before reaching buildConfig.",
         )
@@ -254,6 +259,101 @@ class SherpaTtsRuntime private constructor(
                     tokens = tokensPath,
                     dataDir = dataDirPath,
                     lengthScale = 1.0f,
+                ),
+                numThreads = 2,
+                debug = false,
+            ),
+            maxNumSentences = 2,
+        )
+    }
+
+    /**
+     * ZipVoice (k2-fsa, 2025) — flow-matching multilingual TTS, distilled to
+     * encoder + decoder + 24 kHz vocoder. Upstream bundles ship a 24 kHz
+     * vocoder named `vocos_24khz.onnx` alongside the model files. Per the
+     * upstream Java example, `setVocoder` is passed an explicit path (not
+     * derived from the bundle dir) — but sherpa-onnx-published bundles
+     * include the vocoder inside the same archive, so we resolve relative to
+     * `dir`.
+     */
+    private fun buildZipVoiceConfig(dir: File): OfflineTtsConfig {
+        val encoder = resolveModelFile(dir, ZIPVOICE_ENCODER_CANDIDATES)
+        val decoder = resolveModelFile(dir, ZIPVOICE_DECODER_CANDIDATES)
+        val vocoder = resolveModelFile(dir, ZIPVOICE_VOCODER_CANDIDATES)
+        val tokensPath = File(dir, TOKENS_FILE).absolutePath
+        val dataDir = File(dir, ESPEAK_DIR)
+        val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
+        val lexicon = File(dir, LEXICON_FILE)
+        val lexiconPath = if (lexicon.isFile) lexicon.absolutePath else ""
+        return OfflineTtsConfig(
+            model = OfflineTtsModelConfig(
+                zipvoice = OfflineTtsZipVoiceModelConfig(
+                    tokens = tokensPath,
+                    encoder = encoder,
+                    decoder = decoder,
+                    vocoder = vocoder,
+                    dataDir = dataDirPath,
+                    lexicon = lexiconPath,
+                ),
+                numThreads = 2,
+                debug = false,
+            ),
+            maxNumSentences = 2,
+        )
+    }
+
+    /**
+     * Pocket (k2-fsa, 2026) — small autoregressive TTS that splits the
+     * acoustic model across an LM flow + LM main + encoder + decoder +
+     * text-conditioner stack. Tokens come from `vocab.json` instead of
+     * `tokens.txt`. No espeak-ng dependency.
+     */
+    private fun buildPocketConfig(dir: File): OfflineTtsConfig {
+        fun req(name: String): String {
+            val f = File(dir, name)
+            check(f.isFile) { "Pocket voice at $dir is missing $name" }
+            return f.absolutePath
+        }
+        return OfflineTtsConfig(
+            model = OfflineTtsModelConfig(
+                pocket = OfflineTtsPocketModelConfig(
+                    lmFlow = req("lm_flow.int8.onnx"),
+                    lmMain = req("lm_main.int8.onnx"),
+                    encoder = req("encoder.onnx"),
+                    decoder = req("decoder.int8.onnx"),
+                    textConditioner = req("text_conditioner.onnx"),
+                    vocabJson = req("vocab.json"),
+                    tokenScoresJson = req("token_scores.json"),
+                ),
+                numThreads = 2,
+                debug = false,
+            ),
+            maxNumSentences = 2,
+        )
+    }
+
+    /**
+     * Supertonic (k2-fsa, 2026) — diffusion-flow TTS with separate duration
+     * predictor + text encoder + vector estimator + vocoder, configured via
+     * `tts.json` and Unicode-aware via `unicode_indexer.bin`. Voice timbre is
+     * carried by `voice.bin` (analogous to Kokoro's `voices.bin`).
+     */
+    private fun buildSupertonicConfig(dir: File): OfflineTtsConfig {
+        fun req(name: String): String {
+            val f = File(dir, name)
+            check(f.isFile) { "Supertonic voice at $dir is missing $name" }
+            return f.absolutePath
+        }
+        return OfflineTtsConfig(
+            model = OfflineTtsModelConfig(
+                supertonic = OfflineTtsSupertonicModelConfig(
+                    durationPredictor = req("duration_predictor.int8.onnx"),
+                    textEncoder = req("text_encoder.int8.onnx"),
+                    vectorEstimator = req("vector_estimator.int8.onnx"),
+                    vocoder = req("vocoder.int8.onnx"),
+                    ttsJson = req("tts.json"),
+                    unicodeIndexer = req("unicode_indexer.bin"),
+                    voiceStyle = req("voice.bin"),
                 ),
                 numThreads = 2,
                 debug = false,
@@ -432,6 +532,18 @@ class SherpaTtsRuntime private constructor(
 
         /** Speaker-embedding bank shared by Kokoro and Kitten releases. */
         private const val KOKORO_VOICES_FILE = "voices.bin"
+
+        /** ZipVoice ships encoder/decoder/vocoder as separate ONNX files;
+         *  int8 quantised variants are released first. */
+        private val ZIPVOICE_ENCODER_CANDIDATES = listOf(
+            "encoder.int8.onnx", "encoder.onnx",
+        )
+        private val ZIPVOICE_DECODER_CANDIDATES = listOf(
+            "decoder.int8.onnx", "decoder.onnx",
+        )
+        private val ZIPVOICE_VOCODER_CANDIDATES = listOf(
+            "vocos_24khz.onnx", "vocos_22khz.onnx", "vocoder.onnx",
+        )
 
         /**
          * Comma-joined into [OfflineTtsConfig.ruleFsts] when present. These

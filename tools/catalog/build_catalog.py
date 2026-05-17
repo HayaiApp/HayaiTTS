@@ -52,10 +52,14 @@ FAMILY_DEFAULT_LICENSE = {
 }
 
 # Families that `SherpaTtsRuntime` currently builds `OfflineTtsConfig`s for.
-# Entries outside this set are still emitted into the catalog (so they show up
-# in Browse as "Coming Soon") but flagged `available: false`. When runtime
-# support lands for ZipVoice / Pocket / Supertonic, add them here.
-RUNTIME_SUPPORTED_FAMILIES = {"piper", "vits", "matcha", "kokoro", "kitten"}
+# Mirrors the non-CUSTOM entries of the Kotlin `ModelFamily` enum. Anything
+# outside this set is emitted into the catalog with `available: false` so
+# Browse can surface it as "Coming Soon" until the runtime config builder
+# lands.
+RUNTIME_SUPPORTED_FAMILIES = {
+    "piper", "vits", "matcha", "kokoro", "kitten",
+    "zipvoice", "pocket", "supertonic",
+}
 
 
 @dataclass

@@ -267,10 +267,36 @@ class CustomBundleInstaller(
                 } ?: false
                 if (!hasVocoder) missing += "vocoder.onnx"
             }
-            ModelFamily.KOKORO, ModelFamily.KITTEN, ModelFamily.CUSTOM -> {
-                // We do not allow the user to pick these in the wizard; this
-                // branch is unreachable but defensive.
-                missing += "unsupported-family"
+            ModelFamily.KOKORO, ModelFamily.KITTEN -> {
+                requireOneOf("model.onnx", listOf("model.onnx", "model.fp16.onnx", "model.int8.onnx"))
+                if (!File(dir, tokens).isFile) missing += tokens
+                if (!File(dir, "voices.bin").isFile) missing += "voices.bin"
+            }
+            ModelFamily.ZIPVOICE -> {
+                requireOneOf("encoder.onnx", listOf("encoder.int8.onnx", "encoder.onnx"))
+                requireOneOf("decoder.onnx", listOf("decoder.int8.onnx", "decoder.onnx"))
+                requireOneOf("vocoder.onnx", listOf("vocos_24khz.onnx", "vocos_22khz.onnx", "vocoder.onnx"))
+                if (!File(dir, tokens).isFile) missing += tokens
+            }
+            ModelFamily.POCKET -> {
+                listOf(
+                    "lm_flow.int8.onnx", "lm_main.int8.onnx", "encoder.onnx",
+                    "decoder.int8.onnx", "text_conditioner.onnx",
+                    "vocab.json", "token_scores.json",
+                ).forEach { if (!File(dir, it).isFile) missing += it }
+            }
+            ModelFamily.SUPERTONIC -> {
+                listOf(
+                    "duration_predictor.int8.onnx", "text_encoder.int8.onnx",
+                    "vector_estimator.int8.onnx", "vocoder.int8.onnx",
+                    "tts.json", "unicode_indexer.bin", "voice.bin",
+                ).forEach { if (!File(dir, it).isFile) missing += it }
+            }
+            ModelFamily.CUSTOM -> {
+                // Unreachable — the wizard resolves CUSTOM to a concrete
+                // effectiveFamily before calling this, but the exhaustive
+                // when needs a branch.
+                missing += "custom-must-be-resolved-to-effective-family"
             }
         }
         return missing
