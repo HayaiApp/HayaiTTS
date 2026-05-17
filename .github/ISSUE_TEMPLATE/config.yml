@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Hayai novel reader
+    url: https://github.com/HayaiApp/hayai
+    about: Bugs in Hayai's TTS settings UI itself go in the Hayai repo, not here.
+  - name: sherpa-onnx upstream
+    url: https://github.com/k2-fsa/sherpa-onnx
+    about: Inference engine / model bundle bugs (e.g. a voice that crashes on synthesize) usually belong upstream.

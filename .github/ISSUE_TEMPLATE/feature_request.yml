@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest an improvement — a new voice family, a UX tweak, anything.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like to see?
+      placeholder: e.g. "Add support for F5-TTS voices when sherpa-onnx ships the JNI for them"
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why does this matter?
+      description: What problem does this solve? Who benefits?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched [existing issues](https://github.com/HayaiApp/HayaiTTS/issues?q=is%3Aissue) and didn't find a duplicate.
+          required: true

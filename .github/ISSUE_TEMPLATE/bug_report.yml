@@ -1,0 +1,77 @@
+name: Bug report
+description: Something is broken or behaving unexpectedly in HayaiTTS.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill out every
+        section — TTS engines fail in subtle ways and we usually need
+        the device + voice combo to reproduce.
+
+  - type: input
+    id: app-version
+    attributes:
+      label: HayaiTTS version
+      description: From Settings → About, or the APK file name.
+      placeholder: "v1.0.0-b1"
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device + Android version
+      placeholder: "Pixel 8, Android 16"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-source
+    attributes:
+      label: Install source
+      options:
+        - GitHub Releases (stable)
+        - GitHub Releases (beta)
+        - GitHub Releases (nightly)
+        - Built from source
+    validations:
+      required: true
+
+  - type: input
+    id: voice
+    attributes:
+      label: Voice in use (if relevant)
+      description: The voiceId from Library → tap a voice. Leave blank if the bug isn't voice-specific.
+      placeholder: "vits-piper-en_US-amy-low"
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Be specific about the steps to reproduce. Screenshots and screen recordings are great.
+      placeholder: |
+        1. Installed HayaiTTS, set it as the system TTS engine.
+        2. Opened the system Settings → Listen to an example.
+        3. Heard silence instead of speech.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logcat
+    attributes:
+      label: logcat (if you can capture it)
+      description: |
+        Helpful for TTS service / synthesis bugs. Strip personal info first.
+        Run: `adb logcat -s HayaiTtsService SherpaTtsRuntime VoiceDownloadWorker`
+      render: shell
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched [existing issues](https://github.com/HayaiApp/HayaiTTS/issues?q=is%3Aissue) and didn't find a duplicate.
+          required: true
+        - label: I'm running the latest [release](https://github.com/HayaiApp/HayaiTTS/releases) or have a specific reason to be on an older build.
+          required: true
