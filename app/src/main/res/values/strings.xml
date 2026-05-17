@@ -161,4 +161,38 @@
     <string name="import_step_confirm">Confirm</string>
     <string name="import_step_install">Install</string>
     <string name="settings_subtitle">Tune downloads, storage, defaults</string>
+
+    <!-- P1: Auto-updater + in-app changelog viewer -->
+    <string name="settings_section_updates">Updates</string>
+    <string name="settings_update_channel">Update channel</string>
+    <string name="settings_update_channel_stable">Stable</string>
+    <string name="settings_update_channel_beta">Beta</string>
+    <string name="settings_update_channel_nightly">Nightly</string>
+    <string name="settings_update_channel_dialog_title">Update channel</string>
+    <string name="settings_update_channel_stable_subtitle">Tagged releases only.</string>
+    <string name="settings_update_channel_beta_subtitle">Stable plus tagged betas (vX.Y.Z-bN).</string>
+    <string name="settings_update_channel_nightly_subtitle">All builds including ad-hoc nightlies. May be unstable.</string>
+    <string name="settings_current_version">Current version</string>
+    <string name="settings_current_version_value">%1$s (%2$d)</string>
+    <string name="settings_check_for_updates">Check for updates</string>
+    <string name="settings_check_for_updates_subtitle">Look for a newer release on this channel now.</string>
+    <string name="settings_checking_for_updates">Checking for updates…</string>
+    <string name="settings_last_checked">Last checked</string>
+    <string name="settings_last_checked_never">Never</string>
+    <string name="settings_last_checked_just_now">Just now</string>
+    <string name="settings_last_checked_minutes">%1$d min ago</string>
+    <string name="settings_last_checked_hours">%1$d hr ago</string>
+    <string name="settings_last_checked_days">%1$d d ago</string>
+    <string name="settings_update_uptodate">You\'re on the latest version.</string>
+    <string name="settings_update_available">Update available: %1$s</string>
+    <string name="settings_update_failed">Update check failed: %1$s</string>
+    <string name="update_dialog_title">New version available</string>
+    <string name="update_action_install">Update now</string>
+    <string name="update_action_later">Later</string>
+    <string name="update_channel_stable">Stable</string>
+    <string name="update_channel_beta">Beta</string>
+    <string name="update_channel_nightly">Nightly</string>
+    <string name="update_progress_caption">%1$s / %2$s · %3$d%%</string>
+    <string name="update_download_failed">Download failed: %1$s</string>
+    <string name="update_no_changelog">No release notes provided.</string>
 </resources>

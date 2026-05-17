@@ -9,6 +9,8 @@ import dev.ahmedmohamed.hayaitts.data.download.DownloadRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.preview.VoicePreviewPlayer
 import dev.ahmedmohamed.hayaitts.data.settings.SettingsRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.storage.StorageMigrator
+import dev.ahmedmohamed.hayaitts.data.update.UpdateChecker
+import dev.ahmedmohamed.hayaitts.data.update.UpdateInstaller
 import dev.ahmedmohamed.hayaitts.data.voices.VoiceRepositoryImpl
 import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DefaultsRepository
@@ -22,6 +24,7 @@ import dev.ahmedmohamed.hayaitts.ui.library.LibraryViewModel
 import dev.ahmedmohamed.hayaitts.ui.library.preferences.LibraryUiPreferences
 import dev.ahmedmohamed.hayaitts.ui.quickswitch.QuickSwitchViewModel
 import dev.ahmedmohamed.hayaitts.ui.settings.SettingsViewModel
+import dev.ahmedmohamed.hayaitts.ui.update.UpdateViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -104,6 +107,11 @@ val appModule = module {
     // ui/ so the data + domain layers stay independent of presentation state.
     single { LibraryUiPreferences(androidContext()) }
 
+    // Auto-updater. Uses the shared OkHttp + SettingsRepository so the channel
+    // preference + 6h cooldown live in the existing hayai_settings DataStore.
+    single { UpdateChecker(okHttp = get(), settings = get()) }
+    single { UpdateInstaller(context = androidContext(), okHttp = get()) }
+
     viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
     viewModel { BrowseViewModel(androidContext(), get(), get(), get()) }
     viewModel { (voiceId: String) ->
@@ -131,6 +139,13 @@ val appModule = module {
             voices = get(),
             defaults = get(),
             migrator = get(),
+        )
+    }
+    viewModel {
+        UpdateViewModel(
+            settings = get(),
+            checker = get(),
+            installer = get(),
         )
     }
 }

@@ -33,6 +33,16 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- P2: deep link target for download notification taps. The
+                 NavHost composable for [Routes.DOWNLOADS] registers the same
+                 URI pattern via `navDeepLink`, so this filter just gets the
+                 activity in front of the user; nav does the rest. -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="hayaitts" android:host="downloads" />
+            </intent-filter>
         </activity>
 
         <activity-alias
@@ -48,6 +58,10 @@
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="true" />
+
+        <activity
+            android:name=".ui.help.HelpActivity"
+            android:exported="false" />
 
         <service
             android:name=".tts.HayaiTtsService"

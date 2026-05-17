@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FileProvider mapping for the auto-updater. We only expose the `updates/`
+  subdirectory of `cacheDir` so a misuse of the provider can never read voice
+  models, the database, or any other user data.
+-->
+<paths>
+    <cache-path name="updates" path="updates/" />
+</paths>

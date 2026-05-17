@@ -25,7 +25,10 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SdStorage
+import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,9 +65,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.BuildConfig
 import dev.ahmedmohamed.hayaitts.R
+import dev.ahmedmohamed.hayaitts.data.update.UpdateChannel
+import dev.ahmedmohamed.hayaitts.data.update.UpdateStatus
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
 import dev.ahmedmohamed.hayaitts.ui.theme.HayaiTtsTheme
+import dev.ahmedmohamed.hayaitts.ui.update.UpdateViewModel
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -93,9 +99,13 @@ class SettingsActivity : ComponentActivity() {
 private fun SettingsScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
+    updateViewModel: UpdateViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val cacheClearedBytes by viewModel.cacheClearedBytes.collectAsStateWithLifecycle()
+    val updateStatus by updateViewModel.status.collectAsStateWithLifecycle()
+    val updateChannel by updateViewModel.updateChannel.collectAsStateWithLifecycle()
+    val lastChecked by updateViewModel.lastChecked.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
@@ -104,6 +114,31 @@ private fun SettingsScreen(
 
     var defaultPickerLocale by remember { mutableStateOf<String?>(null) }
     var licenseDialogOpen by remember { mutableStateOf(false) }
+    var channelPickerOpen by remember { mutableStateOf(false) }
+
+    // Surface a snackbar for every terminal update-status transition kicked off
+    // from this screen. The launch-time auto-check is handled in MainActivity.
+    LaunchedEffect(updateStatus) {
+        when (val s = updateStatus) {
+            is UpdateStatus.UpToDate -> {
+                snackbarHostState.showSnackbar(context.getString(R.string.settings_update_uptodate))
+                updateViewModel.consumeStatus()
+            }
+            is UpdateStatus.Available -> {
+                snackbarHostState.showSnackbar(
+                    context.getString(R.string.settings_update_available, s.tag),
+                )
+                // Do NOT consume — MainActivity's dialog observes the same state.
+            }
+            is UpdateStatus.Failed -> {
+                snackbarHostState.showSnackbar(
+                    context.getString(R.string.settings_update_failed, s.reason),
+                )
+                updateViewModel.consumeStatus()
+            }
+            else -> Unit
+        }
+    }
 
     // Surface the freed-bytes snackbar exactly once per clear action.
     LaunchedEffect(cacheClearedBytes) {
@@ -260,6 +295,57 @@ private fun SettingsScreen(
                 )
             }
 
+            item("divider_updates") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
+            item("updates_header") { SectionHeader(stringResource(R.string.settings_section_updates)) }
+            item("update_channel") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Update, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_update_channel)) },
+                    supportingContent = { Text(updateChannel.displayName()) },
+                    modifier = Modifier.clickableRow { channelPickerOpen = true },
+                )
+            }
+            item("update_current_version") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_current_version)) },
+                    supportingContent = {
+                        Text(
+                            stringResource(
+                                R.string.settings_current_version_value,
+                                BuildConfig.VERSION_NAME,
+                                BuildConfig.VERSION_CODE,
+                            ),
+                        )
+                    },
+                )
+            }
+            item("update_check_now") {
+                val isChecking = updateStatus is UpdateStatus.Checking
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Refresh, contentDescription = null) },
+                    headlineContent = {
+                        Text(
+                            if (isChecking) stringResource(R.string.settings_checking_for_updates)
+                            else stringResource(R.string.settings_check_for_updates),
+                        )
+                    },
+                    supportingContent = {
+                        Text(stringResource(R.string.settings_check_for_updates_subtitle))
+                    },
+                    modifier = if (isChecking) Modifier else Modifier.clickableRow {
+                        updateViewModel.checkNow(force = true)
+                    },
+                )
+            }
+            item("update_last_checked") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Schedule, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_last_checked)) },
+                    supportingContent = { Text(formatRelativeTime(lastChecked)) },
+                )
+            }
+
             item("divider_3") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
             item("about_header") { SectionHeader(stringResource(R.string.settings_section_about)) }
             item("version") {
@@ -315,6 +401,86 @@ private fun SettingsScreen(
 
     if (licenseDialogOpen) {
         LicenseDialog(onDismiss = { licenseDialogOpen = false })
+    }
+
+    if (channelPickerOpen) {
+        UpdateChannelDialog(
+            current = updateChannel,
+            onPick = { picked ->
+                updateViewModel.setChannel(picked)
+                channelPickerOpen = false
+            },
+            onDismiss = { channelPickerOpen = false },
+        )
+    }
+}
+
+@Composable
+private fun UpdateChannelDialog(
+    current: UpdateChannel,
+    onPick: (UpdateChannel) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_update_channel_dialog_title)) },
+        text = {
+            Column {
+                UpdateChannel.values().forEach { channel ->
+                    val (label, subtitle) = when (channel) {
+                        UpdateChannel.STABLE -> stringResource(R.string.settings_update_channel_stable) to
+                            stringResource(R.string.settings_update_channel_stable_subtitle)
+                        UpdateChannel.BETA -> stringResource(R.string.settings_update_channel_beta) to
+                            stringResource(R.string.settings_update_channel_beta_subtitle)
+                        UpdateChannel.NIGHTLY -> stringResource(R.string.settings_update_channel_nightly) to
+                            stringResource(R.string.settings_update_channel_nightly_subtitle)
+                    }
+                    ListItem(
+                        headlineContent = { Text(label) },
+                        supportingContent = { Text(subtitle) },
+                        trailingContent = {
+                            RadioButton(
+                                selected = current == channel,
+                                onClick = { onPick(channel) },
+                            )
+                        },
+                        modifier = Modifier.clickableRow { onPick(channel) },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.settings_license_dialog_close))
+            }
+        },
+    )
+}
+
+@Composable
+private fun UpdateChannel.displayName(): String = when (this) {
+    UpdateChannel.STABLE -> stringResource(R.string.settings_update_channel_stable)
+    UpdateChannel.BETA -> stringResource(R.string.settings_update_channel_beta)
+    UpdateChannel.NIGHTLY -> stringResource(R.string.settings_update_channel_nightly)
+}
+
+/**
+ * Compact "X min ago" / "X hr ago" / "X d ago" formatter for the
+ * `lastUpdateCheckMillis` DataStore field. Returns the localized "Never" string
+ * when no check has ever completed.
+ */
+@Composable
+private fun formatRelativeTime(epochMs: Long): String {
+    if (epochMs <= 0L) return stringResource(R.string.settings_last_checked_never)
+    val delta = (System.currentTimeMillis() - epochMs).coerceAtLeast(0L)
+    val minutes = delta / 60_000L
+    val hours = delta / (60_000L * 60L)
+    val days = delta / (60_000L * 60L * 24L)
+    return when {
+        minutes < 1L -> stringResource(R.string.settings_last_checked_just_now)
+        minutes < 60L -> stringResource(R.string.settings_last_checked_minutes, minutes.toInt())
+        hours < 24L -> stringResource(R.string.settings_last_checked_hours, hours.toInt())
+        else -> stringResource(R.string.settings_last_checked_days, days.toInt())
     }
 }
 
