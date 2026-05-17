@@ -1,0 +1,77 @@
+name: Build PR
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**/strings.xml'
+
+jobs:
+  build:
+    name: Build app
+    runs-on: blacksmith-8vcpu-ubuntu-2404
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Setup Android SDK
+        run: |
+          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;36.0.0" "platforms;android-36"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Mount Gradle home (sticky disk)
+        uses: useblacksmith/stickydisk@v1
+        with:
+          key: ${{ github.repository }}-gradle-home-pr
+          path: ~/.gradle
+
+      - name: Copy CI gradle.properties
+        run: |
+          mkdir -p ~/.gradle
+          cp .github/runner-files/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+
+      - name: Build
+        # `assembleRelease` runs R8 + the resource shrinker + ABI splits, so it
+        # exercises every production gradle path. We do NOT run lintVitalRelease
+        # — the WorkManager foreground-service-type merge is verified there but
+        # locally; CI does not need the deprecation warnings to gate PRs.
+        run: ./gradlew assembleRelease assembleDebug
+
+      - name: Upload arm64-v8a unsigned APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm64-v8a-${{ github.sha }}
+          path: app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk
+          if-no-files-found: error
+
+      - name: Upload universal unsigned APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: universal-${{ github.sha }}
+          path: app/build/outputs/apk/release/app-universal-release-unsigned.apk
+          if-no-files-found: error
+
+      - name: Upload R8 mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: mapping-${{ github.sha }}
+          path: app/build/outputs/mapping/release

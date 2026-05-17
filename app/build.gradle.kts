@@ -44,9 +44,11 @@ android {
     }
 
     // Release signing reads credentials from `signing.properties` at the repo
-    // root (gitignored). If the file is absent the release variant falls back
-    // to the debug key so local dev builds still work; CI is expected to
-    // provide the properties file via a secret. See `signing.properties.template`.
+    // root (gitignored). When the file is absent the release variant emits
+    // UNSIGNED APKs — CI's signer step (`build_push.yml` →
+    // `null2264/actions/android-signer`) attaches the production key from
+    // GitHub secrets. See `signing.properties.template` for the local-dev
+    // path that wires a real keystore into ./gradlew assembleRelease.
     val signingProps = Properties().apply {
         val f = rootProject.file("signing.properties")
         if (f.exists()) f.inputStream().use { load(it) }
@@ -76,10 +78,8 @@ android {
                 "proguard-rules.pro",
             )
             // Use the real release key when `signing.properties` is present;
-            // fall back to the debug key for unconfigured dev machines so the
-            // gradle build itself never fails on a missing keystore.
+            // otherwise produce unsigned APKs (CI signs them post-build).
             signingConfig = signingConfigs.findByName("release")
-                ?: signingConfigs.getByName("debug")
         }
     }
 
