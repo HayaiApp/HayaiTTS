@@ -49,6 +49,9 @@ jobs:
         with:
           cache-disabled: true
 
+      - name: Grant gradlew execute permission
+        run: chmod +x gradlew
+
       - name: Build
         # `assembleRelease` runs R8 + the resource shrinker + ABI splits, so it
         # exercises every production gradle path. We do NOT run lintVitalRelease

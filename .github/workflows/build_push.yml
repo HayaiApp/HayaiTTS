@@ -66,6 +66,9 @@ jobs:
         with:
           cache-disabled: true
 
+      - name: Grant gradlew execute permission
+        run: chmod +x gradlew
+
       - name: Extract branch name
         id: branch_name
         shell: bash
