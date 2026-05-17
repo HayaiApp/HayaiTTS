@@ -1,68 +1,77 @@
 # Changelog
 
 All notable changes to HayaiTTS land here. Format loosely follows
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/); we don't use
-strict semver yet (1.0.0 is the first public beta).
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-- ZipVoice + Pocket families pick up their upstream releases on the next
-  weekly `catalog-refresh` run (slug matcher fixed in `a9f8a97`).
+## [v1.1.0] — 2026-05-17
 
-## [v1.0.0-b1] — 2026-05-17
+### Added
 
-### Added — first public beta
+- **In-app auto-updater** — Settings → Updates picks a release channel
+  (Stable / Beta / Nightly), polls the GitHub Releases API on launch
+  (debounced 6 h), surfaces an M3 dialog with the changelog body, and
+  streams the universal APK through a `FileProvider`-backed installer.
+- **Downloads Manager** — dedicated screen reachable from a badged top-bar
+  icon on Library, showing Active / Failed / Recently completed
+  downloads with per-row Cancel, Retry, Remove, and Clear-completed
+  actions. Two-channel notifications (`downloads_active` foreground,
+  `downloads_complete` events) with M3 progress, big-text style, and
+  Cancel/Retry PendingIntents.
+- **Model Playground** — per-voice page with pitch / speed / length
+  sliders, multi-shot generation history (last 10 samples persisted to a
+  new Room v3 `playground_samples` table), live 32-bin waveform during
+  playback, multi-speaker swap. Pitch implemented as a post-process
+  resample so it works on every model family.
+- **First-launch onboarding** — 4-card flow on first install with a
+  hardware-tier recommendation ("Mid models balance speed and quality on
+  your device") and a deep link to system TTS settings.
+- **Help screen** — Settings → Help opens expandable M3 cards covering
+  getting-started, tier selection, custom imports, storage location,
+  update channels, and troubleshooting recipes.
+- **M3 RichTooltips** anchored on Library Import, Browse Filter,
+  VoiceDetail Play, and the QuickSwitcher entry. Trigger on long-press,
+  dismiss on outside tap.
+- **Localization** to 10 languages — Spanish, French, German, Italian,
+  Portuguese (Brazil), Russian, Japanese, Chinese (Simplified), Korean,
+  and **Arabic with RTL** layout. ~80 idiomatic strings per locale.
 
-- **System-wide TTS engine** — registers in *Settings → System →
-  Languages & input → Text-to-speech engines*, speakable by any app.
-- **Bundled Piper Amy** (`en_US-amy-low`) voice plays out of the box,
-  before any downloads.
-- **186-voice catalog** of sherpa-onnx-published bundles, each verified
-  by SHA-256 captured during the catalog scrape. Five families
-  represented at this build: Piper (172), Kitten (7), Kokoro (3),
-  Matcha (3), Supertonic (1). Three more (VITS, ZipVoice, Pocket) are
-  runtime-wired and will populate on the next catalog refresh.
-- **All 8 sherpa-onnx families wired in `SherpaTtsRuntime`** —
-  per-family `OfflineTtsConfig` builders for Piper / VITS / Matcha /
-  Kokoro / Kitten / ZipVoice / Pocket / Supertonic.
-- **Material 3 Expressive UI** — `MaterialExpressiveTheme`,
-  `MotionScheme.expressive()`, `WavyProgressIndicator`,
-  `LargeFlexibleTopAppBar`, `MultiChoiceSegmentedButtonRow`,
-  `HorizontalFloatingToolbar`, `MaterialShapes`-driven badge morphing.
-- **Global voice quick-switcher** — bottom sheet reachable from any
-  screen's top bar lists installed voices grouped by language. Tap to
-  set the default for that locale, with haptic feedback.
-- **Library**: featured carousel, favorites (star toggle), long-press
-  drag-reorder persisted to DataStore.
-- **Browse**: family-tinted gradient cards, segmented-button tier
-  filter, multi-select language + family filters with animated count
-  badges, container-transform-style nav to detail.
-- **Voice Detail**: immersive hero with family icon + colors, 32-bin
-  live waveform driven by AudioTrack amplitudes during preview, speaker
-  selection with circular avatars.
-- **Custom voice import** — SAF picker accepts `.tar.bz2`, `.tar`,
-  `.zip`, or bare `.onnx`. Streaming analyzer captures inline metadata
-  files (speakers.txt, voices.txt, JSON manifests) for real
-  multi-speaker detection.
-- **Per-locale defaults** — `DefaultsRepository` + Settings UI; the
-  TTS service routes synthesis by the request locale.
-- **Storage location move** — toggle internal ⇄ SD card and the
-  migrator physically relocates every installed voice with progress UI
-  (not just persists the preference).
-- **R8 minify + per-ABI splits** — release APKs are 96–112 MB per ABI
-  vs. 170 MB universal.
-- **Apksigner-direct signing in CI** — releases signed with a real
-  RSA-4096 keystore stored in encrypted GitHub secrets, verified post-
-  sign with `apksigner verify`.
+### Changed
+
+- **Flat M3 Expressive surfaces everywhere** — every voice card, hero,
+  badge, and avatar now uses `MaterialTheme.colorScheme.*` exclusively.
+  No more per-family gradients or hand-picked seed colors. Family
+  identity lives in the icon glyph + family chip, not the background.
+- **Browse rebuilt** with a `DockedSearchBar` floating at the top, a
+  single Filters icon (with a badge for active-filter count) opening a
+  grouped bottom sheet (Tier / Language / Family with multi-select +
+  segmented Tier), and an active-filter chip row with per-chip remove
+  affordances.
+- **Piper Amy unbundled** — first-run no longer ships a 78 MB voice
+  asset. Browse handles voice acquisition. Per-ABI release APK drops
+  from 96–112 MB to **28–44 MB** (−64% on arm64-v8a).
 
 ### Infrastructure
 
-- **Blacksmith** runners for CPU-bound builds, GitHub-hosted runners
-  for bandwidth-bound catalog refresh.
-- **`catalog-refresh.yml`** runs weekly + on dispatch; commits the new
-  catalog directly to `main` (no PR step).
-- **`build_push.yml`** publishes drafts for `v*` tags and auto-publishes
-  nightlies for `r*` tags in the same repo, all prerelease-flagged.
+- `catalog-refresh.yml` now commits the catalog straight to `main`
+  rather than opening a PR (Actions can't open PRs by default and the
+  scraped catalog has no human-review value).
+- Catalog generator picks up the three new SOTA families by substring
+  (`zipvoice`, `pocket-tts`, `supertonic`).
 
-[Unreleased]: https://github.com/HayaiApp/HayaiTTS/compare/v1.0.0-b1...HEAD
+## [v1.0.0] — 2026-05-17
+
+First stable release. Same surface as the beta below, plus the
+initial signed release pipeline.
+
+## [v1.0.0-b1] — 2026-05-17
+
+First public beta — full feature list documented in the commit
+history and the
+[release notes](https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.0.0-b1).
+
+[Unreleased]: https://github.com/HayaiApp/HayaiTTS/compare/v1.1.0...HEAD
+[v1.1.0]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.1.0
+[v1.0.0]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.0.0
 [v1.0.0-b1]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.0.0-b1
