@@ -1,0 +1,64 @@
+name: catalog-refresh
+
+# Re-runs `tools/catalog/build_catalog.py` once a week and opens a PR if the
+# resulting `catalog/v1/models.json` has changed. The script discovers every
+# voice on the upstream sherpa-onnx TTS model index and computes a sha256 over
+# each release tarball — so when k2-fsa publishes new voices or rebuilds an
+# existing one, HayaiTTS sees it within a week without anyone touching the
+# repo by hand.
+
+on:
+  schedule:
+    # 06:30 UTC every Monday. Off-peak for GitHub Actions queues.
+    - cron: '30 6 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    # Generator streams ~5–10 GB across 180+ bundles; allow a generous wall.
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install generator dependencies
+        run: pip install -r tools/catalog/requirements.txt
+
+      - name: Regenerate catalog
+        run: python tools/catalog/build_catalog.py --output catalog/v1/models.json
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet --exit-code catalog/v1/models.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open pull request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'Refresh catalog from upstream sherpa-onnx index'
+          title: 'Weekly catalog refresh'
+          body: |
+            Automated weekly run of `tools/catalog/build_catalog.py` against
+            the upstream sherpa-onnx TTS model index produced a non-empty diff
+            for `catalog/v1/models.json`. Review the changes — typically new
+            voices appearing under existing families, or sha256 churn when
+            upstream rebuilds a release tarball.
+          branch: chore/catalog-refresh
+          delete-branch: true
+          base: main
+          add-paths: catalog/v1/models.json
