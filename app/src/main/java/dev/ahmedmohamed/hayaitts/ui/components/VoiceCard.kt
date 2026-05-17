@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.RecordVoiceOver
+import androidx.compose.material.icons.outlined.Recommend
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
@@ -54,6 +55,7 @@ import dev.ahmedmohamed.hayaitts.R
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
+import dev.ahmedmohamed.hayaitts.domain.model.Tier
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
 
 /**
@@ -183,6 +185,12 @@ fun CatalogVoiceCard(
     onInstall: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * If non-null and equal to `card.tierEnum`, the card renders a primary
+     * "Recommended for your device" chip. Surfaced by Browse on cards that
+     * match the heuristic device tier and are not yet installed.
+     */
+    recommendedTier: Tier? = null,
 ) {
     val shapeState = shapeStateFor(isInstalled, downloadState)
     val shape = morphedShape(state = shapeState)
@@ -214,6 +222,27 @@ fun CatalogVoiceCard(
                 card.languages.forEach { LanguageChip(it) }
                 FamilyChip(card.modelFamily)
                 TierChip(tier = card.tierEnum, sizeMb = card.approxSizeMb)
+                val showRecommended = recommendedTier != null &&
+                    card.tierEnum == recommendedTier &&
+                    !isInstalled &&
+                    card.available
+                if (showRecommended) {
+                    SuggestionChip(
+                        onClick = {},
+                        label = { Text(stringResource(R.string.voice_chip_recommended)) },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Recommend,
+                                contentDescription = null,
+                            )
+                        },
+                        colors = SuggestionChipDefaults.suggestionChipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            iconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
+                    )
+                }
                 if (!card.available) {
                     AssistChip(
                         onClick = {},
@@ -347,10 +376,13 @@ private fun shapeStateFor(isInstalled: Boolean, state: DownloadState): ShapeStat
  */
 @Composable
 private fun morphedShape(state: ShapeState): Shape {
+    // Phase 7 motion polish: widened the Idle vs Done delta from 12dp to 20dp
+    // so the install lifecycle visibly rounds the card. Running sits mid-way
+    // so the in-progress shape still reads as a distinct affordance.
     val target: Dp = when (state) {
-        ShapeState.Idle -> 16.dp
-        ShapeState.Running -> 24.dp
-        ShapeState.Done -> 28.dp
+        ShapeState.Idle -> 12.dp
+        ShapeState.Running -> 22.dp
+        ShapeState.Done -> 32.dp
     }
     val radius by animateDpAsState(targetValue = target, label = "voice-card-radius")
     return remember(radius) { RoundedCornerShape(radius) }

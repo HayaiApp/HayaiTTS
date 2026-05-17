@@ -128,6 +128,7 @@ fun BrowseScreen(
                     cards = state.cards,
                     downloads = state.downloads,
                     installedIds = state.installedIds,
+                    recommendedTier = state.recommendedTier,
                     onClickCard = onVoiceClick,
                     onInstall = viewModel::enqueue,
                     onCancel = viewModel::cancel,
@@ -269,6 +270,7 @@ private fun CatalogList(
     cards: List<dev.ahmedmohamed.hayaitts.domain.model.VoiceCard>,
     downloads: Map<String, DownloadState>,
     installedIds: Set<String>,
+    recommendedTier: Tier,
     onClickCard: (String) -> Unit,
     onInstall: (dev.ahmedmohamed.hayaitts.domain.model.VoiceCard) -> Unit,
     onCancel: (String) -> Unit,
@@ -289,6 +291,7 @@ private fun CatalogList(
                 onOpen = { onClickCard(card.id) },
                 onInstall = { onInstall(card) },
                 onCancel = { onCancel(card.id) },
+                recommendedTier = recommendedTier,
             )
         }
     }

@@ -4,6 +4,10 @@ package dev.ahmedmohamed.hayaitts.ui.library
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -99,28 +103,36 @@ fun LibraryScreen(
             )
         },
     ) { innerPadding ->
-        if (state.installed.isEmpty()) {
-            EmptyState(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                icon = Icons.Outlined.LibraryMusic,
-                title = stringResource(R.string.library_empty_title),
-                subtitle = stringResource(R.string.library_empty_subtitle),
-                ctaLabel = stringResource(R.string.library_browse_action),
-                onCta = onBrowse,
-            )
-        } else {
-            LibraryList(
-                voices = state.installed,
-                defaultedLocalesFor = { state.defaultedLocales(it.voiceId) },
-                onToggleDefault = { voice, locale ->
-                    viewModel.toggleDefault(locale, voice.voiceId)
-                },
-                onUninstall = { pendingUninstall = it },
-                onClickVoice = { onVoiceClick(it.voiceId) },
-                contentPadding = innerPadding,
-            )
+        // Phase 7 motion: fade between Empty and Populated so the first install
+        // animates the list in rather than swapping the layout instantly.
+        AnimatedContent(
+            targetState = state.installed.isEmpty(),
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            label = "library-empty",
+        ) { isEmpty ->
+            if (isEmpty) {
+                EmptyState(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    icon = Icons.Outlined.LibraryMusic,
+                    title = stringResource(R.string.library_empty_title),
+                    subtitle = stringResource(R.string.library_empty_subtitle),
+                    ctaLabel = stringResource(R.string.library_browse_action),
+                    onCta = onBrowse,
+                )
+            } else {
+                LibraryList(
+                    voices = state.installed,
+                    defaultedLocalesFor = { state.defaultedLocales(it.voiceId) },
+                    onToggleDefault = { voice, locale ->
+                        viewModel.toggleDefault(locale, voice.voiceId)
+                    },
+                    onUninstall = { pendingUninstall = it },
+                    onClickVoice = { onVoiceClick(it.voiceId) },
+                    contentPadding = innerPadding,
+                )
+            }
         }
     }
 

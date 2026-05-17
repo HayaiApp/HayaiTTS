@@ -37,11 +37,13 @@ commonsCompress = "1.27.1"
 # speakers list stored as a TEXT column on Room.
 kotlinxSerialization = "1.7.3"
 
-# Maven Central re-package of the official k2-fsa/sherpa-onnx Android AAR.
-# Upstream only ships AARs via GitHub releases, so the bihe0832 group republishes
-# the unmodified bytecode + JNI .so files to Maven Central. Version numbers track
-# the upstream release tags (e.g. 6.25.12 == sherpa-onnx v1.10.x era).
-sherpaOnnx = "6.25.12"
+# Official k2-fsa/sherpa-onnx Android AAR, dropped into app/libs/. Upstream only
+# distributes the AAR via GitHub releases — there is no Maven coordinate — so we
+# vendor it. v1.13.2 (Phase 7) ships every TTS family we care about: VITS, Piper,
+# Matcha, Kokoro, Kitten, ZipVoice, Pocket, Supertonic. The bihe0832 Maven mirror
+# we used in Phase 5 (6.25.12 == upstream v1.10.x) was missing Kokoro / Kitten
+# JNI symbols entirely; switching to the upstream AAR unblocked them.
+sherpaOnnxAar = "1.13.2"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
@@ -78,7 +80,10 @@ kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
-sherpa-onnx-android = { module = "com.bihe0832.android:lib-sherpa-onnx", version.ref = "sherpaOnnx" }
+# AAR coordinate is not used directly — app/build.gradle.kts pulls
+# app/libs/sherpa-onnx-<version>.aar via `files(...)` because the upstream
+# release is not published to any Maven repository. The version constant
+# above is the source of truth for which file we expect on disk.
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

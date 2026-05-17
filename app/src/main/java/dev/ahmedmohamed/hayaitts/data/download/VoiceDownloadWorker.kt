@@ -26,6 +26,9 @@ import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.security.MessageDigest
 
 /**
@@ -85,86 +88,138 @@ class VoiceDownloadWorker(
 
         DownloadNotifications.ensureChannel(applicationContext)
         setForegroundSafely(voice.title, pct = 0, indeterminate = true)
-
         upsertState(voice.id, DownloadState.STATUS_RUNNING, 0L, 0L, null)
 
         val downloadsDir = File(applicationContext.cacheDir, "downloads").apply { mkdirs() }
         val partFile = File(downloadsDir, "${voice.id}.tar.bz2.part")
         val finalFile = File(downloadsDir, "${voice.id}.tar.bz2")
-
-        // 1. Network download with throttled progress updates.
-        val totalBytes = try {
-            downloadBundle(voice, partFile)
-        } catch (t: Throwable) {
-            partFile.delete()
-            return@withContext failPersisted(voice.id, "Download failed: ${t.message ?: t::class.simpleName}")
-        }
-
-        partFile.renameTo(finalFile)
-
-        // 2. Integrity check.
-        if (!voice.sha256.isNullOrBlank()) {
-            val actual = sha256(finalFile)
-            if (!actual.equals(voice.sha256, ignoreCase = true)) {
-                finalFile.delete()
-                return@withContext failPersisted(voice.id, "Checksum mismatch")
-            }
-        } else {
-            log.w { "No sha256 for ${voice.id} — skipping integrity check" }
-        }
-
-        // 3. Extract.
-        upsertState(voice.id, DownloadState.STATUS_EXTRACTING, totalBytes, totalBytes, null)
-        setForegroundSafely(voice.title, pct = 100, indeterminate = true)
-
         val voiceDir = File(applicationContext.filesDir, "voices/${voice.id}")
-        val extractResult = runCatching {
-            if (voiceDir.exists()) voiceDir.deleteRecursively()
-            voiceDir.mkdirs()
-            extractTarBz2(finalFile, voiceDir)
-        }
-        if (extractResult.isFailure) {
-            return@withContext failPersisted(
-                voice.id,
-                "Extraction failed: ${extractResult.exceptionOrNull()?.message}",
-            )
-        }
+        // Whether the destination dir existed before this run — used so a retry
+        // (which doWork() re-runs from scratch) does not wipe a partially
+        // populated dir that the previous attempt put there.
+        val voiceDirPreexisted = voiceDir.exists()
 
-        // 4. Optional secondary asset (matcha vocoder lives in a different release).
-        if (!voice.vocoderUrl.isNullOrBlank() && !voice.vocoderFileName.isNullOrBlank()) {
-            val target = File(voiceDir, voice.vocoderFileName)
-            val sideResult = runCatching { downloadAuxiliary(voice.vocoderUrl, target) }
-            if (sideResult.isFailure) {
+        var success = false
+        try {
+            // 1. Network download with throttled progress updates.
+            val totalBytes = try {
+                downloadBundle(voice, partFile)
+            } catch (t: Throwable) {
+                if (isTransient(t) && runAttemptCount < MAX_RETRIES) {
+                    log.w(t) { "Transient download failure for ${voice.id}, attempt $runAttemptCount/$MAX_RETRIES — will retry" }
+                    return@withContext Result.retry()
+                }
                 return@withContext failPersisted(
                     voice.id,
-                    "Vocoder download failed: ${sideResult.exceptionOrNull()?.message}",
+                    "Download failed: ${t.message ?: t::class.simpleName}",
                 )
             }
-        }
 
-        // 5. Validate the extracted tree using family-aware required-file lists.
-        val missing = missingRequiredFiles(voice, voiceDir)
-        if (missing.isNotEmpty()) {
-            return@withContext failPersisted(
-                voice.id,
-                "Bundle missing required files: ${missing.joinToString()}",
-            )
-        }
+            if (!partFile.renameTo(finalFile)) {
+                // renameTo is atomic across the same FS but can fail when the
+                // dest already exists from a previous attempt. Fall back to
+                // delete + rename.
+                finalFile.delete()
+                partFile.renameTo(finalFile)
+            }
 
-        // 6. Mark installed + done.
-        voiceRepository.markInstalled(voice, voiceDir.absolutePath)
-        upsertState(voice.id, DownloadState.STATUS_DONE, totalBytes, totalBytes, null)
-        finalFile.delete()
-        log.i { "Voice ${voice.id} installed at $voiceDir" }
-        Result.success()
+            // 2. Integrity check — hard error, no retry.
+            if (!voice.sha256.isNullOrBlank()) {
+                val actual = sha256(finalFile)
+                if (!actual.equals(voice.sha256, ignoreCase = true)) {
+                    return@withContext failPersisted(voice.id, "Checksum mismatch")
+                }
+            } else {
+                log.w { "No sha256 for ${voice.id} — skipping integrity check" }
+            }
+
+            // 3. Extract.
+            upsertState(voice.id, DownloadState.STATUS_EXTRACTING, totalBytes, totalBytes, null)
+            setForegroundSafely(voice.title, pct = 100, indeterminate = true)
+
+            val extractResult = runCatching {
+                if (voiceDir.exists()) voiceDir.deleteRecursively()
+                voiceDir.mkdirs()
+                extractTarBz2(finalFile, voiceDir)
+            }
+            if (extractResult.isFailure) {
+                return@withContext failPersisted(
+                    voice.id,
+                    "Extraction failed: ${extractResult.exceptionOrNull()?.message}",
+                )
+            }
+
+            // 4. Optional secondary asset (matcha vocoder lives in a different release).
+            if (!voice.vocoderUrl.isNullOrBlank() && !voice.vocoderFileName.isNullOrBlank()) {
+                val sideResult = runCatching {
+                    downloadAuxiliary(voice.vocoderUrl, File(voiceDir, voice.vocoderFileName))
+                }
+                if (sideResult.isFailure) {
+                    val err = sideResult.exceptionOrNull()
+                    if (isTransient(err) && runAttemptCount < MAX_RETRIES) {
+                        log.w(err) { "Vocoder transient failure for ${voice.id}, retrying" }
+                        return@withContext Result.retry()
+                    }
+                    return@withContext failPersisted(
+                        voice.id,
+                        "Vocoder download failed: ${err?.message}",
+                    )
+                }
+            }
+
+            // 5. Validate the extracted tree using family-aware required-file lists.
+            val missing = missingRequiredFiles(voice, voiceDir)
+            if (missing.isNotEmpty()) {
+                return@withContext failPersisted(
+                    voice.id,
+                    "Bundle missing required files: ${missing.joinToString()}",
+                )
+            }
+
+            // 6. Mark installed + done.
+            voiceRepository.markInstalled(voice, voiceDir.absolutePath)
+            upsertState(voice.id, DownloadState.STATUS_DONE, totalBytes, totalBytes, null)
+            finalFile.delete()
+            success = true
+            log.i { "Voice ${voice.id} installed at $voiceDir" }
+            Result.success()
+        } finally {
+            // Cleanup on every non-success path: scrap the partial tarball and
+            // (only if we created it this run) the partially-populated voice
+            // directory. Leaving 200 MB of half-extracted Kokoro shards around
+            // when the user retries was the Phase 4a TODO this addresses.
+            if (!success) {
+                partFile.takeIf { it.exists() }?.delete()
+                finalFile.takeIf { it.exists() }?.delete()
+                if (!voiceDirPreexisted) voiceDir.takeIf { it.exists() }?.deleteRecursively()
+            }
+        }
+    }
+
+    /**
+     * Classifies an error as transient (network blip, 5xx, timeout) vs hard
+     * (404, malformed bundle). Transients drive WorkManager to retry per the
+     * exponential backoff configured in [DownloadRepositoryImpl].
+     */
+    private fun isTransient(t: Throwable?): Boolean {
+        if (t == null) return false
+        val msg = t.message.orEmpty()
+        return t is SocketTimeoutException ||
+            t is UnknownHostException ||
+            (t is IOException && t !is java.io.FileNotFoundException) ||
+            HTTP_5XX_RE.containsMatchIn(msg)
     }
 
     private suspend fun downloadBundle(voice: VoiceCard, partFile: File): Long {
         val request = Request.Builder().url(voice.bundleUrl).build()
         val response = okHttp.newCall(request).execute()
         if (!response.isSuccessful) {
+            val code = response.code
             response.close()
-            throw IllegalStateException("HTTP ${response.code}")
+            // 5xx -> IOException -> transient -> retry. 4xx -> plain
+            // IllegalStateException -> hard fail. The retry classifier reads
+            // both the exception type and the message ("HTTP 503").
+            if (code in 500..599) throw IOException("HTTP $code") else throw IllegalStateException("HTTP $code")
         }
         val totalBytes = response.body?.contentLength() ?: -1L
         val source = response.body?.byteStream() ?: error("Empty body")
@@ -265,11 +320,29 @@ class VoiceDownloadWorker(
                 val vocoderName = voice.vocoderFileName ?: "vocos-22khz-univ.onnx"
                 if (!File(dir, vocoderName).isFile) missing += vocoderName
             }
-            ModelFamily.KOKORO, ModelFamily.KITTEN, ModelFamily.CUSTOM -> {
-                // These never reach the worker today (catalog marks them
-                // available=false and the UI disables Install) but we still
-                // guard the path so a future JNI upgrade can validate them
-                // without surprise.
+            ModelFamily.KOKORO -> {
+                // Kokoro bundles ship `model.onnx` for the English release and
+                // `kokoro-multi-lang-v1_0.onnx` for the multilingual one.
+                val candidates = listOfNotNull(
+                    voice.modelFileName, "model.onnx",
+                    "kokoro-multi-lang-v1_0.onnx", "kokoro-en-v0_19.onnx",
+                )
+                requireOneOf(voice.modelFileName ?: "model.onnx", candidates)
+                if (!File(dir, tokens).isFile) missing += tokens
+                if (!File(dir, KOKORO_VOICES_FILE).isFile) missing += KOKORO_VOICES_FILE
+            }
+            ModelFamily.KITTEN -> {
+                val candidates = listOfNotNull(
+                    voice.modelFileName, "model.onnx", "model.int8.onnx",
+                )
+                requireOneOf(voice.modelFileName ?: "model.onnx", candidates)
+                if (!File(dir, tokens).isFile) missing += tokens
+                if (!File(dir, KOKORO_VOICES_FILE).isFile) missing += KOKORO_VOICES_FILE
+            }
+            ModelFamily.CUSTOM -> {
+                // CUSTOM never reaches the worker (custom imports skip the
+                // download path entirely) but we still guard so an
+                // accidentally-enqueued bundle fails with a clear message.
                 if (!File(dir, "model.onnx").isFile) missing += "model.onnx"
                 if (!File(dir, tokens).isFile) missing += tokens
             }
@@ -391,6 +464,15 @@ class VoiceDownloadWorker(
 
         private const val PROGRESS_PCT_STEP = 5
         private const val PROGRESS_TIME_STEP_MS = 250L
+
+        /** Shared embedding bank shipped by Kokoro and Kitten releases. */
+        private const val KOKORO_VOICES_FILE = "voices.bin"
+
+        /** Max WorkManager attempts (counting from 0). */
+        private const val MAX_RETRIES = 3
+
+        /** Used to detect 5xx HTTP errors stamped into thrown messages. */
+        private val HTTP_5XX_RE = Regex("HTTP 5\\d{2}")
 
         fun uniqueName(voiceId: String): String = "download:$voiceId"
     }

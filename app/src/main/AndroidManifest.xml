@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Catalog refresh + voice downloads. -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -55,5 +56,14 @@
                 android:name="android.speech.tts"
                 android:resource="@xml/tts_engine" />
         </service>
+
+        <!-- WorkManager's SystemForegroundService is what hosts the voice
+             download progress notification. Lint requires us to declare the
+             dataSync foreground type here so API 34+ schedulers know what
+             we're doing while in the foreground. -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
     </application>
 </manifest>

@@ -2,39 +2,87 @@
 
 package dev.ahmedmohamed.hayaitts.ui.settings
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.CleaningServices
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Gavel
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.SdStorage
+import androidx.compose.material.icons.outlined.Wifi
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.BuildConfig
 import dev.ahmedmohamed.hayaitts.R
+import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
+import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
 import dev.ahmedmohamed.hayaitts.ui.theme.HayaiTtsTheme
+import org.koin.androidx.compose.koinViewModel
 
+/**
+ * Engine-side TTS settings screen. Wired into the manifest as the
+ * `android.speech.tts.engine.SETTINGS` activity — the user reaches it by tapping
+ * the ⚙ next to "HayaiTTS" in system TTS settings.
+ *
+ * Sections (M3 Expressive list groups): Downloads, Default voices, Storage,
+ * About. Storage location changes do NOT migrate existing voices — see the
+ * inline "Restart required" hint.
+ */
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             HayaiTtsTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    SettingsScreen()
+                    SettingsScreen(onBack = { finish() })
                 }
             }
         }
@@ -42,43 +90,322 @@ class SettingsActivity : ComponentActivity() {
 }
 
 @Composable
-private fun SettingsScreen() {
-    // Read versionName from BuildConfig — the spec requires it. We still
-    // fall back to packageManager so a release build (where BuildConfig is
-    // minified) keeps showing the same string.
+private fun SettingsScreen(
+    onBack: () -> Unit,
+    viewModel: SettingsViewModel = koinViewModel(),
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val cacheClearedBytes by viewModel.cacheClearedBytes.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val versionName = remember(context) {
-        BuildConfig.VERSION_NAME.ifBlank {
-            runCatching {
-                context.packageManager.getPackageInfo(context.packageName, 0).versionName
-            }.getOrNull().orEmpty()
-        }
-    }
-
+    val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         state = rememberTopAppBarState(),
     )
+
+    var defaultPickerLocale by remember { mutableStateOf<String?>(null) }
+    var licenseDialogOpen by remember { mutableStateOf(false) }
+
+    // Surface the freed-bytes snackbar exactly once per clear action.
+    LaunchedEffect(cacheClearedBytes) {
+        val freed = cacheClearedBytes ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(
+            context.getString(R.string.settings_clear_cache_done, formatBytes(freed)),
+        )
+        viewModel.consumeCacheClearedEvent()
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { Text(text = stringResource(R.string.app_name)) },
+                title = { Text(stringResource(R.string.settings_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = stringResource(R.string.action_back),
+                        )
+                    }
+                },
                 scrollBehavior = scrollBehavior,
             )
         },
-    ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding).padding(horizontal = 24.dp)) {
-            Text(
-                text = "Version $versionName",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-            Text(
-                text = stringResource(R.string.settings_license),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 8.dp),
-            )
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(vertical = 8.dp),
+        ) {
+            item("downloads_header") { SectionHeader(stringResource(R.string.settings_section_downloads)) }
+            item("wifi_only") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Wifi, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_wifi_only)) },
+                    supportingContent = { Text(stringResource(R.string.settings_wifi_only_subtitle)) },
+                    trailingContent = {
+                        Switch(
+                            checked = state.wifiOnly,
+                            onCheckedChange = viewModel::setWifiOnly,
+                        )
+                    },
+                )
+            }
+            item("storage_location_header") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.SdStorage, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_storage_location)) },
+                    supportingContent = { Text(stringResource(R.string.settings_storage_restart_hint)) },
+                )
+            }
+            item("storage_internal") {
+                StorageRadioRow(
+                    label = stringResource(R.string.settings_storage_internal),
+                    selected = state.storageLocation == StorageLocation.INTERNAL,
+                    onSelect = { viewModel.setStorageLocation(StorageLocation.INTERNAL) },
+                )
+            }
+            item("storage_external") {
+                StorageRadioRow(
+                    label = if (state.hasExternalStorage) {
+                        stringResource(R.string.settings_storage_external)
+                    } else {
+                        stringResource(R.string.settings_storage_external_unavailable)
+                    },
+                    selected = state.storageLocation == StorageLocation.EXTERNAL,
+                    enabled = state.hasExternalStorage,
+                    onSelect = { viewModel.setStorageLocation(StorageLocation.EXTERNAL) },
+                )
+            }
+
+            item("divider_1") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
+            item("defaults_header") { SectionHeader(stringResource(R.string.settings_section_defaults)) }
+            if (state.installedLocales.isEmpty()) {
+                item("defaults_empty") {
+                    ListItem(headlineContent = { Text(stringResource(R.string.settings_defaults_empty)) })
+                }
+            } else {
+                items(state.installedLocales) { locale ->
+                    val currentVoice = state.defaultsByLocale[locale]
+                    val voiceTitle = state.installed.firstOrNull { it.voiceId == currentVoice }?.title
+                    ListItem(
+                        leadingContent = { Icon(Icons.Outlined.Folder, contentDescription = null) },
+                        headlineContent = { Text(locale) },
+                        supportingContent = {
+                            Text(
+                                voiceTitle ?: stringResource(R.string.settings_pick_voice_clear),
+                            )
+                        },
+                        modifier = Modifier.clickableRow { defaultPickerLocale = locale },
+                    )
+                }
+            }
+
+            item("divider_2") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
+            item("storage_header") { SectionHeader(stringResource(R.string.settings_section_storage)) }
+            item("total_size") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Folder, contentDescription = null) },
+                    headlineContent = {
+                        Text(
+                            stringResource(
+                                R.string.settings_total_models_size,
+                                formatBytes(state.totalInstalledBytes),
+                            ),
+                        )
+                    },
+                    modifier = Modifier.clickableRow { viewModel.refreshInstalledSize() },
+                )
+            }
+            item("clear_cache") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.CleaningServices, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_clear_cache)) },
+                    supportingContent = { Text(stringResource(R.string.settings_clear_cache_subtitle)) },
+                    modifier = Modifier.clickableRow { viewModel.clearDownloadCache() },
+                )
+            }
+
+            item("divider_3") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
+            item("about_header") { SectionHeader(stringResource(R.string.settings_section_about)) }
+            item("version") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.app_name)) },
+                    supportingContent = {
+                        Text(
+                            stringResource(
+                                R.string.settings_version,
+                                BuildConfig.VERSION_NAME,
+                                BuildConfig.VERSION_CODE,
+                            ),
+                        )
+                    },
+                )
+            }
+            item("license") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Gavel, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_license_label)) },
+                    supportingContent = { Text(stringResource(R.string.settings_license_subtitle)) },
+                    modifier = Modifier.clickableRow { licenseDialogOpen = true },
+                )
+            }
+            item("powered_by") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.OpenInNew, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_powered_by)) },
+                    supportingContent = { Text(stringResource(R.string.settings_powered_by_subtitle)) },
+                    modifier = Modifier.clickableRow {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(SHERPA_REPO_URL)),
+                        )
+                    },
+                )
+            }
         }
+    }
+
+    defaultPickerLocale?.let { locale ->
+        DefaultVoicePickerSheet(
+            locale = locale,
+            installed = state.installed,
+            currentVoiceId = state.defaultsByLocale[locale],
+            onPick = { voiceId ->
+                viewModel.setDefault(locale, voiceId)
+                defaultPickerLocale = null
+            },
+            onDismiss = { defaultPickerLocale = null },
+        )
+    }
+
+    if (licenseDialogOpen) {
+        LicenseDialog(onDismiss = { licenseDialogOpen = false })
+    }
+}
+
+@Composable
+private fun SectionHeader(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+    )
+}
+
+@Composable
+private fun StorageRadioRow(
+    label: String,
+    selected: Boolean,
+    enabled: Boolean = true,
+    onSelect: () -> Unit,
+) {
+    ListItem(
+        headlineContent = { Text(label) },
+        trailingContent = {
+            RadioButton(
+                selected = selected,
+                onClick = onSelect,
+                enabled = enabled,
+            )
+        },
+        modifier = if (enabled) Modifier.clickableRow(onSelect) else Modifier,
+    )
+}
+
+@Composable
+private fun DefaultVoicePickerSheet(
+    locale: String,
+    installed: List<InstalledVoice>,
+    currentVoiceId: String?,
+    onPick: (voiceId: String?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val candidates = remember(installed, locale) {
+        installed.filter { locale in it.languages }
+    }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.settings_pick_voice_title, locale),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_pick_voice_clear)) },
+                trailingContent = {
+                    RadioButton(
+                        selected = currentVoiceId == null,
+                        onClick = { onPick(null) },
+                    )
+                },
+                modifier = Modifier.clickableRow { onPick(null) },
+            )
+            candidates.forEach { voice ->
+                ListItem(
+                    headlineContent = { Text(voice.title) },
+                    supportingContent = { Text(voice.languages.joinToString()) },
+                    trailingContent = {
+                        RadioButton(
+                            selected = currentVoiceId == voice.voiceId,
+                            onClick = { onPick(voice.voiceId) },
+                        )
+                    },
+                    modifier = Modifier.clickableRow { onPick(voice.voiceId) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LicenseDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val licenseText = remember {
+        runCatching {
+            context.assets.open("LICENSE.txt").bufferedReader().use { it.readText() }
+        }.getOrElse { "License file unavailable." }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_license_dialog_title)) },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text(licenseText, style = MaterialTheme.typography.bodySmall)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.settings_license_dialog_close))
+            }
+        },
+    )
+}
+
+/**
+ * ListItem doesn't take onClick directly, so we route taps through a clickable
+ * modifier on the whole row. Kept as a thin extension to avoid sprinkling the
+ * import everywhere.
+ */
+private fun Modifier.clickableRow(onClick: () -> Unit): Modifier =
+    this.clickable(onClick = onClick)
+
+private const val SHERPA_REPO_URL = "https://github.com/k2-fsa/sherpa-onnx"
+
+private fun formatBytes(bytes: Long): String {
+    val mb = bytes.toDouble() / (1024.0 * 1024.0)
+    return if (mb >= 1024.0) {
+        "%.2f GB".format(mb / 1024.0)
+    } else {
+        "%.1f MB".format(mb)
     }
 }

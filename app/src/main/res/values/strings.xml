@@ -93,4 +93,34 @@
     <string name="import_lang_add_placeholder">BCP-47 tag (e.g. en-US)</string>
     <string name="import_lang_add_ok">Add</string>
     <string name="family_unknown">Unknown</string>
+
+    <!-- Phase 7: tier auto-recommendation pill + Settings overhaul -->
+    <string name="voice_chip_recommended">Recommended for your device</string>
+    <string name="settings_section_downloads">Downloads</string>
+    <string name="settings_wifi_only">Wi-Fi only</string>
+    <string name="settings_wifi_only_subtitle">Block voice downloads on metered cellular.</string>
+    <string name="settings_storage_location">Storage location</string>
+    <string name="settings_storage_internal">Internal storage</string>
+    <string name="settings_storage_external">External SD card</string>
+    <string name="settings_storage_external_unavailable">No external storage detected</string>
+    <string name="settings_storage_restart_hint">Existing voices stay where they are. New downloads will use the selected location. Restart required after switching.</string>
+    <string name="settings_section_defaults">Default voices</string>
+    <string name="settings_defaults_empty">Install a voice to set per-language defaults.</string>
+    <string name="settings_pick_voice_title">Pick default for %1$s</string>
+    <string name="settings_pick_voice_clear">No default</string>
+    <string name="settings_section_storage">Storage</string>
+    <string name="settings_total_models_size">Installed voices: %1$s</string>
+    <string name="settings_clear_cache">Clear download cache</string>
+    <string name="settings_clear_cache_subtitle">Removes incomplete tarballs left over from cancelled downloads.</string>
+    <string name="settings_clear_cache_done">Cleared %1$s</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_version">Version %1$s (%2$d)</string>
+    <string name="settings_powered_by">Models powered by sherpa-onnx</string>
+    <string name="settings_powered_by_subtitle">Tap to open the upstream project</string>
+    <string name="settings_license_label">License: GPL-3.0</string>
+    <string name="settings_license_subtitle">Tap to read the full license</string>
+    <string name="settings_license_dialog_title">License</string>
+    <string name="settings_license_dialog_close">Close</string>
+    <string name="settings_size_mb">%1$.1f MB</string>
+    <string name="settings_size_gb">%1$.2f GB</string>
 </resources>

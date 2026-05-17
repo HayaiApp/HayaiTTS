@@ -1,5 +1,6 @@
 package dev.ahmedmohamed.hayaitts.ui.browse
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
@@ -7,6 +8,7 @@ import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.Tier
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
+import dev.ahmedmohamed.hayaitts.domain.recommendation.recommendedTier
 import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
@@ -31,10 +33,17 @@ import kotlinx.coroutines.flow.update
  * Sort: installed-first, then alphabetical by title.
  */
 class BrowseViewModel(
+    context: Context,
     private val catalogRepository: CatalogRepository,
     private val voiceRepository: VoiceRepository,
     private val downloadRepository: DownloadRepository,
 ) : ViewModel() {
+
+    /**
+     * Cached at VM construction so the Browse sort doesn't repeatedly call
+     * into ActivityManager. The recommendation never changes during a session.
+     */
+    private val recommended: Tier = recommendedTier(context)
 
     data class Filters(
         val languages: Set<String> = emptySet(),
@@ -59,6 +68,11 @@ class BrowseViewModel(
         val availableLanguages: List<String> = emptyList(),
         val availableFamilies: List<ModelFamily> = emptyList(),
         val filters: Filters = Filters(),
+        /**
+         * Voice tier the device is rated for. Browse sorts cards matching
+         * this tier first and surfaces a "Recommended" pill on them.
+         */
+        val recommendedTier: Tier = Tier.MID,
     )
 
     private val filters = MutableStateFlow(Filters())
@@ -72,7 +86,12 @@ class BrowseViewModel(
         val installedIds = installed.mapTo(mutableSetOf()) { it.voiceId }
         val filtered = catalog.applyFilters(f)
         val sorted = filtered.sortedWith(
+            // Installed > recommended-tier > alphabetical. The
+            // recommended-tier tier-break keeps the user's existing voices
+            // pinned to the top and steers new picks toward the right
+            // perf bucket for their device.
             compareByDescending<VoiceCard> { it.id in installedIds }
+                .thenByDescending { it.tierEnum == recommended }
                 .thenBy { it.title.lowercase() },
         )
         BrowseUiState(
@@ -82,6 +101,7 @@ class BrowseViewModel(
             availableLanguages = catalog.flatMap { it.languages }.distinct().sorted(),
             availableFamilies = catalog.map { it.modelFamily }.distinct(),
             filters = f,
+            recommendedTier = recommended,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), BrowseUiState())
 

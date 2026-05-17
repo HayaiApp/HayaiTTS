@@ -190,8 +190,7 @@
       "tier": "high",
       "license": "Apache-2.0",
       "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2",
-      "sha256": null,
-      "available": false
+      "sha256": null
     },
     {
       "id": "kokoro-en-v0_19",
@@ -207,8 +206,7 @@
       "tier": "high",
       "license": "Apache-2.0",
       "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-en-v0_19.tar.bz2",
-      "sha256": null,
-      "available": false
+      "sha256": null
     },
     {
       "id": "kitten-nano-en-v0_1",
@@ -221,8 +219,7 @@
       "tier": "low",
       "license": "Apache-2.0",
       "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kitten-nano-en-v0_1.tar.bz2",
-      "sha256": null,
-      "available": false
+      "sha256": null
     }
   ]
 }

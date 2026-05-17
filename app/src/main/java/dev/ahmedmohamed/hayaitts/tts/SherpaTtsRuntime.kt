@@ -5,6 +5,8 @@ import android.content.res.AssetManager
 import co.touchlab.kermit.Logger
 import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
+import com.k2fsa.sherpa.onnx.OfflineTtsKittenModelConfig
+import com.k2fsa.sherpa.onnx.OfflineTtsKokoroModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsMatchaModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
@@ -118,18 +120,14 @@ class SherpaTtsRuntime private constructor(
     /**
      * Picks the right [OfflineTtsConfig] shape for a family. Piper and the
      * other non-Piper VITS bundles both go through the VITS config because
-     * Piper voices ARE VITS variants under the hood. Kokoro and Kitten throw
-     * — lib-sherpa-onnx 6.25.12 has no JNI for them (Phase 5 finding).
+     * Piper voices ARE VITS variants under the hood. Phase 7 added Kokoro
+     * and Kitten — the upstream v1.13.2 AAR ships JNI for both families.
      */
     private fun buildConfig(family: ModelFamily, dir: File): OfflineTtsConfig = when (family) {
         ModelFamily.PIPER, ModelFamily.VITS -> buildVitsConfig(dir)
         ModelFamily.MATCHA -> buildMatchaConfig(dir)
-        ModelFamily.KOKORO -> throw UnsupportedOperationException(
-            "Kokoro is not supported by lib-sherpa-onnx 6.25.12 (no JNI bindings).",
-        )
-        ModelFamily.KITTEN -> throw UnsupportedOperationException(
-            "Kitten is not supported by lib-sherpa-onnx 6.25.12 (no JNI bindings).",
-        )
+        ModelFamily.KOKORO -> buildKokoroConfig(dir)
+        ModelFamily.KITTEN -> buildKittenConfig(dir)
         ModelFamily.CUSTOM -> throw IllegalStateException(
             "Custom voices should have been resolved to an effective family before reaching buildConfig.",
         )
@@ -188,6 +186,71 @@ class SherpaTtsRuntime private constructor(
                 debug = false,
             ),
             ruleFsts = collectRuleFsts(dir),
+            maxNumSentences = 2,
+        )
+    }
+
+    /**
+     * Kokoro layout: a `model.onnx` weight file, the `voices.bin` voice-embedding
+     * bank that lists the speaker embeddings, espeak-ng phoneme data, and an
+     * optional lexicon used for non-English languages. Kokoro auto-detects the
+     * language tag from the bundle's `lang` directory; we leave `lang` empty
+     * and let the native side fall back to multilingual mode.
+     */
+    private fun buildKokoroConfig(dir: File): OfflineTtsConfig {
+        val modelPath = resolveModelFile(dir, KOKORO_MODEL_CANDIDATES)
+        val voices = File(dir, KOKORO_VOICES_FILE)
+        check(voices.isFile) { "Kokoro voice at $dir is missing $KOKORO_VOICES_FILE" }
+        val tokensPath = File(dir, TOKENS_FILE).absolutePath
+        val dataDir = File(dir, ESPEAK_DIR)
+        val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
+        val lexicon = File(dir, LEXICON_FILE)
+        val lexiconPath = if (lexicon.isFile) lexicon.absolutePath else ""
+        val dictDir = File(dir, DICT_DIR)
+        val dictDirPath = if (dictDir.isDirectory) dictDir.absolutePath else ""
+        return OfflineTtsConfig(
+            model = OfflineTtsModelConfig(
+                kokoro = OfflineTtsKokoroModelConfig(
+                    model = modelPath,
+                    voices = voices.absolutePath,
+                    tokens = tokensPath,
+                    dataDir = dataDirPath,
+                    lexicon = lexiconPath,
+                    dictDir = dictDirPath,
+                    lengthScale = 1.0f,
+                ),
+                numThreads = 2,
+                debug = false,
+            ),
+            ruleFsts = collectRuleFsts(dir),
+            maxNumSentences = 2,
+        )
+    }
+
+    /**
+     * Kitten layout matches Kokoro but is smaller: a single ONNX checkpoint
+     * plus voices.bin and tokens.txt. No lexicon / dictDir on the current
+     * `kitten-nano-en` release.
+     */
+    private fun buildKittenConfig(dir: File): OfflineTtsConfig {
+        val modelPath = resolveModelFile(dir, KITTEN_MODEL_CANDIDATES)
+        val voices = File(dir, KOKORO_VOICES_FILE)
+        check(voices.isFile) { "Kitten voice at $dir is missing $KOKORO_VOICES_FILE" }
+        val tokensPath = File(dir, TOKENS_FILE).absolutePath
+        val dataDir = File(dir, ESPEAK_DIR)
+        val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
+        return OfflineTtsConfig(
+            model = OfflineTtsModelConfig(
+                kitten = OfflineTtsKittenModelConfig(
+                    model = modelPath,
+                    voices = voices.absolutePath,
+                    tokens = tokensPath,
+                    dataDir = dataDirPath,
+                    lengthScale = 1.0f,
+                ),
+                numThreads = 2,
+                debug = false,
+            ),
             maxNumSentences = 2,
         )
     }
@@ -339,6 +402,29 @@ class SherpaTtsRuntime private constructor(
             "model-steps-6.onnx",
             "acoustic.onnx",
         )
+
+        /**
+         * Kokoro voices ship `model.onnx`. The multilingual v1.0 release uses
+         * `kokoro-multi-lang-v1_0.onnx` instead; probe both before falling
+         * back to a generic .onnx scan in [resolveModelFile].
+         */
+        private val KOKORO_MODEL_CANDIDATES = listOf(
+            "model.onnx",
+            "kokoro-multi-lang-v1_0.onnx",
+            "kokoro-en-v0_19.onnx",
+        )
+
+        /**
+         * Kitten nano ships `model.onnx` only; quantized variants are
+         * `model.int8.onnx`. The voices.bin embedding bank lives next to it.
+         */
+        private val KITTEN_MODEL_CANDIDATES = listOf(
+            "model.onnx",
+            "model.int8.onnx",
+        )
+
+        /** Speaker-embedding bank shared by Kokoro and Kitten releases. */
+        private const val KOKORO_VOICES_FILE = "voices.bin"
 
         /**
          * Comma-joined into [OfflineTtsConfig.ruleFsts] when present. These

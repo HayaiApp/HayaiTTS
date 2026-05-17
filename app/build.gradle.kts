@@ -43,11 +43,28 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 + resource shrinker. The debug signing config keeps the release
+            // APK installable on dev devices until a real key is wired in — the
+            // build still benefits from minification + ABI splits.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    // Per-ABI release APKs cut the universal 130+ MB binary down to ~50–75 MB
+    // by stripping the native libraries for the other architectures. Universal
+    // is kept on for sideloading from a single asset.
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            isUniversalApk = true
         }
     }
 
@@ -133,8 +150,12 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.serialization.json)
 
-    // Maven Central re-package of the official k2-fsa/sherpa-onnx Android AAR.
-    // The upstream team only ships AARs via GitHub releases; bihe0832 mirrors
-    // them to Maven Central with the bytecode and JNI .so files unmodified.
-    implementation(libs.sherpa.onnx.android)
+    // Official upstream k2-fsa/sherpa-onnx Android AAR, vendored in app/libs/.
+    // Phase 7 swap: the previous Maven Central mirror (com.bihe0832.android,
+    // upstream v1.10.x) was missing Kokoro / Kitten / ZipVoice / Pocket /
+    // Supertonic JNI symbols, so we vendored the upstream v1.13.2 release.
+    // The AAR contains classes.jar (Kotlin glue for every TTS family) plus
+    // jni/<abi>/{libonnxruntime,libsherpa-onnx-c-api,libsherpa-onnx-cxx-api,libsherpa-onnx-jni}.so
+    // for arm64-v8a, armeabi-v7a, x86, and x86_64.
+    implementation(files("libs/sherpa-onnx-1.13.2.aar"))
 }

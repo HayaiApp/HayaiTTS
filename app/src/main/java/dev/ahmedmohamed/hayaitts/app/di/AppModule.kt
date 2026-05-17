@@ -18,6 +18,7 @@ import dev.ahmedmohamed.hayaitts.ui.browse.BrowseViewModel
 import dev.ahmedmohamed.hayaitts.ui.custom.CustomImportViewModel
 import dev.ahmedmohamed.hayaitts.ui.detail.VoiceDetailViewModel
 import dev.ahmedmohamed.hayaitts.ui.library.LibraryViewModel
+import dev.ahmedmohamed.hayaitts.ui.settings.SettingsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -87,7 +88,7 @@ val appModule = module {
     single { CustomBundleInstaller(androidContext(), get<VoiceRepository>()) }
 
     viewModel { LibraryViewModel(get(), get(), get(), get()) }
-    viewModel { BrowseViewModel(get(), get(), get()) }
+    viewModel { BrowseViewModel(androidContext(), get(), get(), get()) }
     viewModel { (voiceId: String) ->
         VoiceDetailViewModel(
             voiceId = voiceId,
@@ -103,6 +104,14 @@ val appModule = module {
             encodedUri = encodedUri,
             analyzer = get(),
             installer = get(),
+        )
+    }
+    viewModel {
+        SettingsViewModel(
+            context = androidContext(),
+            settings = get(),
+            voices = get(),
+            defaults = get(),
         )
     }
 }

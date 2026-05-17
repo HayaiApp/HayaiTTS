@@ -89,7 +89,11 @@ class DownloadRepositoryImpl(
         val builder = OneTimeWorkRequestBuilder<VoiceDownloadWorker>()
             .setConstraints(constraints)
             .setInputData(input)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+            // Exponential 10s, 20s, 40s, 80s... — caps at the WorkManager
+            // default (5h). The worker returns Result.retry() only for
+            // transient failures (5xx / IOException); hard errors (404,
+            // checksum mismatch) return Result.failure() and exit instantly.
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             builder.setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)

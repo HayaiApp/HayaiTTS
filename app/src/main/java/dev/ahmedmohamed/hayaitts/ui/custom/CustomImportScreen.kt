@@ -35,7 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -398,7 +398,9 @@ private fun ImportingBody(progress: CustomBundleInstaller.Progress) {
         }
         Text(label, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(16.dp))
-        LinearProgressIndicator(
+        // Phase 7 motion consistency: every active-work indicator uses the
+        // wavy variant from M3 Expressive — matches DownloadProgress in Browse.
+        LinearWavyProgressIndicator(
             progress = { progress.pct.coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth(),
         )
