@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HayaiTTS</string>
+
+    <!-- Library -->
+    <string name="library_empty_title">Aucune voix installée</string>
+    <string name="library_empty_subtitle">Parcourez le catalogue pour télécharger des voix neuronales hors ligne</string>
+    <string name="library_browse_action">Parcourir les modèles</string>
+    <string name="library_title">Voix</string>
+    <string name="library_subtitle">%1$d installées</string>
+    <string name="library_featured">À la une</string>
+    <string name="library_installed_header">Toutes les voix installées</string>
+    <string name="library_downloading">Téléchargement…</string>
+    <string name="library_extracting">Extraction…</string>
+    <string name="library_download_failed">Échec du téléchargement : %1$s</string>
+    <string name="library_download_cancelled">Téléchargement annulé</string>
+    <string name="library_import_action">Importer une voix</string>
+
+    <!-- Voice card / chips -->
+    <string name="voice_chip_bundled">Intégrée</string>
+    <string name="voice_chip_coming_soon">Bientôt disponible</string>
+    <string name="voice_chip_recommended">Recommandée pour votre appareil</string>
+    <string name="custom_chip">Personnalisée</string>
+    <string name="voice_preview_action">Aperçu</string>
+    <string name="voice_favorite">Mettre en favori</string>
+    <string name="voice_unfavorite">Retirer des favoris</string>
+
+    <!-- Browse -->
+    <string name="browse_title">Parcourir les modèles</string>
+    <string name="browse_subtitle">%1$d voix</string>
+    <string name="browse_empty_title">Aucune voix ne correspond à ces filtres</string>
+    <string name="browse_empty_subtitle">Essayez d\'élargir vos filtres de langue ou de qualité.</string>
+    <string name="browse_search_placeholder">Rechercher une voix</string>
+    <string name="browse_search_placeholder_count">Rechercher parmi %1$d voix</string>
+    <string name="browse_open_filters">Ouvrir les filtres</string>
+    <string name="browse_filter_sheet_title">Filtres</string>
+    <string name="browse_filter_reset">Réinitialiser</string>
+    <string name="browse_filter_show_results">Afficher %1$d résultats</string>
+    <string name="browse_filter_language">Langue</string>
+    <string name="browse_filter_tier">Qualité</string>
+    <string name="browse_filter_family">Famille</string>
+    <string name="browse_filter_clear">Effacer</string>
+    <string name="browse_filter_clear_all">Effacer les filtres</string>
+    <string name="browse_filter_apply">Appliquer</string>
+    <string name="browse_tier_all">Toutes les qualités</string>
+    <string name="browse_tier_low">Basse</string>
+    <string name="browse_tier_mid">Moyenne</string>
+    <string name="browse_tier_high">Haute</string>
+    <string name="browse_refresh">Actualiser le catalogue</string>
+
+    <!-- Actions -->
+    <string name="action_clear">Effacer</string>
+    <string name="action_install">Installer</string>
+    <string name="action_installed">Installée</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_uninstall">Désinstaller</string>
+    <string name="action_back">Retour</string>
+    <string name="action_play">Lire</string>
+    <string name="action_stop">Arrêter</string>
+    <string name="action_more">Plus</string>
+    <string name="action_reorder">Réorganiser les voix</string>
+    <string name="action_done">Terminé</string>
+    <string name="action_move_up">Monter</string>
+    <string name="action_move_down">Descendre</string>
+
+    <!-- Voice detail -->
+    <string name="voice_default_label">Par défaut pour %1$s</string>
+    <string name="voice_set_default">Définir par défaut pour %1$s</string>
+    <string name="voice_clear_default">Retirer la voix par défaut</string>
+    <string name="voice_detail_speakers">Locuteurs</string>
+    <string name="voice_detail_speakers_count">%1$d locuteurs</string>
+    <string name="voice_detail_preview">Aperçu</string>
+    <string name="voice_detail_preview_text">Portez ce vieux whisky au juge blond qui fume.</string>
+    <string name="voice_detail_preview_not_installed">Installez la voix pour l\'écouter</string>
+    <string name="voice_detail_license">Licence : %1$s</string>
+    <string name="voice_detail_set_default_header">Utiliser par défaut</string>
+    <string name="voice_detail_coming_soon_hint">Cette famille de modèles n\'est pas encore prise en charge par la version actuelle de sherpa-onnx. Une future mise à jour l\'activera.</string>
+
+    <!-- Uninstall -->
+    <string name="uninstall_confirm_title">Désinstaller la voix ?</string>
+    <string name="uninstall_confirm_message">Cela libérera de l\'espace de stockage. Vous pourrez la retélécharger depuis Parcourir.</string>
+    <string name="bundled_not_uninstallable">Les voix intégrées ne peuvent pas être désinstallées.</string>
+
+    <!-- Download -->
+    <string name="download_in_progress">Téléchargement de la voix neuronale…</string>
+    <string name="download_progress_running">%1$d Mo / %2$d Mo · %3$d%%</string>
+    <string name="download_extracting">Extraction…</string>
+
+    <!-- Family labels -->
+    <string name="family_custom">Personnalisée</string>
+    <string name="family_unknown">Inconnue</string>
+
+    <!-- Import wizard -->
+    <string name="import_title">Importer une voix</string>
+    <string name="import_subtitle">Ajoutez votre propre paquet vocal</string>
+    <string name="import_analyzing">Analyse du paquet…</string>
+    <string name="import_analyzing_failed">Impossible de lire ce paquet : %1$s</string>
+    <string name="import_unsupported_family">%1$s n\'est pas encore pris en charge par cette version.</string>
+    <string name="import_detected_family">Famille détectée</string>
+    <string name="import_family_override">Famille</string>
+    <string name="import_voice_name">Nom de la voix</string>
+    <string name="import_languages">Langues</string>
+    <string name="import_files_header">Fichiers (%1$d)</string>
+    <string name="import_speakers_header">Locuteurs (%1$d)</string>
+    <string name="import_no_speakers">Aucune liste de locuteurs trouvée — un seul locuteur sera utilisé (sid 0).</string>
+    <string name="import_action_import">Importer</string>
+    <string name="import_progress_copying">Copie du paquet…</string>
+    <string name="import_progress_extracting">Extraction…</string>
+    <string name="import_progress_validating">Validation…</string>
+    <string name="import_validation_failed">Le paquet n\'a pas %1$s pour %2$s. Choisissez une autre famille ou annulez.</string>
+    <string name="import_done">Importation réussie.</string>
+    <string name="import_lang_add">Ajouter une langue</string>
+    <string name="import_lang_add_placeholder">Code BCP-47 (ex. fr-FR)</string>
+    <string name="import_lang_add_ok">Ajouter</string>
+    <string name="import_step_analyze">Analyser</string>
+    <string name="import_step_confirm">Confirmer</string>
+    <string name="import_step_install">Installer</string>
+
+    <!-- Quick switcher -->
+    <string name="quick_switch_title">Changement rapide</string>
+    <string name="quick_switch_subtitle">Choisissez la voix par défaut du moment</string>
+    <string name="quick_switch_current">Voix par défaut actuelle</string>
+    <string name="quick_switch_manage">Gérer</string>
+    <string name="quick_switch_add">Ajouter une voix</string>
+    <string name="quick_switch_empty">Installez une voix pour activer le changement rapide.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_subtitle">Ajustez téléchargements, stockage et voix par défaut</string>
+    <string name="settings_section_downloads">Téléchargements</string>
+    <string name="settings_wifi_only">Wi-Fi uniquement</string>
+    <string name="settings_wifi_only_subtitle">Bloque les téléchargements sur les données mobiles facturées.</string>
+    <string name="settings_storage_location">Emplacement de stockage</string>
+    <string name="settings_storage_internal">Stockage interne</string>
+    <string name="settings_storage_external">Carte SD externe</string>
+    <string name="settings_storage_external_unavailable">Aucun stockage externe détecté</string>
+    <string name="settings_storage_restart_hint">Changer cette préférence déplacera toutes les voix vers le nouvel emplacement.</string>
+    <string name="settings_storage_moving">Déplacement de la voix %1$d / %2$d (%3$s)…</string>
+    <string name="settings_storage_move_failed">Échec du déplacement : %1$s</string>
+    <string name="settings_section_defaults">Voix par défaut</string>
+    <string name="settings_defaults_empty">Installez une voix pour définir une voix par défaut par langue.</string>
+    <string name="settings_pick_voice_title">Choisir la voix par défaut pour %1$s</string>
+    <string name="settings_pick_voice_clear">Aucune par défaut</string>
+    <string name="settings_section_storage">Stockage</string>
+    <string name="settings_total_models_size">Voix installées : %1$s</string>
+    <string name="settings_clear_cache">Vider le cache des téléchargements</string>
+    <string name="settings_clear_cache_subtitle">Supprime les archives incomplètes des téléchargements annulés.</string>
+    <string name="settings_clear_cache_done">%1$s libérés</string>
+    <string name="settings_section_about">À propos</string>
+    <string name="settings_version">Version %1$s (%2$d)</string>
+    <string name="settings_powered_by">Modèles propulsés par sherpa-onnx</string>
+    <string name="settings_powered_by_subtitle">Appuyez pour ouvrir le projet source</string>
+    <string name="settings_license_label">Licence : GPL-3.0</string>
+    <string name="settings_license_subtitle">Appuyez pour lire la licence complète</string>
+    <string name="settings_license_dialog_title">Licence</string>
+    <string name="settings_license_dialog_close">Fermer</string>
+</resources>

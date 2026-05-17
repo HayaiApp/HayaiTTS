@@ -11,6 +11,12 @@
     <!-- API 33+ requires a runtime grant for the progress notification. Best-effort:
          we never block downloads on the user denying it. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Auto-updater: lets the app launch the system package installer
+         (Intent.ACTION_VIEW + application/vnd.android.package-archive) for an
+         APK it just downloaded under cacheDir/updates/. The user still has to
+         confirm the install in the system UI; this permission only avoids the
+         "Install blocked" OS error toast on API 26+. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:name=".app.HayaiTtsApplication"
@@ -65,5 +71,20 @@
             android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
+
+        <!-- Auto-updater file provider. Exposes only cacheDir/updates/ (see
+             res/xml/file_paths.xml) so the downloaded APK can be handed to the
+             system package installer via a content:// URI. Authority is
+             namespaced under the application ID so a side-loaded variant
+             (debug + release) does not collide. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

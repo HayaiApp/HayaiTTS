@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HayaiTTS</string>
+
+    <!-- Library -->
+    <string name="library_empty_title">Голосов пока нет</string>
+    <string name="library_empty_subtitle">Откройте каталог, чтобы скачать офлайн-голоса нейросетей</string>
+    <string name="library_browse_action">Открыть каталог</string>
+    <string name="library_title">Голоса</string>
+    <string name="library_subtitle">Установлено: %1$d</string>
+    <string name="library_featured">Рекомендуем</string>
+    <string name="library_installed_header">Все установленные</string>
+    <string name="library_downloading">Загрузка…</string>
+    <string name="library_extracting">Распаковка…</string>
+    <string name="library_download_failed">Ошибка загрузки: %1$s</string>
+    <string name="library_download_cancelled">Загрузка отменена</string>
+    <string name="library_import_action">Импортировать голос</string>
+
+    <!-- Voice card / chips -->
+    <string name="voice_chip_bundled">Встроенный</string>
+    <string name="voice_chip_coming_soon">Скоро</string>
+    <string name="voice_chip_recommended">Рекомендован для вашего устройства</string>
+    <string name="custom_chip">Свой</string>
+    <string name="voice_preview_action">Прослушать</string>
+    <string name="voice_favorite">В избранное</string>
+    <string name="voice_unfavorite">Убрать из избранного</string>
+
+    <!-- Browse -->
+    <string name="browse_title">Каталог моделей</string>
+    <string name="browse_subtitle">Голосов: %1$d</string>
+    <string name="browse_empty_title">Под фильтры ничего не подходит</string>
+    <string name="browse_empty_subtitle">Расширьте фильтры по языку или качеству.</string>
+    <string name="browse_search_placeholder">Поиск голосов</string>
+    <string name="browse_search_placeholder_count">Поиск среди %1$d голосов</string>
+    <string name="browse_open_filters">Открыть фильтры</string>
+    <string name="browse_filter_sheet_title">Фильтры</string>
+    <string name="browse_filter_reset">Сбросить</string>
+    <string name="browse_filter_show_results">Показать %1$d результатов</string>
+    <string name="browse_filter_language">Язык</string>
+    <string name="browse_filter_tier">Качество</string>
+    <string name="browse_filter_family">Семейство</string>
+    <string name="browse_filter_clear">Очистить</string>
+    <string name="browse_filter_clear_all">Очистить фильтры</string>
+    <string name="browse_filter_apply">Применить</string>
+    <string name="browse_tier_all">Любое качество</string>
+    <string name="browse_tier_low">Низкое</string>
+    <string name="browse_tier_mid">Среднее</string>
+    <string name="browse_tier_high">Высокое</string>
+    <string name="browse_refresh">Обновить каталог</string>
+
+    <!-- Actions -->
+    <string name="action_clear">Очистить</string>
+    <string name="action_install">Установить</string>
+    <string name="action_installed">Установлен</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_uninstall">Удалить</string>
+    <string name="action_back">Назад</string>
+    <string name="action_play">Воспроизвести</string>
+    <string name="action_stop">Остановить</string>
+    <string name="action_more">Ещё</string>
+    <string name="action_reorder">Изменить порядок</string>
+    <string name="action_done">Готово</string>
+    <string name="action_move_up">Вверх</string>
+    <string name="action_move_down">Вниз</string>
+
+    <!-- Voice detail -->
+    <string name="voice_default_label">По умолчанию для %1$s</string>
+    <string name="voice_set_default">Использовать по умолчанию для %1$s</string>
+    <string name="voice_clear_default">Снять выбор по умолчанию</string>
+    <string name="voice_detail_speakers">Дикторы</string>
+    <string name="voice_detail_speakers_count">Дикторов: %1$d</string>
+    <string name="voice_detail_preview">Прослушивание</string>
+    <string name="voice_detail_preview_text">Съешь же ещё этих мягких французских булок да выпей чаю.</string>
+    <string name="voice_detail_preview_not_installed">Установите голос, чтобы прослушать</string>
+    <string name="voice_detail_license">Лицензия: %1$s</string>
+    <string name="voice_detail_set_default_header">Использовать по умолчанию</string>
+    <string name="voice_detail_coming_soon_hint">Это семейство моделей пока не поддерживается текущей сборкой sherpa-onnx. Будет включено в одном из обновлений.</string>
+
+    <!-- Uninstall -->
+    <string name="uninstall_confirm_title">Удалить голос?</string>
+    <string name="uninstall_confirm_message">Это освободит место на устройстве. Голос можно будет снова скачать из каталога.</string>
+    <string name="bundled_not_uninstallable">Встроенные голоса нельзя удалить.</string>
+
+    <!-- Download -->
+    <string name="download_in_progress">Загрузка нейросетевого голоса…</string>
+    <string name="download_progress_running">%1$d МБ / %2$d МБ · %3$d%%</string>
+    <string name="download_extracting">Распаковка…</string>
+
+    <!-- Family labels -->
+    <string name="family_custom">Свой</string>
+    <string name="family_unknown">Неизвестно</string>
+
+    <!-- Import wizard -->
+    <string name="import_title">Импорт голоса</string>
+    <string name="import_subtitle">Подключите свой голосовой пакет</string>
+    <string name="import_analyzing">Анализ пакета…</string>
+    <string name="import_analyzing_failed">Не удалось прочитать пакет: %1$s</string>
+    <string name="import_unsupported_family">%1$s пока не поддерживается этой сборкой.</string>
+    <string name="import_detected_family">Определённое семейство</string>
+    <string name="import_family_override">Семейство</string>
+    <string name="import_voice_name">Название голоса</string>
+    <string name="import_languages">Языки</string>
+    <string name="import_files_header">Файлы (%1$d)</string>
+    <string name="import_speakers_header">Дикторы (%1$d)</string>
+    <string name="import_no_speakers">Список дикторов не найден — будет использован один диктор (sid 0).</string>
+    <string name="import_action_import">Импортировать</string>
+    <string name="import_progress_copying">Копирование пакета…</string>
+    <string name="import_progress_extracting">Распаковка…</string>
+    <string name="import_progress_validating">Проверка…</string>
+    <string name="import_validation_failed">В пакете нет %1$s для %2$s. Выберите другое семейство или отмените.</string>
+    <string name="import_done">Импорт выполнен.</string>
+    <string name="import_lang_add">Добавить язык</string>
+    <string name="import_lang_add_placeholder">Тег BCP-47 (например, ru-RU)</string>
+    <string name="import_lang_add_ok">Добавить</string>
+    <string name="import_step_analyze">Анализ</string>
+    <string name="import_step_confirm">Подтверждение</string>
+    <string name="import_step_install">Установка</string>
+
+    <!-- Quick switcher -->
+    <string name="quick_switch_title">Быстрая смена</string>
+    <string name="quick_switch_subtitle">Выберите голос по умолчанию для текущего момента</string>
+    <string name="quick_switch_current">Текущий по умолчанию</string>
+    <string name="quick_switch_manage">Управление</string>
+    <string name="quick_switch_add">Добавить голос</string>
+    <string name="quick_switch_empty">Установите голос, чтобы включить быструю смену.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_subtitle">Загрузки, хранилище и голоса по умолчанию</string>
+    <string name="settings_section_downloads">Загрузки</string>
+    <string name="settings_wifi_only">Только Wi-Fi</string>
+    <string name="settings_wifi_only_subtitle">Запретить загрузку голосов через мобильную сеть.</string>
+    <string name="settings_storage_location">Расположение хранилища</string>
+    <string name="settings_storage_internal">Внутренняя память</string>
+    <string name="settings_storage_external">Внешняя SD-карта</string>
+    <string name="settings_storage_external_unavailable">Внешнее хранилище не найдено</string>
+    <string name="settings_storage_restart_hint">Смена этой настройки перенесёт все установленные голоса в новое место.</string>
+    <string name="settings_storage_moving">Перенос голоса %1$d из %2$d (%3$s)…</string>
+    <string name="settings_storage_move_failed">Не удалось перенести: %1$s</string>
+    <string name="settings_section_defaults">Голоса по умолчанию</string>
+    <string name="settings_defaults_empty">Установите голос, чтобы задать голос по умолчанию для каждого языка.</string>
+    <string name="settings_pick_voice_title">Голос по умолчанию для %1$s</string>
+    <string name="settings_pick_voice_clear">Не выбран</string>
+    <string name="settings_section_storage">Хранилище</string>
+    <string name="settings_total_models_size">Установленные голоса: %1$s</string>
+    <string name="settings_clear_cache">Очистить кэш загрузок</string>
+    <string name="settings_clear_cache_subtitle">Удаляет недокачанные архивы отменённых загрузок.</string>
+    <string name="settings_clear_cache_done">Освобождено %1$s</string>
+    <string name="settings_section_about">О приложении</string>
+    <string name="settings_version">Версия %1$s (%2$d)</string>
+    <string name="settings_powered_by">Модели работают на sherpa-onnx</string>
+    <string name="settings_powered_by_subtitle">Нажмите, чтобы открыть исходный проект</string>
+    <string name="settings_license_label">Лицензия: GPL-3.0</string>
+    <string name="settings_license_subtitle">Нажмите, чтобы прочитать лицензию целиком</string>
+    <string name="settings_license_dialog_title">Лицензия</string>
+    <string name="settings_license_dialog_close">Закрыть</string>
+</resources>

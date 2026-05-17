@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HayaiTTS</string>
+
+    <!-- Library -->
+    <string name="library_empty_title">尚未安装任何语音</string>
+    <string name="library_empty_subtitle">浏览目录下载离线神经语音</string>
+    <string name="library_browse_action">浏览模型</string>
+    <string name="library_title">语音</string>
+    <string name="library_subtitle">已安装 %1$d 个</string>
+    <string name="library_featured">精选</string>
+    <string name="library_installed_header">全部已安装</string>
+    <string name="library_downloading">下载中…</string>
+    <string name="library_extracting">解压中…</string>
+    <string name="library_download_failed">下载失败：%1$s</string>
+    <string name="library_download_cancelled">已取消下载</string>
+    <string name="library_import_action">导入语音</string>
+
+    <!-- Voice card / chips -->
+    <string name="voice_chip_bundled">内置</string>
+    <string name="voice_chip_coming_soon">敬请期待</string>
+    <string name="voice_chip_recommended">推荐用于您的设备</string>
+    <string name="custom_chip">自定义</string>
+    <string name="voice_preview_action">试听</string>
+    <string name="voice_favorite">收藏语音</string>
+    <string name="voice_unfavorite">取消收藏</string>
+
+    <!-- Browse -->
+    <string name="browse_title">浏览模型</string>
+    <string name="browse_subtitle">%1$d 个语音</string>
+    <string name="browse_empty_title">没有符合筛选条件的语音</string>
+    <string name="browse_empty_subtitle">尝试放宽语言或质量筛选条件。</string>
+    <string name="browse_search_placeholder">搜索语音</string>
+    <string name="browse_search_placeholder_count">在 %1$d 个语音中搜索</string>
+    <string name="browse_open_filters">打开筛选</string>
+    <string name="browse_filter_sheet_title">筛选</string>
+    <string name="browse_filter_reset">重置</string>
+    <string name="browse_filter_show_results">显示 %1$d 个结果</string>
+    <string name="browse_filter_language">语言</string>
+    <string name="browse_filter_tier">质量</string>
+    <string name="browse_filter_family">系列</string>
+    <string name="browse_filter_clear">清空</string>
+    <string name="browse_filter_clear_all">清空筛选</string>
+    <string name="browse_filter_apply">应用</string>
+    <string name="browse_tier_all">所有质量</string>
+    <string name="browse_tier_low">低</string>
+    <string name="browse_tier_mid">中</string>
+    <string name="browse_tier_high">高</string>
+    <string name="browse_refresh">刷新目录</string>
+
+    <!-- Actions -->
+    <string name="action_clear">清空</string>
+    <string name="action_install">安装</string>
+    <string name="action_installed">已安装</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_uninstall">卸载</string>
+    <string name="action_back">返回</string>
+    <string name="action_play">播放</string>
+    <string name="action_stop">停止</string>
+    <string name="action_more">更多</string>
+    <string name="action_reorder">重新排序</string>
+    <string name="action_done">完成</string>
+    <string name="action_move_up">上移</string>
+    <string name="action_move_down">下移</string>
+
+    <!-- Voice detail -->
+    <string name="voice_default_label">%1$s 的默认语音</string>
+    <string name="voice_set_default">设为 %1$s 的默认</string>
+    <string name="voice_clear_default">清除默认</string>
+    <string name="voice_detail_speakers">说话人</string>
+    <string name="voice_detail_speakers_count">%1$d 个说话人</string>
+    <string name="voice_detail_preview">试听</string>
+    <string name="voice_detail_preview_text">天行健，君子以自强不息。</string>
+    <string name="voice_detail_preview_not_installed">请先安装该语音以便试听</string>
+    <string name="voice_detail_license">许可证：%1$s</string>
+    <string name="voice_detail_set_default_header">设为默认</string>
+    <string name="voice_detail_coming_soon_hint">当前 sherpa-onnx 构建尚不支持该模型系列，将在未来版本中启用。</string>
+
+    <!-- Uninstall -->
+    <string name="uninstall_confirm_title">卸载该语音?</string>
+    <string name="uninstall_confirm_message">这将释放存储空间。之后可在「浏览」中重新下载。</string>
+    <string name="bundled_not_uninstallable">内置语音无法卸载。</string>
+
+    <!-- Download -->
+    <string name="download_in_progress">正在下载神经语音…</string>
+    <string name="download_progress_running">%1$d MB / %2$d MB · %3$d%%</string>
+    <string name="download_extracting">解压中…</string>
+
+    <!-- Family labels -->
+    <string name="family_custom">自定义</string>
+    <string name="family_unknown">未知</string>
+
+    <!-- Import wizard -->
+    <string name="import_title">导入语音</string>
+    <string name="import_subtitle">导入您自己的语音包</string>
+    <string name="import_analyzing">分析语音包中…</string>
+    <string name="import_analyzing_failed">无法读取该语音包：%1$s</string>
+    <string name="import_unsupported_family">当前版本尚未支持 %1$s。</string>
+    <string name="import_detected_family">检测到的系列</string>
+    <string name="import_family_override">系列</string>
+    <string name="import_voice_name">语音名称</string>
+    <string name="import_languages">语言</string>
+    <string name="import_files_header">文件 (%1$d)</string>
+    <string name="import_speakers_header">说话人 (%1$d)</string>
+    <string name="import_no_speakers">未找到说话人列表，将默认使用单一说话人 (sid 0)。</string>
+    <string name="import_action_import">导入</string>
+    <string name="import_progress_copying">复制语音包中…</string>
+    <string name="import_progress_extracting">解压中…</string>
+    <string name="import_progress_validating">校验中…</string>
+    <string name="import_validation_failed">语音包缺少 %2$s 所需的 %1$s。请选择其他系列或取消。</string>
+    <string name="import_done">导入成功。</string>
+    <string name="import_lang_add">添加语言</string>
+    <string name="import_lang_add_placeholder">BCP-47 标签 (例如 zh-CN)</string>
+    <string name="import_lang_add_ok">添加</string>
+    <string name="import_step_analyze">分析</string>
+    <string name="import_step_confirm">确认</string>
+    <string name="import_step_install">安装</string>
+
+    <!-- Quick switcher -->
+    <string name="quick_switch_title">快速切换</string>
+    <string name="quick_switch_subtitle">选择当前使用的默认语音</string>
+    <string name="quick_switch_current">当前默认</string>
+    <string name="quick_switch_manage">管理</string>
+    <string name="quick_switch_add">添加语音</string>
+    <string name="quick_switch_empty">先安装一个语音才能使用快速切换。</string>
+
+    <!-- Settings -->
+    <string name="settings_title">设置</string>
+    <string name="settings_subtitle">调整下载、存储与默认语音</string>
+    <string name="settings_section_downloads">下载</string>
+    <string name="settings_wifi_only">仅 Wi-Fi</string>
+    <string name="settings_wifi_only_subtitle">在计费的移动网络上禁止下载语音。</string>
+    <string name="settings_storage_location">存储位置</string>
+    <string name="settings_storage_internal">内部存储</string>
+    <string name="settings_storage_external">外置 SD 卡</string>
+    <string name="settings_storage_external_unavailable">未检测到外部存储</string>
+    <string name="settings_storage_restart_hint">切换此项会把所有已安装的语音迁移到新位置。</string>
+    <string name="settings_storage_moving">正在迁移语音 %1$d / %2$d (%3$s)…</string>
+    <string name="settings_storage_move_failed">迁移失败：%1$s</string>
+    <string name="settings_section_defaults">默认语音</string>
+    <string name="settings_defaults_empty">安装一个语音以便为各语言设置默认。</string>
+    <string name="settings_pick_voice_title">为 %1$s 选择默认</string>
+    <string name="settings_pick_voice_clear">无默认</string>
+    <string name="settings_section_storage">存储</string>
+    <string name="settings_total_models_size">已安装语音：%1$s</string>
+    <string name="settings_clear_cache">清理下载缓存</string>
+    <string name="settings_clear_cache_subtitle">移除被取消下载所遗留的未完成压缩包。</string>
+    <string name="settings_clear_cache_done">已清理 %1$s</string>
+    <string name="settings_section_about">关于</string>
+    <string name="settings_version">版本 %1$s (%2$d)</string>
+    <string name="settings_powered_by">模型由 sherpa-onnx 驱动</string>
+    <string name="settings_powered_by_subtitle">点按打开上游项目</string>
+    <string name="settings_license_label">许可证：GPL-3.0</string>
+    <string name="settings_license_subtitle">点按查看完整许可证</string>
+    <string name="settings_license_dialog_title">许可证</string>
+    <string name="settings_license_dialog_close">关闭</string>
+</resources>

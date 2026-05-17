@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HayaiTTS</string>
+
+    <!-- Library -->
+    <string name="library_empty_title">لم تثبَّت أي أصوات بعد</string>
+    <string name="library_empty_subtitle">تصفح الفهرس لتنزيل أصوات عصبية تعمل دون اتصال</string>
+    <string name="library_browse_action">تصفح النماذج</string>
+    <string name="library_title">الأصوات</string>
+    <string name="library_subtitle">المثبَّت: %1$d</string>
+    <string name="library_featured">المختارة</string>
+    <string name="library_installed_header">جميع الأصوات المثبَّتة</string>
+    <string name="library_downloading">جارٍ التنزيل…</string>
+    <string name="library_extracting">جارٍ الاستخراج…</string>
+    <string name="library_download_failed">فشل التنزيل: %1$s</string>
+    <string name="library_download_cancelled">أُلغي التنزيل</string>
+    <string name="library_import_action">استيراد صوت</string>
+
+    <!-- Voice card / chips -->
+    <string name="voice_chip_bundled">مضمَّن</string>
+    <string name="voice_chip_coming_soon">قريباً</string>
+    <string name="voice_chip_recommended">موصى به لجهازك</string>
+    <string name="custom_chip">مخصص</string>
+    <string name="voice_preview_action">معاينة</string>
+    <string name="voice_favorite">إضافة إلى المفضلة</string>
+    <string name="voice_unfavorite">إزالة من المفضلة</string>
+
+    <!-- Browse -->
+    <string name="browse_title">تصفح النماذج</string>
+    <string name="browse_subtitle">%1$d صوت</string>
+    <string name="browse_empty_title">لا توجد أصوات تطابق هذه التصفية</string>
+    <string name="browse_empty_subtitle">جرّب توسيع تصفية اللغة أو الجودة.</string>
+    <string name="browse_search_placeholder">ابحث في الأصوات</string>
+    <string name="browse_search_placeholder_count">ابحث في %1$d صوت</string>
+    <string name="browse_open_filters">فتح التصفية</string>
+    <string name="browse_filter_sheet_title">التصفية</string>
+    <string name="browse_filter_reset">إعادة الضبط</string>
+    <string name="browse_filter_show_results">عرض %1$d نتيجة</string>
+    <string name="browse_filter_language">اللغة</string>
+    <string name="browse_filter_tier">الجودة</string>
+    <string name="browse_filter_family">العائلة</string>
+    <string name="browse_filter_clear">مسح</string>
+    <string name="browse_filter_clear_all">مسح التصفية</string>
+    <string name="browse_filter_apply">تطبيق</string>
+    <string name="browse_tier_all">كل الجودات</string>
+    <string name="browse_tier_low">منخفضة</string>
+    <string name="browse_tier_mid">متوسطة</string>
+    <string name="browse_tier_high">عالية</string>
+    <string name="browse_refresh">تحديث الفهرس</string>
+
+    <!-- Actions -->
+    <string name="action_clear">مسح</string>
+    <string name="action_install">تثبيت</string>
+    <string name="action_installed">مثبَّت</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_uninstall">إلغاء التثبيت</string>
+    <string name="action_back">رجوع</string>
+    <string name="action_play">تشغيل</string>
+    <string name="action_stop">إيقاف</string>
+    <string name="action_more">المزيد</string>
+    <string name="action_reorder">إعادة ترتيب الأصوات</string>
+    <string name="action_done">تم</string>
+    <string name="action_move_up">تحريك لأعلى</string>
+    <string name="action_move_down">تحريك لأسفل</string>
+
+    <!-- Voice detail -->
+    <string name="voice_default_label">الافتراضي لـ %1$s</string>
+    <string name="voice_set_default">تعيين كافتراضي لـ %1$s</string>
+    <string name="voice_clear_default">إلغاء الافتراضي</string>
+    <string name="voice_detail_speakers">المتحدثون</string>
+    <string name="voice_detail_speakers_count">%1$d متحدث</string>
+    <string name="voice_detail_preview">معاينة</string>
+    <string name="voice_detail_preview_text">نص الكتابة العربية لمعاينة الصوت بسرعة وسلاسة.</string>
+    <string name="voice_detail_preview_not_installed">ثبِّت الصوت لتجربته</string>
+    <string name="voice_detail_license">الرخصة: %1$s</string>
+    <string name="voice_detail_set_default_header">استخدامه كافتراضي</string>
+    <string name="voice_detail_coming_soon_hint">هذه العائلة من النماذج غير مدعومة في إصدار sherpa-onnx الحالي، وسيتم تفعيلها في تحديث لاحق.</string>
+
+    <!-- Uninstall -->
+    <string name="uninstall_confirm_title">إلغاء تثبيت الصوت؟</string>
+    <string name="uninstall_confirm_message">سيؤدي ذلك إلى تحرير مساحة. يمكنك إعادة تنزيله لاحقاً من «تصفح».</string>
+    <string name="bundled_not_uninstallable">لا يمكن إلغاء تثبيت الأصوات المضمَّنة.</string>
+
+    <!-- Download -->
+    <string name="download_in_progress">جارٍ تنزيل الصوت العصبي…</string>
+    <string name="download_progress_running">%1$d م.ب / %2$d م.ب · %3$d%%</string>
+    <string name="download_extracting">جارٍ الاستخراج…</string>
+
+    <!-- Family labels -->
+    <string name="family_custom">مخصص</string>
+    <string name="family_unknown">غير معروف</string>
+
+    <!-- Import wizard -->
+    <string name="import_title">استيراد صوت</string>
+    <string name="import_subtitle">أحضِر حزمة الصوت الخاصة بك</string>
+    <string name="import_analyzing">جارٍ تحليل الحزمة…</string>
+    <string name="import_analyzing_failed">تعذّر قراءة هذه الحزمة: %1$s</string>
+    <string name="import_unsupported_family">%1$s غير مدعومة بعد في هذا الإصدار.</string>
+    <string name="import_detected_family">العائلة المكتشفة</string>
+    <string name="import_family_override">العائلة</string>
+    <string name="import_voice_name">اسم الصوت</string>
+    <string name="import_languages">اللغات</string>
+    <string name="import_files_header">الملفات (%1$d)</string>
+    <string name="import_speakers_header">المتحدثون (%1$d)</string>
+    <string name="import_no_speakers">لم يتم العثور على قائمة متحدثين — سيُستخدم متحدث واحد (sid 0).</string>
+    <string name="import_action_import">استيراد</string>
+    <string name="import_progress_copying">جارٍ نسخ الحزمة…</string>
+    <string name="import_progress_extracting">جارٍ الاستخراج…</string>
+    <string name="import_progress_validating">جارٍ التحقق…</string>
+    <string name="import_validation_failed">الحزمة تفتقر إلى %1$s الخاص بـ %2$s. اختر عائلة أخرى أو ألغِ.</string>
+    <string name="import_done">تم الاستيراد بنجاح.</string>
+    <string name="import_lang_add">إضافة لغة</string>
+    <string name="import_lang_add_placeholder">رمز BCP-47 (مثلاً ar-SA)</string>
+    <string name="import_lang_add_ok">إضافة</string>
+    <string name="import_step_analyze">تحليل</string>
+    <string name="import_step_confirm">تأكيد</string>
+    <string name="import_step_install">تثبيت</string>
+
+    <!-- Quick switcher -->
+    <string name="quick_switch_title">تبديل سريع</string>
+    <string name="quick_switch_subtitle">اختر الصوت الافتراضي الحالي</string>
+    <string name="quick_switch_current">الافتراضي الحالي</string>
+    <string name="quick_switch_manage">إدارة</string>
+    <string name="quick_switch_add">إضافة صوت</string>
+    <string name="quick_switch_empty">ثبِّت صوتاً لتفعيل التبديل السريع.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_subtitle">اضبط التنزيلات والتخزين والإعدادات الافتراضية</string>
+    <string name="settings_section_downloads">التنزيلات</string>
+    <string name="settings_wifi_only">واي-فاي فقط</string>
+    <string name="settings_wifi_only_subtitle">يمنع تنزيل الأصوات على بيانات الجوال المُحاسَب عليها.</string>
+    <string name="settings_storage_location">مكان التخزين</string>
+    <string name="settings_storage_internal">التخزين الداخلي</string>
+    <string name="settings_storage_external">بطاقة SD الخارجية</string>
+    <string name="settings_storage_external_unavailable">لم يتم اكتشاف تخزين خارجي</string>
+    <string name="settings_storage_restart_hint">تغيير هذا الإعداد ينقل كل الأصوات المثبَّتة إلى الموقع الجديد.</string>
+    <string name="settings_storage_moving">جارٍ نقل الصوت %1$d / %2$d (%3$s)…</string>
+    <string name="settings_storage_move_failed">فشل النقل: %1$s</string>
+    <string name="settings_section_defaults">الأصوات الافتراضية</string>
+    <string name="settings_defaults_empty">ثبِّت صوتاً لضبط أصوات افتراضية لكل لغة.</string>
+    <string name="settings_pick_voice_title">اختر الافتراضي لـ %1$s</string>
+    <string name="settings_pick_voice_clear">بدون افتراضي</string>
+    <string name="settings_section_storage">التخزين</string>
+    <string name="settings_total_models_size">الأصوات المثبَّتة: %1$s</string>
+    <string name="settings_clear_cache">مسح ذاكرة تنزيل مؤقتة</string>
+    <string name="settings_clear_cache_subtitle">يحذف الحزم غير المكتملة المتبقية من التنزيلات الملغاة.</string>
+    <string name="settings_clear_cache_done">تم تحرير %1$s</string>
+    <string name="settings_section_about">حول التطبيق</string>
+    <string name="settings_version">الإصدار %1$s (%2$d)</string>
+    <string name="settings_powered_by">النماذج تعمل بواسطة sherpa-onnx</string>
+    <string name="settings_powered_by_subtitle">انقر لفتح المشروع الأصلي</string>
+    <string name="settings_license_label">الرخصة: GPL-3.0</string>
+    <string name="settings_license_subtitle">انقر لقراءة الرخصة الكاملة</string>
+    <string name="settings_license_dialog_title">الرخصة</string>
+    <string name="settings_license_dialog_close">إغلاق</string>
+</resources>
