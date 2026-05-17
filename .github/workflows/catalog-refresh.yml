@@ -1,11 +1,15 @@
 name: catalog-refresh
 
-# Re-runs `tools/catalog/build_catalog.py` once a week and opens a PR if the
-# resulting `catalog/v1/models.json` has changed. The script discovers every
-# voice on the upstream sherpa-onnx TTS model index and computes a sha256 over
-# each release tarball — so when k2-fsa publishes new voices or rebuilds an
-# existing one, HayaiTTS sees it within a week without anyone touching the
-# repo by hand.
+# Re-runs `tools/catalog/build_catalog.py` once a week and commits the new
+# `catalog/v1/models.json` directly to main when it changes. The script
+# discovers every voice on the upstream sherpa-onnx TTS model index and
+# computes a sha256 over each release tarball — so when k2-fsa publishes new
+# voices or rebuilds an existing one, HayaiTTS sees it within a week without
+# anyone touching the repo by hand.
+#
+# We commit straight to main rather than opening a PR: the work is fully
+# deterministic, every voice change is captured in the workflow log, and
+# there's no human review value in approving 188 sha256 strings.
 
 on:
   schedule:
@@ -15,7 +19,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   refresh:
@@ -40,28 +43,18 @@ jobs:
       - name: Regenerate catalog
         run: python tools/catalog/build_catalog.py --output catalog/v1/models.json
 
-      - name: Check for changes
-        id: diff
+      - name: Commit + push if changed
         run: |
+          set -euo pipefail
           if git diff --quiet --exit-code catalog/v1/models.json; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Catalog is identical to upstream — nothing to commit."
+            exit 0
           fi
-
-      - name: Open pull request
-        if: steps.diff.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: 'Refresh catalog from upstream sherpa-onnx index'
-          title: 'Weekly catalog refresh'
-          body: |
-            Automated weekly run of `tools/catalog/build_catalog.py` against
-            the upstream sherpa-onnx TTS model index produced a non-empty diff
-            for `catalog/v1/models.json`. Review the changes — typically new
-            voices appearing under existing families, or sha256 churn when
-            upstream rebuilds a release tarball.
-          branch: chore/catalog-refresh
-          delete-branch: true
-          base: main
-          add-paths: catalog/v1/models.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # Count voices for the commit message — a quick at-a-glance audit
+          # of catalog churn from `git log catalog/v1/models.json`.
+          count=$(python -c "import json; print(len(json.load(open('catalog/v1/models.json'))['voices']))")
+          git add catalog/v1/models.json
+          git commit -m "Refresh catalog from upstream sherpa-onnx index ($count voices)"
+          git push origin HEAD:main
