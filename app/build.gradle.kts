@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -41,18 +43,43 @@ android {
         }
     }
 
+    // Release signing reads credentials from `signing.properties` at the repo
+    // root (gitignored). If the file is absent the release variant falls back
+    // to the debug key so local dev builds still work; CI is expected to
+    // provide the properties file via a secret. See `signing.properties.template`.
+    val signingProps = Properties().apply {
+        val f = rootProject.file("signing.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+    if (signingProps.getProperty("storeFile") != null) {
+        signingConfigs {
+            create("release") {
+                storeFile = rootProject.file(signingProps.getProperty("storeFile"))
+                storePassword = signingProps.getProperty("storePassword")
+                keyAlias = signingProps.getProperty("keyAlias")
+                keyPassword = signingProps.getProperty("keyPassword")
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
+                enableV4Signing = true
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // R8 + resource shrinker. The debug signing config keeps the release
-            // APK installable on dev devices until a real key is wired in — the
-            // build still benefits from minification + ABI splits.
+            // R8 + resource shrinker stay on regardless of signing source.
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig = signingConfigs.getByName("debug")
+            // Use the real release key when `signing.properties` is present;
+            // fall back to the debug key for unconfigured dev machines so the
+            // gradle build itself never fails on a missing keystore.
+            signingConfig = signingConfigs.findByName("release")
+                ?: signingConfigs.getByName("debug")
         }
     }
 

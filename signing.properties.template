@@ -1,0 +1,20 @@
+# Release signing credentials for HayaiTTS.
+#
+# Copy this file to `signing.properties` (gitignored) and fill in real values
+# to sign release APKs with a production key.
+#
+# To generate a release keystore once and reuse it:
+#
+#     keytool -genkeypair -v \
+#         -keystore hayaitts-release.jks \
+#         -keyalg RSA -keysize 4096 -validity 36500 \
+#         -alias hayaitts -storetype JKS
+#
+# Then move `hayaitts-release.jks` into the repo root (it is gitignored by
+# `*.jks` / `*.keystore` rules below — DO NOT commit the keystore itself) and
+# point `storeFile` at the relative path.
+
+storeFile=hayaitts-release.jks
+storePassword=CHANGE_ME
+keyAlias=hayaitts
+keyPassword=CHANGE_ME
