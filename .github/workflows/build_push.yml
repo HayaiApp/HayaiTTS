@@ -159,6 +159,10 @@ jobs:
           mv $dir/app-x86_64-release.apk hayaitts-x86_64-${{ env.VERSION_TAG }}.apk
           echo "APK_X86_64_SHA=$(sha256sum hayaitts-x86_64-${{ env.VERSION_TAG }}.apk | awk '{print $1}')" >> $GITHUB_ENV
 
+      # Stable + beta releases. `v1.0.0` → stable (prerelease=false),
+      # `v1.0.0-b1` → beta (prerelease=true). Both land as drafts so a human
+      # approves the published version after smoke-testing the APKs from the
+      # workflow run.
       - name: Create Release (stable / beta)
         if: startsWith(env.VERSION_TAG, 'v')
         uses: softprops/action-gh-release@v2
@@ -192,23 +196,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Nightly auto-publish to HayaiApp/HayaiTTS-nightly. Cross-repo write
-      # needs a PAT with `contents:write` on the nightly repo; we fall back to
-      # GITHUB_TOKEN when NIGHTLY_PAT is unset (this fails closed and the user
-      # just sees an explicit auth error — no silent in-repo fallback).
+      # Nightly auto-publish to the SAME repo, tagged `r-NN`. The leading
+      # `r-` (vs `v` for stable/beta) is the discriminator the in-app
+      # auto-updater filters on — see README. Nightlies are published (not
+      # draft) and always flagged as prerelease, so the GitHub UI separates
+      # them visually from stable.
       - name: Create Nightly
         if: startsWith(env.VERSION_TAG, 'r')
         uses: softprops/action-gh-release@v2
         with:
-          repository: HayaiApp/HayaiTTS-nightly
           tag_name: ${{ env.VERSION_TAG }}
-          name: HayaiTTS Nightly (${{ env.VERSION_TAG }})
+          name: HayaiTTS Nightly ${{ env.VERSION_TAG }}
           body: |
             > [!CAUTION]
             >
             > _**This nightly build is for testing only.**_
             >
-            > Triggered by commit [`${{ env.COMMIT_SHORT_HASH }}`](https://github.com/HayaiApp/HayaiTTS/commit/${{ env.COMMIT_HASH }}). Not production-ready — for stable releases, see https://github.com/HayaiApp/HayaiTTS/releases/latest.
+            > Triggered by commit [`${{ env.COMMIT_SHORT_HASH }}`](https://github.com/HayaiApp/HayaiTTS/commit/${{ env.COMMIT_HASH }}). Not production-ready — for stable releases, see https://github.com/HayaiApp/HayaiTTS/releases?q=prerelease%3Afalse.
 
             ### Checksums
 
@@ -225,4 +229,5 @@ jobs:
             hayaitts-x86_64-${{ env.VERSION_TAG }}.apk
           draft: false
           prerelease: true
-          token: ${{ secrets.NIGHTLY_PAT || secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
