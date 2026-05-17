@@ -69,6 +69,7 @@ import dev.ahmedmohamed.hayaitts.R
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.ui.components.EmptyState
 import dev.ahmedmohamed.hayaitts.ui.components.FeaturedVoiceCard
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiRichTooltipBox
 import dev.ahmedmohamed.hayaitts.ui.components.InstalledVoiceCard
 import org.koin.androidx.compose.koinViewModel
 
@@ -121,24 +122,34 @@ fun LibraryScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = onOpenQuickSwitch) {
-                        Icon(
-                            Icons.Outlined.SwapHoriz,
-                            contentDescription = stringResource(R.string.quick_switch_title),
-                        )
-                    }
-                    IconButton(
-                        onClick = {
-                            // Broad MIME filter — tar.bz2 has no canonical type;
-                            // .onnx files surface as octet-stream; the */* is a
-                            // last-resort for strict pickers.
-                            pickFile.launch(IMPORT_MIME_TYPES)
-                        },
+                    HayaiRichTooltipBox(
+                        title = stringResource(R.string.tooltip_quick_switch_title),
+                        description = stringResource(R.string.tooltip_quick_switch_body),
                     ) {
-                        Icon(
-                            Icons.Outlined.UploadFile,
-                            contentDescription = stringResource(R.string.library_import_action),
-                        )
+                        IconButton(onClick = onOpenQuickSwitch) {
+                            Icon(
+                                Icons.Outlined.SwapHoriz,
+                                contentDescription = stringResource(R.string.quick_switch_title),
+                            )
+                        }
+                    }
+                    HayaiRichTooltipBox(
+                        title = stringResource(R.string.tooltip_import_title),
+                        description = stringResource(R.string.tooltip_import_body),
+                    ) {
+                        IconButton(
+                            onClick = {
+                                // Broad MIME filter — tar.bz2 has no canonical type;
+                                // .onnx files surface as octet-stream; the */* is a
+                                // last-resort for strict pickers.
+                                pickFile.launch(IMPORT_MIME_TYPES)
+                            },
+                        ) {
+                            Icon(
+                                Icons.Outlined.UploadFile,
+                                contentDescription = stringResource(R.string.library_import_action),
+                            )
+                        }
                     }
                     AnimatedVisibility(visible = state.installed.isNotEmpty()) {
                         IconButton(onClick = {

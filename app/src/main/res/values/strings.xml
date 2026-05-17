@@ -195,4 +195,81 @@
     <string name="update_progress_caption">%1$s / %2$s · %3$d%%</string>
     <string name="update_download_failed">Download failed: %1$s</string>
     <string name="update_no_changelog">No release notes provided.</string>
+
+    <!-- P4: First-launch onboarding flow (onboarding_*) -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_welcome_title">Welcome to HayaiTTS</string>
+    <string name="onboarding_welcome_body">Offline neural text-to-speech for Android. Every voice runs on your device — no cloud, no telemetry, no quota.</string>
+    <string name="onboarding_engine_title">Set HayaiTTS as your engine</string>
+    <string name="onboarding_engine_body">Open Settings → System → Languages &amp; input → Text-to-speech engines and pick HayaiTTS as your preferred engine. Apps that read text aloud will route through HayaiTTS automatically.</string>
+    <string name="onboarding_engine_action">Open system TTS settings</string>
+    <string name="onboarding_tier_title">Pick voices for your device</string>
+    <string name="onboarding_tier_recommendation_low">Recommended for your device: Low. Low models work even on entry-level hardware.</string>
+    <string name="onboarding_tier_recommendation_mid">Recommended for your device: Mid. Mid models balance speed and quality on most phones.</string>
+    <string name="onboarding_tier_recommendation_high">Recommended for your device: High. Your hardware can run our largest models comfortably.</string>
+    <string name="onboarding_tier_low">Low — fastest, smallest, runs on any phone</string>
+    <string name="onboarding_tier_mid">Mid — balanced speed and quality (recommended)</string>
+    <string name="onboarding_tier_high">High — best quality, needs at least 4 GB RAM</string>
+    <string name="onboarding_ready_title">Ready to browse</string>
+    <string name="onboarding_ready_body">Browse 188+ voices across 8 model families. Or import your own bundle from the Library tab.</string>
+    <string name="onboarding_ready_action">Get started</string>
+
+    <!-- P4: Help / FAQ screen (help_*) -->
+    <string name="help_title">Help &amp; FAQ</string>
+    <string name="help_subtitle">Getting started, voices, troubleshooting</string>
+    <string name="settings_help_label">Help &amp; FAQ</string>
+    <string name="settings_help_subtitle">Setup, troubleshooting, and tips</string>
+    <string name="help_section_getting_started_title">Getting started</string>
+    <string name="help_section_getting_started_body">1. Browse the catalog and install a voice for your language.\n2. Open Settings → System → Languages &amp; input → Text-to-speech engines and set HayaiTTS as your preferred engine.\n3. Try the synth from any app that reads text aloud — accessibility, ebook readers, navigation, or assistant apps.</string>
+    <string name="help_section_choose_voice_title">Choosing the right voice</string>
+    <string name="help_section_choose_voice_body">Voices come in three quality tiers:\n• Low — fastest, smallest, runs on any phone.\n• Mid — balanced speed and quality. Recommended for most users.\n• High — best quality, needs at least 4 GB RAM.\n\nDifferent model families have different strengths: Piper is fast and lightweight, VITS / Matcha / Kokoro favour expressiveness, and Supertonic / ZipVoice / Pocket push naturalness. The catalog shows a \"Recommended for your device\" pill on voices that match your hardware tier.</string>
+    <string name="help_section_locale_defaults_title">Per-locale defaults</string>
+    <string name="help_section_locale_defaults_body">You can install multiple voices for the same language and switch between them in two places:\n• Settings → Default voices — pick one default voice per language.\n• Quick switch (top-bar icon) — change the active default on the fly without leaving your current app.\nThe system TTS framework picks your default when an app requests that language.</string>
+    <string name="help_section_custom_voices_title">Custom voices</string>
+    <string name="help_section_custom_voices_body">Use the Import action on the Library top bar to bring your own sherpa-onnx voice bundles. Accepted formats:\n• .tar.bz2 — the canonical sherpa-onnx archive format.\n• .zip — extracted bundle re-zipped.\n• .onnx — a single model file (we will infer the family).\n\nThe import wizard analyzes the bundle, detects the model family, and lets you tweak the name + language tags before installing.</string>
+    <string name="help_section_custom_voices_action">Open sherpa-onnx TTS docs</string>
+    <string name="help_section_storage_title">Storage location</string>
+    <string name="help_section_storage_body">By default voices are installed under the app\'s internal storage. If your device has an SD card you can move every installed voice to the card via Settings → Storage location → External SD card. The migration is live — installed voices are copied over while the toggle runs.\n\nUninstalling the app removes internal voices but does NOT remove voices on an SD card; delete the SD-card folder manually if you want to reclaim that space.</string>
+    <string name="help_section_updates_title">App updates</string>
+    <string name="help_section_updates_body">HayaiTTS checks for new releases when you open the app (debounced — at most once every 6 hours). When an update is available a dialog offers to download and install it. Update channels:\n• Stable — production releases, lowest risk.\n• Beta — release candidates a few days ahead of stable.\n• Nightly — the latest commit on main, may include rough edges.\nPick a channel from Settings → Update channel.</string>
+    <string name="help_section_troubleshooting_title">Troubleshooting</string>
+    <string name="help_section_troubleshooting_body">Voices don\'t appear in other apps — make HayaiTTS the system default engine (Settings → System → Languages &amp; input → Text-to-speech engines).\n\nDownload failed: checksum mismatch — re-try the download from Browse. If the failure persists the upstream model has changed; please file a bug.\n\nSynth produces silence — the model files may have been corrupted by an interrupted extraction. Uninstall the voice from Library, then re-install from Browse.\n\nApp crashes when picking a voice — check that the catalog finished loading. If the issue persists, clear the download cache from Settings → Storage.</string>
+    <string name="help_section_about_title">About</string>
+    <string name="help_section_about_body">HayaiTTS is an open-source, offline-first text-to-speech engine for Android. Built on sherpa-onnx with neural voices from Piper, Kokoro, VITS, Matcha, Kitten, ZipVoice, Pocket, and Supertonic. Licensed under GPL-3.0.</string>
+    <string name="help_section_about_action">View on GitHub</string>
+
+    <!-- P4: Rich tooltips on key controls (tooltip_*) -->
+    <string name="tooltip_import_title">Import a voice</string>
+    <string name="tooltip_import_body">Import a voice bundle (.tar.bz2 / .zip / .onnx) from device storage.</string>
+    <string name="tooltip_filter_title">Filter the catalog</string>
+    <string name="tooltip_filter_body">Filter voices by language, quality tier, and model family.</string>
+    <string name="tooltip_quick_switch_title">Quick switch</string>
+    <string name="tooltip_quick_switch_body">Quickly set the default voice for any language.</string>
+    <string name="tooltip_preview_play_title">Preview voice</string>
+    <string name="tooltip_preview_play_body">Generate a preview using the selected speaker and current speed / pitch.</string>
+
+    <!-- P5: Model Playground + per-voice tuning -->
+    <string name="playground_title">Playground</string>
+    <string name="voice_detail_open_playground">Open in Playground</string>
+    <string name="playground_text_header">Text</string>
+    <string name="playground_text_placeholder">Type something to synthesize…</string>
+    <string name="playground_tuning_header">Tuning</string>
+    <string name="playground_slider_speed">Speed</string>
+    <string name="playground_slider_pitch">Pitch</string>
+    <string name="playground_slider_length">Length</string>
+    <string name="playground_reset">Reset</string>
+    <string name="playground_pitch_tooltip">Pitch is implemented via resample — small shifts only.</string>
+    <string name="playground_play">Play</string>
+    <string name="playground_generating">Generating…</string>
+    <string name="playground_not_installed">Install this voice to use the playground.</string>
+    <string name="playground_history_header">History</string>
+    <string name="playground_history_empty">Generated samples will appear here.</string>
+    <string name="playground_history_chip">%1$s / %2$s / %3$s</string>
+    <string name="playground_history_play">Replay sample</string>
+    <string name="playground_history_delete">Delete sample</string>
+    <string name="playground_time_just_now">just now</string>
+    <string name="playground_time_minutes">%1$d min ago</string>
+    <string name="playground_time_hours">%1$d hr ago</string>
+    <string name="playground_time_days">%1$d d ago</string>
 </resources>

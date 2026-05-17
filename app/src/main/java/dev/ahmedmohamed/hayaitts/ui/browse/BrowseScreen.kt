@@ -69,6 +69,7 @@ import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.Tier
 import dev.ahmedmohamed.hayaitts.ui.components.CatalogVoiceCard
 import dev.ahmedmohamed.hayaitts.ui.components.EmptyState
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiRichTooltipBox
 import dev.ahmedmohamed.hayaitts.ui.components.displayName
 import dev.ahmedmohamed.hayaitts.ui.components.displayRes
 import org.koin.androidx.compose.koinViewModel
@@ -265,18 +266,23 @@ private fun SearchHeader(
                             )
                         }
                     } else {
-                        BadgedBox(
-                            badge = {
-                                if (activeFilterCount > 0) {
-                                    Badge { Text("$activeFilterCount") }
-                                }
-                            },
+                        HayaiRichTooltipBox(
+                            title = stringResource(R.string.tooltip_filter_title),
+                            description = stringResource(R.string.tooltip_filter_body),
                         ) {
-                            IconButton(onClick = onOpenFilters) {
-                                Icon(
-                                    Icons.Outlined.FilterList,
-                                    contentDescription = stringResource(R.string.browse_open_filters),
-                                )
+                            BadgedBox(
+                                badge = {
+                                    if (activeFilterCount > 0) {
+                                        Badge { Text("$activeFilterCount") }
+                                    }
+                                },
+                            ) {
+                                IconButton(onClick = onOpenFilters) {
+                                    Icon(
+                                        Icons.Outlined.FilterList,
+                                        contentDescription = stringResource(R.string.browse_open_filters),
+                                    )
+                                }
                             }
                         }
                     }

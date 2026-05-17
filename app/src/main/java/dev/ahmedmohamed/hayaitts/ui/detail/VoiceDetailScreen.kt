@@ -42,6 +42,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.RecordVoiceOver
 import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -76,6 +77,7 @@ import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.Speaker
 import dev.ahmedmohamed.hayaitts.ui.components.DownloadProgress
 import dev.ahmedmohamed.hayaitts.ui.components.FamilyChip
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiRichTooltipBox
 import dev.ahmedmohamed.hayaitts.ui.components.LanguageChip
 import dev.ahmedmohamed.hayaitts.ui.components.TierChip
 import dev.ahmedmohamed.hayaitts.ui.components.identityOrDefault
@@ -99,6 +101,7 @@ fun VoiceDetailScreen(
     voiceId: String,
     onBack: () -> Unit,
     onOpenQuickSwitch: () -> Unit,
+    onOpenPlayground: () -> Unit = {},
 ) {
     val viewModel: VoiceDetailViewModel = koinViewModel { parametersOf(voiceId) }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -164,6 +167,17 @@ fun VoiceDetailScreen(
                 onPlay = viewModel::play,
                 onStop = viewModel::stop,
             )
+            OutlinedButton(
+                onClick = onOpenPlayground,
+                enabled = state.isInstalled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            ) {
+                Icon(Icons.Outlined.Tune, contentDescription = null)
+                Spacer(Modifier.size(8.dp))
+                Text(stringResource(R.string.voice_detail_open_playground))
+            }
             ActionRow(
                 state = state,
                 onInstall = viewModel::install,
@@ -374,24 +388,29 @@ private fun PreviewSection(
             accent = accent,
             playing = playing,
         )
-        FilledTonalButton(
-            onClick = {
-                if (playing) onStop() else onPlay(text)
-            },
-            enabled = enabled && text.isNotBlank(),
+        HayaiRichTooltipBox(
+            title = stringResource(R.string.tooltip_preview_play_title),
+            description = stringResource(R.string.tooltip_preview_play_body),
         ) {
-            AnimatedContent(
-                targetState = playing,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "play-icon",
-            ) { isPlaying ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Outlined.Stop else Icons.Outlined.PlayArrow,
-                        contentDescription = null,
-                    )
-                    Spacer(Modifier.size(8.dp))
-                    Text(stringResource(if (isPlaying) R.string.action_stop else R.string.action_play))
+            FilledTonalButton(
+                onClick = {
+                    if (playing) onStop() else onPlay(text)
+                },
+                enabled = enabled && text.isNotBlank(),
+            ) {
+                AnimatedContent(
+                    targetState = playing,
+                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    label = "play-icon",
+                ) { isPlaying ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Outlined.Stop else Icons.Outlined.PlayArrow,
+                            contentDescription = null,
+                        )
+                        Spacer(Modifier.size(8.dp))
+                        Text(stringResource(if (isPlaying) R.string.action_stop else R.string.action_play))
+                    }
                 }
             }
         }

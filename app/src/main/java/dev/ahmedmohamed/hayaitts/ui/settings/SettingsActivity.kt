@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Gavel
+import androidx.compose.material.icons.outlined.Help
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Refresh
@@ -69,6 +70,7 @@ import dev.ahmedmohamed.hayaitts.data.update.UpdateChannel
 import dev.ahmedmohamed.hayaitts.data.update.UpdateStatus
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
+import dev.ahmedmohamed.hayaitts.ui.help.HelpActivity
 import dev.ahmedmohamed.hayaitts.ui.theme.HayaiTtsTheme
 import dev.ahmedmohamed.hayaitts.ui.update.UpdateViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -360,6 +362,16 @@ private fun SettingsScreen(
                                 BuildConfig.VERSION_CODE,
                             ),
                         )
+                    },
+                )
+            }
+            item("help") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Help, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_help_label)) },
+                    supportingContent = { Text(stringResource(R.string.settings_help_subtitle)) },
+                    modifier = Modifier.clickableRow {
+                        context.startActivity(Intent(context, HelpActivity::class.java))
                     },
                 )
             }

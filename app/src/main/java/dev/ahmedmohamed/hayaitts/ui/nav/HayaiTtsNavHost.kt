@@ -9,7 +9,10 @@ import androidx.navigation.navArgument
 import dev.ahmedmohamed.hayaitts.ui.browse.BrowseScreen
 import dev.ahmedmohamed.hayaitts.ui.custom.CustomImportScreen
 import dev.ahmedmohamed.hayaitts.ui.detail.VoiceDetailScreen
+import dev.ahmedmohamed.hayaitts.ui.help.HelpScreen
 import dev.ahmedmohamed.hayaitts.ui.library.LibraryScreen
+import dev.ahmedmohamed.hayaitts.ui.playground.PlaygroundScreen
+import dev.ahmedmohamed.hayaitts.ui.onboarding.OnboardingScreen
 import java.net.URLEncoder
 
 /**
@@ -29,8 +32,21 @@ import java.net.URLEncoder
 fun HayaiTtsNavHost(
     navController: NavHostController,
     onOpenQuickSwitch: () -> Unit,
+    startDestination: String = Routes.LIBRARY,
+    onCompleteOnboarding: () -> Unit = {},
 ) {
-    NavHost(navController = navController, startDestination = Routes.LIBRARY) {
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable(Routes.ONBOARDING) {
+            OnboardingScreen(
+                onComplete = {
+                    onCompleteOnboarding()
+                    navController.navigate(Routes.LIBRARY) {
+                        popUpTo(Routes.ONBOARDING) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+            )
+        }
         composable(Routes.LIBRARY) {
             LibraryScreen(
                 onBrowse = { navController.navigate(Routes.BROWSE) },
@@ -57,6 +73,7 @@ fun HayaiTtsNavHost(
                 voiceId = id,
                 onBack = { navController.popBackStack() },
                 onOpenQuickSwitch = onOpenQuickSwitch,
+                onOpenPlayground = { navController.navigate(Routes.playground(id)) },
             )
         }
         composable(
@@ -69,19 +86,36 @@ fun HayaiTtsNavHost(
                 onClose = { navController.popBackStack() },
             )
         }
+        composable(Routes.HELP) {
+            HelpScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            route = Routes.PLAYGROUND,
+            arguments = listOf(navArgument(Routes.ARG_VOICE_ID) { type = NavType.StringType }),
+        ) { entry ->
+            val id = entry.arguments?.getString(Routes.ARG_VOICE_ID).orEmpty()
+            PlaygroundScreen(
+                voiceId = id,
+                onBack = { navController.popBackStack() },
+            )
+        }
     }
 }
 
 object Routes {
+    const val ONBOARDING = "onboarding"
+    const val HELP = "help"
     const val LIBRARY = "library"
     const val BROWSE = "browse"
     const val ARG_VOICE_ID = "voiceId"
     const val VOICE_DETAIL = "voiceDetail/{$ARG_VOICE_ID}"
+    const val PLAYGROUND = "playground/{$ARG_VOICE_ID}"
 
     const val ARG_ENCODED_URI = "encodedUri"
     const val CUSTOM_IMPORT = "customImport/{$ARG_ENCODED_URI}"
 
     fun voiceDetail(voiceId: String): String = "voiceDetail/$voiceId"
+    fun playground(voiceId: String): String = "playground/$voiceId"
 
     /**
      * The picked content URI is double-encoded — once by [URLEncoder] so it

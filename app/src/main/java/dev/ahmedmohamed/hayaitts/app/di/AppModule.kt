@@ -6,6 +6,9 @@ import dev.ahmedmohamed.hayaitts.data.custom.CustomBundleInstaller
 import dev.ahmedmohamed.hayaitts.data.db.HayaiTtsDatabase
 import dev.ahmedmohamed.hayaitts.data.defaults.DefaultsRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.download.DownloadRepositoryImpl
+import dev.ahmedmohamed.hayaitts.data.onboarding.OnboardingPreferences
+import dev.ahmedmohamed.hayaitts.data.playground.SampleHistoryRepository
+import dev.ahmedmohamed.hayaitts.data.playground.VoiceTuningRepository
 import dev.ahmedmohamed.hayaitts.data.preview.VoicePreviewPlayer
 import dev.ahmedmohamed.hayaitts.data.settings.SettingsRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.storage.StorageMigrator
@@ -22,6 +25,7 @@ import dev.ahmedmohamed.hayaitts.ui.custom.CustomImportViewModel
 import dev.ahmedmohamed.hayaitts.ui.detail.VoiceDetailViewModel
 import dev.ahmedmohamed.hayaitts.ui.library.LibraryViewModel
 import dev.ahmedmohamed.hayaitts.ui.library.preferences.LibraryUiPreferences
+import dev.ahmedmohamed.hayaitts.ui.playground.PlaygroundViewModel
 import dev.ahmedmohamed.hayaitts.ui.quickswitch.QuickSwitchViewModel
 import dev.ahmedmohamed.hayaitts.ui.settings.SettingsViewModel
 import dev.ahmedmohamed.hayaitts.ui.update.UpdateViewModel
@@ -63,6 +67,7 @@ val appModule = module {
     single { get<HayaiTtsDatabase>().installedVoiceDao() }
     single { get<HayaiTtsDatabase>().downloadStateDao() }
     single { get<HayaiTtsDatabase>().defaultVoiceDao() }
+    single { get<HayaiTtsDatabase>().playgroundSampleDao() }
 
     // Repositories. Bind both the interface and the impl class so callers can
     // pick either (the TTS service grabs the impl for the snapshot helper).
@@ -89,6 +94,12 @@ val appModule = module {
     // Phase 4b: short-lived AudioTrack helper for Voice Detail previews.
     single { VoicePreviewPlayer(androidContext()) }
 
+    // P5 Playground: per-voice DataStore-backed tuning prefs + Room-backed
+    // sample-history repo. Both are app-singletons because the playground
+    // screen and its sibling Voice Detail observe the same flows.
+    single { VoiceTuningRepository(androidContext()) }
+    single { SampleHistoryRepository(androidContext(), get()) }
+
     // Hardening pass: resolves voice install paths and moves voices between
     // internal storage and a mounted SD card when the user flips the setting.
     single {
@@ -107,6 +118,10 @@ val appModule = module {
     // ui/ so the data + domain layers stay independent of presentation state.
     single { LibraryUiPreferences(androidContext()) }
 
+    // First-launch onboarding flag, separate DataStore so a future "reset
+    // onboarding" action can wipe it without touching engine settings.
+    single { OnboardingPreferences(androidContext()) }
+
     // Auto-updater. Uses the shared OkHttp + SettingsRepository so the channel
     // preference + 6h cooldown live in the existing hayai_settings DataStore.
     single { UpdateChecker(okHttp = get(), settings = get()) }
@@ -121,6 +136,16 @@ val appModule = module {
             voiceRepository = get(),
             downloadRepository = get(),
             defaultsRepository = get(),
+            previewPlayer = get(),
+        )
+    }
+    viewModel { (voiceId: String) ->
+        PlaygroundViewModel(
+            voiceId = voiceId,
+            catalogRepository = get(),
+            voiceRepository = get(),
+            tuningRepo = get(),
+            historyRepo = get(),
             previewPlayer = get(),
         )
     }

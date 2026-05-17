@@ -12,6 +12,7 @@ import com.k2fsa.sherpa.onnx.OfflineTtsPocketModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsSupertonicModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsZipVoiceModelConfig
+import dev.ahmedmohamed.hayaitts.data.playground.PitchResampler
 import dev.ahmedmohamed.hayaitts.data.voices.VoiceRepositoryImpl
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
@@ -21,14 +22,10 @@ import java.io.File
 
 /**
  * Multi-voice wrapper around sherpa-onnx [OfflineTts]. The runtime holds an
- * LRU of up to [MAX_LOADED_VOICES] loaded engines keyed by voiceId — swapping
- * between two voices keeps both instances hot, swapping to a third evicts the
- * coldest one (releasing the native handle).
- *
- * Every voice is resolved from the `installedPath` Room stores when the
- * downloader (or the custom-import installer) finishes writing the bundle.
- * Nothing is bundled in the APK — first-run, `listAvailableVoices()`
- * returns an empty list and Library shows its empty state.
+ * LRU of up to [MAX_LOADED_VOICES] loaded engines keyed by
+ * `(voiceId, lengthScaleBucket)` — lengthScale is part of the key because it
+ * is baked into the config at engine-construction time. Pitch is a pure
+ * post-process on the FloatArray output and does NOT affect cache keys.
  */
 class SherpaTtsRuntime private constructor(
     private val context: Context,
@@ -36,33 +33,33 @@ class SherpaTtsRuntime private constructor(
 
     private val log = Logger.withTag("SherpaTtsRuntime")
 
-    /**
-     * LRU cache: the head is the most-recently-used voice. Mutated under
-     * `synchronized(this)` because both the TTS framework thread and the
-     * library composable can call into it.
-     */
-    private val loaded = LinkedHashMap<String, OfflineTts>(MAX_LOADED_VOICES, 0.75f, true)
+    /** Composite cache key. lengthBucket = lengthScale * 100, integer. */
+    private data class EngineKey(val voiceId: String, val lengthBucket: Int)
+
+    private val loaded = LinkedHashMap<EngineKey, OfflineTts>(MAX_LOADED_VOICES, 0.75f, true)
 
     data class SynthesisOutput(val sampleRate: Int, val samples: FloatArray)
 
-    fun sampleRateOf(voiceId: String): Int = engine(voiceId).sampleRate()
+    fun sampleRateOf(voiceId: String): Int = engine(voiceId, 1f).sampleRate()
 
     fun synthesize(
         voiceId: String,
         text: String,
         sid: Int = 0,
         speed: Float = 1.0f,
+        pitch: Float = 1.0f,
+        lengthScale: Float = 1.0f,
     ): SynthesisOutput {
-        val tts = engine(voiceId)
+        val tts = engine(voiceId, lengthScale)
         val audio = tts.generate(text = text, sid = sid, speed = speed)
-        return SynthesisOutput(sampleRate = audio.sampleRate, samples = audio.samples)
+        val shifted = if (kotlin.math.abs(pitch - 1f) < 0.001f) {
+            audio.samples
+        } else {
+            PitchResampler.resample(audio.samples, pitch)
+        }
+        return SynthesisOutput(sampleRate = audio.sampleRate, samples = shifted)
     }
 
-    /**
-     * Every Room-installed voice (via the Koin-registered [VoiceRepositoryImpl]).
-     * Used by [HayaiTtsService.onGetVoices]. Empty until the user installs
-     * their first voice from Browse.
-     */
     fun listAvailableVoices(): List<InstalledVoice> {
         val repo = runCatching { GlobalContext.get().get<VoiceRepositoryImpl>() }.getOrNull()
             ?: return emptyList()
@@ -73,34 +70,42 @@ class SherpaTtsRuntime private constructor(
             }
     }
 
-    /** Returns the cached engine for [voiceId], lazily building it on first use. */
-    private fun engine(voiceId: String): OfflineTts = synchronized(this) {
-        loaded[voiceId]?.let { return@synchronized it }
-        val tts = buildEngine(voiceId)
-        loaded[voiceId] = tts
-        evictIfNeeded()
+    private fun engine(voiceId: String, lengthScale: Float): OfflineTts = synchronized(this) {
+        val key = EngineKey(voiceId, lengthBucket(lengthScale))
+        loaded[key]?.let { return@synchronized it }
+        val tts = buildEngine(voiceId, lengthScale.coerceIn(0.5f, 2.0f))
+        loaded[key] = tts
+        evictIfNeeded(voiceId)
         tts
     }
 
-    private fun evictIfNeeded() {
+    private fun evictIfNeeded(currentVoiceId: String) {
+        // Step 1: cap distinct lengthScale buckets per voice. The most-recently-used
+        // bucket(s) for the active voice stay hot so a slider bounce doesn't churn
+        // native handles.
+        val perVoiceKeys = loaded.keys.filter { it.voiceId == currentVoiceId }
+        if (perVoiceKeys.size > MAX_LENGTH_BUCKETS_PER_VOICE) {
+            val drop = perVoiceKeys.size - MAX_LENGTH_BUCKETS_PER_VOICE
+            perVoiceKeys.take(drop).forEach { key ->
+                val evicted = loaded.remove(key)
+                evicted?.runCatching { release() }
+                log.i { "Evicted lengthScale bucket ${key.lengthBucket} for $voiceId" }
+            }
+        }
+        // Step 2: classic LRU over the whole cache.
         while (loaded.size > MAX_LOADED_VOICES) {
-            // LinkedHashMap in access-order: the first key is the oldest by
-            // last access. Pull it out and release the native handle.
             val oldestKey = loaded.keys.iterator().next()
             val evicted = loaded.remove(oldestKey)
             evicted?.runCatching { release() }
-            log.i { "Evicted voice $oldestKey from runtime cache" }
+            log.i { "Evicted ${oldestKey.voiceId}@${oldestKey.lengthBucket} from runtime cache" }
         }
     }
 
-    private fun buildEngine(voiceId: String): OfflineTts {
+    private fun lengthBucket(lengthScale: Float): Int =
+        (lengthScale.coerceIn(0.5f, 2.0f) * 100f).toInt()
+
+    private fun buildEngine(voiceId: String, lengthScale: Float): OfflineTts {
         val voice = installedVoiceOf(voiceId)
-        // The downloader / custom-import installer writes voices wherever
-        // `SettingsRepository.storageLocation` pointed at the time of
-        // install, and `StorageMigrator.moveAllVoices` can rewrite
-        // `installedPath` later. Trust the Room row over any hardcoded
-        // filesDir layout — that's how external SD-card installs and
-        // post-move dirs are discoverable.
         val path = voice?.installedPath?.takeIf { it.isNotBlank() }
             ?: error("Voice $voiceId has no installedPath; reinstall the bundle.")
         val voiceDir = File(path).also { dir ->
@@ -113,23 +118,18 @@ class SherpaTtsRuntime private constructor(
         } else {
             voice?.family ?: ModelFamily.PIPER
         }
-        log.i { "Loading voice $voiceId (family=$family) from $voiceDir" }
-        val config = buildConfig(family, voiceDir)
+        log.i { "Loading voice $voiceId (family=$family, lengthScale=$lengthScale) from $voiceDir" }
+        val config = buildConfig(family, voiceDir, lengthScale)
         val tts = OfflineTts(assetManager = null, config = config)
         log.i { "OfflineTts ready for $voiceId (sampleRate=${tts.sampleRate()})" }
         return tts
     }
 
-    /**
-     * Picks the right [OfflineTtsConfig] shape for a family. The upstream
-     * sherpa-onnx 1.13.2 AAR exposes JNI for seven families; we wire all of
-     * them so every voice the catalog generator scrapes is actually playable.
-     */
-    private fun buildConfig(family: ModelFamily, dir: File): OfflineTtsConfig = when (family) {
-        ModelFamily.PIPER, ModelFamily.VITS -> buildVitsConfig(dir)
-        ModelFamily.MATCHA -> buildMatchaConfig(dir)
-        ModelFamily.KOKORO -> buildKokoroConfig(dir)
-        ModelFamily.KITTEN -> buildKittenConfig(dir)
+    private fun buildConfig(family: ModelFamily, dir: File, lengthScale: Float): OfflineTtsConfig = when (family) {
+        ModelFamily.PIPER, ModelFamily.VITS -> buildVitsConfig(dir, lengthScale)
+        ModelFamily.MATCHA -> buildMatchaConfig(dir, lengthScale)
+        ModelFamily.KOKORO -> buildKokoroConfig(dir, lengthScale)
+        ModelFamily.KITTEN -> buildKittenConfig(dir, lengthScale)
         ModelFamily.ZIPVOICE -> buildZipVoiceConfig(dir)
         ModelFamily.POCKET -> buildPocketConfig(dir)
         ModelFamily.SUPERTONIC -> buildSupertonicConfig(dir)
@@ -138,7 +138,7 @@ class SherpaTtsRuntime private constructor(
         )
     }
 
-    private fun buildVitsConfig(dir: File): OfflineTtsConfig {
+    private fun buildVitsConfig(dir: File, lengthScale: Float): OfflineTtsConfig {
         val modelPath = resolveModelFile(dir, VITS_MODEL_CANDIDATES)
         val tokensPath = File(dir, TOKENS_FILE).absolutePath
         val dataDir = File(dir, ESPEAK_DIR)
@@ -150,22 +150,16 @@ class SherpaTtsRuntime private constructor(
         return OfflineTtsConfig(
             model = OfflineTtsModelConfig(
                 vits = OfflineTtsVitsModelConfig(
-                    model = modelPath,
-                    lexicon = lexiconPath,
-                    tokens = tokensPath,
-                    dataDir = dataDirPath,
-                    dictDir = dictDirPath,
-                    lengthScale = 1.0f,
+                    model = modelPath, lexicon = lexiconPath, tokens = tokensPath,
+                    dataDir = dataDirPath, dictDir = dictDirPath, lengthScale = lengthScale,
                 ),
-                numThreads = 1,
-                debug = false,
+                numThreads = 1, debug = false,
             ),
-            ruleFsts = collectRuleFsts(dir),
-            maxNumSentences = 2,
+            ruleFsts = collectRuleFsts(dir), maxNumSentences = 2,
         )
     }
 
-    private fun buildMatchaConfig(dir: File): OfflineTtsConfig {
+    private fun buildMatchaConfig(dir: File, lengthScale: Float): OfflineTtsConfig {
         val acoustic = resolveModelFile(dir, MATCHA_ACOUSTIC_CANDIDATES)
         val vocoder = File(dir, VOCODER_FILE)
         check(vocoder.isFile) { "Matcha voice at $dir is missing $VOCODER_FILE" }
@@ -179,30 +173,17 @@ class SherpaTtsRuntime private constructor(
         return OfflineTtsConfig(
             model = OfflineTtsModelConfig(
                 matcha = OfflineTtsMatchaModelConfig(
-                    acousticModel = acoustic,
-                    vocoder = vocoder.absolutePath,
-                    lexicon = lexiconPath,
-                    tokens = tokensPath,
-                    dataDir = dataDirPath,
-                    dictDir = dictDirPath,
-                    lengthScale = 1.0f,
+                    acousticModel = acoustic, vocoder = vocoder.absolutePath,
+                    lexicon = lexiconPath, tokens = tokensPath,
+                    dataDir = dataDirPath, dictDir = dictDirPath, lengthScale = lengthScale,
                 ),
-                numThreads = 1,
-                debug = false,
+                numThreads = 1, debug = false,
             ),
-            ruleFsts = collectRuleFsts(dir),
-            maxNumSentences = 2,
+            ruleFsts = collectRuleFsts(dir), maxNumSentences = 2,
         )
     }
 
-    /**
-     * Kokoro layout: a `model.onnx` weight file, the `voices.bin` voice-embedding
-     * bank that lists the speaker embeddings, espeak-ng phoneme data, and an
-     * optional lexicon used for non-English languages. Kokoro auto-detects the
-     * language tag from the bundle's `lang` directory; we leave `lang` empty
-     * and let the native side fall back to multilingual mode.
-     */
-    private fun buildKokoroConfig(dir: File): OfflineTtsConfig {
+    private fun buildKokoroConfig(dir: File, lengthScale: Float): OfflineTtsConfig {
         val modelPath = resolveModelFile(dir, KOKORO_MODEL_CANDIDATES)
         val voices = File(dir, KOKORO_VOICES_FILE)
         check(voices.isFile) { "Kokoro voice at $dir is missing $KOKORO_VOICES_FILE" }
@@ -216,28 +197,17 @@ class SherpaTtsRuntime private constructor(
         return OfflineTtsConfig(
             model = OfflineTtsModelConfig(
                 kokoro = OfflineTtsKokoroModelConfig(
-                    model = modelPath,
-                    voices = voices.absolutePath,
-                    tokens = tokensPath,
-                    dataDir = dataDirPath,
-                    lexicon = lexiconPath,
-                    dictDir = dictDirPath,
-                    lengthScale = 1.0f,
+                    model = modelPath, voices = voices.absolutePath, tokens = tokensPath,
+                    dataDir = dataDirPath, lexicon = lexiconPath, dictDir = dictDirPath,
+                    lengthScale = lengthScale,
                 ),
-                numThreads = 2,
-                debug = false,
+                numThreads = 2, debug = false,
             ),
-            ruleFsts = collectRuleFsts(dir),
-            maxNumSentences = 2,
+            ruleFsts = collectRuleFsts(dir), maxNumSentences = 2,
         )
     }
 
-    /**
-     * Kitten layout matches Kokoro but is smaller: a single ONNX checkpoint
-     * plus voices.bin and tokens.txt. No lexicon / dictDir on the current
-     * `kitten-nano-en` release.
-     */
-    private fun buildKittenConfig(dir: File): OfflineTtsConfig {
+    private fun buildKittenConfig(dir: File, lengthScale: Float): OfflineTtsConfig {
         val modelPath = resolveModelFile(dir, KITTEN_MODEL_CANDIDATES)
         val voices = File(dir, KOKORO_VOICES_FILE)
         check(voices.isFile) { "Kitten voice at $dir is missing $KOKORO_VOICES_FILE" }
@@ -247,27 +217,17 @@ class SherpaTtsRuntime private constructor(
         return OfflineTtsConfig(
             model = OfflineTtsModelConfig(
                 kitten = OfflineTtsKittenModelConfig(
-                    model = modelPath,
-                    voices = voices.absolutePath,
-                    tokens = tokensPath,
-                    dataDir = dataDirPath,
-                    lengthScale = 1.0f,
+                    model = modelPath, voices = voices.absolutePath, tokens = tokensPath,
+                    dataDir = dataDirPath, lengthScale = lengthScale,
                 ),
-                numThreads = 2,
-                debug = false,
+                numThreads = 2, debug = false,
             ),
             maxNumSentences = 2,
         )
     }
 
     /**
-     * ZipVoice (k2-fsa, 2025) — flow-matching multilingual TTS, distilled to
-     * encoder + decoder + 24 kHz vocoder. Upstream bundles ship a 24 kHz
-     * vocoder named `vocos_24khz.onnx` alongside the model files. Per the
-     * upstream Java example, `setVocoder` is passed an explicit path (not
-     * derived from the bundle dir) — but sherpa-onnx-published bundles
-     * include the vocoder inside the same archive, so we resolve relative to
-     * `dir`.
+     * ZipVoice has no lengthScale slot — slider is a no-op for these voices.
      */
     private fun buildZipVoiceConfig(dir: File): OfflineTtsConfig {
         val encoder = resolveModelFile(dir, ZIPVOICE_ENCODER_CANDIDATES)
@@ -281,26 +241,15 @@ class SherpaTtsRuntime private constructor(
         return OfflineTtsConfig(
             model = OfflineTtsModelConfig(
                 zipvoice = OfflineTtsZipVoiceModelConfig(
-                    tokens = tokensPath,
-                    encoder = encoder,
-                    decoder = decoder,
-                    vocoder = vocoder,
-                    dataDir = dataDirPath,
-                    lexicon = lexiconPath,
+                    tokens = tokensPath, encoder = encoder, decoder = decoder,
+                    vocoder = vocoder, dataDir = dataDirPath, lexicon = lexiconPath,
                 ),
-                numThreads = 2,
-                debug = false,
+                numThreads = 2, debug = false,
             ),
             maxNumSentences = 2,
         )
     }
 
-    /**
-     * Pocket (k2-fsa, 2026) — small autoregressive TTS that splits the
-     * acoustic model across an LM flow + LM main + encoder + decoder +
-     * text-conditioner stack. Tokens come from `vocab.json` instead of
-     * `tokens.txt`. No espeak-ng dependency.
-     */
     private fun buildPocketConfig(dir: File): OfflineTtsConfig {
         fun req(name: String): String {
             val f = File(dir, name)
@@ -318,19 +267,12 @@ class SherpaTtsRuntime private constructor(
                     vocabJson = req("vocab.json"),
                     tokenScoresJson = req("token_scores.json"),
                 ),
-                numThreads = 2,
-                debug = false,
+                numThreads = 2, debug = false,
             ),
             maxNumSentences = 2,
         )
     }
 
-    /**
-     * Supertonic (k2-fsa, 2026) — diffusion-flow TTS with separate duration
-     * predictor + text encoder + vector estimator + vocoder, configured via
-     * `tts.json` and Unicode-aware via `unicode_indexer.bin`. Voice timbre is
-     * carried by `voice.bin` (analogous to Kokoro's `voices.bin`).
-     */
     private fun buildSupertonicConfig(dir: File): OfflineTtsConfig {
         fun req(name: String): String {
             val f = File(dir, name)
@@ -348,8 +290,7 @@ class SherpaTtsRuntime private constructor(
                     unicodeIndexer = req("unicode_indexer.bin"),
                     voiceStyle = req("voice.bin"),
                 ),
-                numThreads = 2,
-                debug = false,
+                numThreads = 2, debug = false,
             ),
             maxNumSentences = 2,
         )
@@ -360,9 +301,6 @@ class SherpaTtsRuntime private constructor(
             val candidate = File(dir, name)
             if (candidate.isFile) return candidate.absolutePath
         }
-        // Last-resort: pick any .onnx file in the dir so we surface a clearer
-        // error from the native side ("failed to load <path>") instead of a
-        // mystery NPE.
         val firstOnnx = dir.listFiles()?.firstOrNull { it.isFile && it.extension == "onnx" }
         if (firstOnnx != null) {
             log.w { "Unknown bundle layout at $dir, falling back to ${firstOnnx.name}" }
@@ -371,7 +309,6 @@ class SherpaTtsRuntime private constructor(
         error("No .onnx weight file found in $dir (tried $candidates)")
     }
 
-    /** Concatenated comma-separated list of `*.fst` rule files for Chinese voices. */
     private fun collectRuleFsts(dir: File): String {
         val present = RULE_FST_FILES.mapNotNull { name ->
             val f = File(dir, name)
@@ -380,11 +317,6 @@ class SherpaTtsRuntime private constructor(
         return present.joinToString(",")
     }
 
-    /**
-     * Returns the [InstalledVoice] for [voiceId] from the Room mirror. Null
-     * when the voice is the bundled one or when Koin is not yet up — both
-     * cases are handled by the caller defaulting to Piper.
-     */
     private fun installedVoiceOf(voiceId: String): InstalledVoice? {
         val repo = runCatching { GlobalContext.get().get<VoiceRepositoryImpl>() }.getOrNull()
             ?: return null
@@ -402,68 +334,20 @@ class SherpaTtsRuntime private constructor(
         private const val MAX_LOADED_VOICES = 2
 
         /**
-         * Filenames where a VITS / Piper bundle commonly stores its weights.
-         * Most bundles use `model.onnx`; VCTK ships `vits-vctk.onnx` and the
-         * int8 variant ships `vits-vctk.int8.onnx`. We probe in order and
-         * fall back to "first .onnx in the dir" if none match.
+         * Hard cap on distinct lengthScale buckets per voiceId. 2 = "the user's
+         * last two slider positions stay hot." Combined with [MAX_LOADED_VOICES],
+         * the per-voice cap runs first then the global LRU enforces the ceiling.
          */
-        private val VITS_MODEL_CANDIDATES = listOf(
-            "model.onnx",
-            "vits-vctk.onnx",
-            "vits-vctk.int8.onnx",
-        )
+        private const val MAX_LENGTH_BUCKETS_PER_VOICE = 2
 
-        /**
-         * Matcha bundles ship `model-steps-3.onnx` (the 3-step diffusion
-         * checkpoint). We probe for two alternatives that some upstream
-         * bundles use before failing through to a generic .onnx scan.
-         */
-        private val MATCHA_ACOUSTIC_CANDIDATES = listOf(
-            "model-steps-3.onnx",
-            "model-steps-6.onnx",
-            "acoustic.onnx",
-        )
-
-        /**
-         * Kokoro voices ship `model.onnx`. The multilingual v1.0 release uses
-         * `kokoro-multi-lang-v1_0.onnx` instead; probe both before falling
-         * back to a generic .onnx scan in [resolveModelFile].
-         */
-        private val KOKORO_MODEL_CANDIDATES = listOf(
-            "model.onnx",
-            "kokoro-multi-lang-v1_0.onnx",
-            "kokoro-en-v0_19.onnx",
-        )
-
-        /**
-         * Kitten nano ships `model.onnx` only; quantized variants are
-         * `model.int8.onnx`. The voices.bin embedding bank lives next to it.
-         */
-        private val KITTEN_MODEL_CANDIDATES = listOf(
-            "model.onnx",
-            "model.int8.onnx",
-        )
-
-        /** Speaker-embedding bank shared by Kokoro and Kitten releases. */
+        private val VITS_MODEL_CANDIDATES = listOf("model.onnx", "vits-vctk.onnx", "vits-vctk.int8.onnx")
+        private val MATCHA_ACOUSTIC_CANDIDATES = listOf("model-steps-3.onnx", "model-steps-6.onnx", "acoustic.onnx")
+        private val KOKORO_MODEL_CANDIDATES = listOf("model.onnx", "kokoro-multi-lang-v1_0.onnx", "kokoro-en-v0_19.onnx")
+        private val KITTEN_MODEL_CANDIDATES = listOf("model.onnx", "model.int8.onnx")
         private const val KOKORO_VOICES_FILE = "voices.bin"
-
-        /** ZipVoice ships encoder/decoder/vocoder as separate ONNX files;
-         *  int8 quantised variants are released first. */
-        private val ZIPVOICE_ENCODER_CANDIDATES = listOf(
-            "encoder.int8.onnx", "encoder.onnx",
-        )
-        private val ZIPVOICE_DECODER_CANDIDATES = listOf(
-            "decoder.int8.onnx", "decoder.onnx",
-        )
-        private val ZIPVOICE_VOCODER_CANDIDATES = listOf(
-            "vocos_24khz.onnx", "vocos_22khz.onnx", "vocoder.onnx",
-        )
-
-        /**
-         * Comma-joined into [OfflineTtsConfig.ruleFsts] when present. These
-         * are sherpa-onnx text-normalisation FSTs shipped with Chinese
-         * voices for digit / date / number expansion.
-         */
+        private val ZIPVOICE_ENCODER_CANDIDATES = listOf("encoder.int8.onnx", "encoder.onnx")
+        private val ZIPVOICE_DECODER_CANDIDATES = listOf("decoder.int8.onnx", "decoder.onnx")
+        private val ZIPVOICE_VOCODER_CANDIDATES = listOf("vocos_24khz.onnx", "vocos_22khz.onnx", "vocoder.onnx")
         private val RULE_FST_FILES = listOf("date.fst", "number.fst", "phone.fst")
 
         @Volatile
