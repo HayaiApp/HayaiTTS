@@ -186,4 +186,15 @@ dependencies {
     // jni/<abi>/{libonnxruntime,libsherpa-onnx-c-api,libsherpa-onnx-cxx-api,libsherpa-onnx-jni}.so
     // for arm64-v8a, armeabi-v7a, x86, and x86_64.
     implementation(files("libs/sherpa-onnx-1.13.2.aar"))
+
+    testImplementation(libs.junit4)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.androidx.test.core)
+
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.coroutines.test)
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
 }
