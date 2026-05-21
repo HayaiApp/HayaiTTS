@@ -16,16 +16,19 @@ import dev.ahmedmohamed.hayaitts.data.playground.PitchResampler
 import dev.ahmedmohamed.hayaitts.data.voices.VoiceRepositoryImpl
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
+import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.GlobalContext
 import java.io.File
 
 /**
  * Multi-voice wrapper around sherpa-onnx [OfflineTts]. The runtime holds an
- * LRU of up to [MAX_LOADED_VOICES] loaded engines keyed by
- * `(voiceId, lengthScaleBucket)` — lengthScale is part of the key because it
- * is baked into the config at engine-construction time. Pitch is a pure
- * post-process on the FloatArray output and does NOT affect cache keys.
+ * LRU of up to [MAX_LOADED_VOICES] loaded engines keyed by every config field
+ * that is baked into [OfflineTtsConfig] at construction time: voice id,
+ * lengthScale/noiseScale/noiseScaleW buckets, NNAPI flag, thread count, and
+ * max-sentences. Pitch is a pure post-process on the FloatArray output and
+ * does NOT affect cache keys.
  */
 class SherpaTtsRuntime private constructor(
     private val context: Context,
@@ -33,8 +36,15 @@ class SherpaTtsRuntime private constructor(
 
     private val log = Logger.withTag("SherpaTtsRuntime")
 
-    /** Composite cache key. lengthBucket = lengthScale * 100, integer. */
-    private data class EngineKey(val voiceId: String, val lengthBucket: Int)
+    private data class EngineKey(
+        val voiceId: String,
+        val lengthBucket: Int,
+        val noiseBucket: Int,
+        val noiseWBucket: Int,
+        val useNnapi: Boolean,
+        val numThreads: Int,
+        val maxNumSentences: Int
+    )
 
     private val loaded = LinkedHashMap<EngineKey, OfflineTts>(MAX_LOADED_VOICES, 0.75f, true)
 
@@ -49,8 +59,10 @@ class SherpaTtsRuntime private constructor(
         speed: Float = 1.0f,
         pitch: Float = 1.0f,
         lengthScale: Float = 1.0f,
+        noiseScale: Float = 0.667f,
+        noiseScaleW: Float = 0.8f,
     ): SynthesisOutput {
-        val tts = engine(voiceId, lengthScale)
+        val tts = engine(voiceId, lengthScale, noiseScale, noiseScaleW)
         val audio = tts.generate(text = text, sid = sid, speed = speed)
         val shifted = if (kotlin.math.abs(pitch - 1f) < 0.001f) {
             audio.samples
@@ -70,41 +82,62 @@ class SherpaTtsRuntime private constructor(
             }
     }
 
-    private fun engine(voiceId: String, lengthScale: Float): OfflineTts = synchronized(this) {
-        val key = EngineKey(voiceId, lengthBucket(lengthScale))
+    private fun engine(
+        voiceId: String,
+        lengthScale: Float,
+        noiseScale: Float = 0.667f,
+        noiseScaleW: Float = 0.8f,
+    ): OfflineTts = synchronized(this) {
+        val settings = runCatching { GlobalContext.get().get<SettingsRepository>() }.getOrNull()
+        val useNnapi = runCatching { runBlocking { settings?.useNnapi?.first() } }.getOrNull() ?: false
+        val numThreads = runCatching { runBlocking { settings?.synthesisThreads?.first() } }.getOrNull() ?: 2
+        val maxNumSentences = runCatching { runBlocking { settings?.maxNumSentences?.first() } }.getOrNull() ?: 2
+
+        val lengthB = lengthBucket(lengthScale)
+        val noiseB = noiseBucket(noiseScale)
+        val noiseWB = noiseBucket(noiseScaleW)
+
+        val key = EngineKey(voiceId, lengthB, noiseB, noiseWB, useNnapi, numThreads, maxNumSentences)
         loaded[key]?.let { return@synchronized it }
-        val tts = buildEngine(voiceId, lengthScale.coerceIn(0.5f, 2.0f))
+        val tts = buildEngine(voiceId, lengthScale, noiseScale, noiseScaleW, useNnapi, numThreads, maxNumSentences)
         loaded[key] = tts
         evictIfNeeded(voiceId)
         tts
     }
 
     private fun evictIfNeeded(currentVoiceId: String) {
-        // Step 1: cap distinct lengthScale buckets per voice. The most-recently-used
-        // bucket(s) for the active voice stay hot so a slider bounce doesn't churn
-        // native handles.
         val perVoiceKeys = loaded.keys.filter { it.voiceId == currentVoiceId }
         if (perVoiceKeys.size > MAX_LENGTH_BUCKETS_PER_VOICE) {
             val drop = perVoiceKeys.size - MAX_LENGTH_BUCKETS_PER_VOICE
             perVoiceKeys.take(drop).forEach { key ->
                 val evicted = loaded.remove(key)
                 evicted?.runCatching { release() }
-                log.i { "Evicted lengthScale bucket ${key.lengthBucket} for $currentVoiceId" }
+                log.i { "Evicted config key $key for $currentVoiceId" }
             }
         }
-        // Step 2: classic LRU over the whole cache.
         while (loaded.size > MAX_LOADED_VOICES) {
             val oldestKey = loaded.keys.iterator().next()
             val evicted = loaded.remove(oldestKey)
             evicted?.runCatching { release() }
-            log.i { "Evicted ${oldestKey.voiceId}@${oldestKey.lengthBucket} from runtime cache" }
+            log.i { "Evicted oldest key $oldestKey from runtime cache" }
         }
     }
 
     private fun lengthBucket(lengthScale: Float): Int =
         (lengthScale.coerceIn(0.5f, 2.0f) * 100f).toInt()
 
-    private fun buildEngine(voiceId: String, lengthScale: Float): OfflineTts {
+    private fun noiseBucket(noiseScale: Float): Int =
+        (noiseScale.coerceIn(0.0f, 2.0f) * 100f).toInt()
+
+    private fun buildEngine(
+        voiceId: String,
+        lengthScale: Float,
+        noiseScale: Float,
+        noiseScaleW: Float,
+        useNnapi: Boolean,
+        numThreads: Int,
+        maxNumSentences: Int
+    ): OfflineTts {
         val voice = installedVoiceOf(voiceId)
         val path = voice?.installedPath?.takeIf { it.isNotBlank() }
             ?: error("Voice $voiceId has no installedPath; reinstall the bundle.")
@@ -118,27 +151,44 @@ class SherpaTtsRuntime private constructor(
         } else {
             voice?.family ?: ModelFamily.PIPER
         }
-        log.i { "Loading voice $voiceId (family=$family, lengthScale=$lengthScale) from $voiceDir" }
-        val config = buildConfig(family, voiceDir, lengthScale)
+        log.i { "Loading voice $voiceId (family=$family, lengthScale=$lengthScale, noiseScale=$noiseScale, noiseScaleW=$noiseScaleW) from $voiceDir" }
+        val config = buildConfig(family, voiceDir, lengthScale, noiseScale, noiseScaleW, useNnapi, numThreads, maxNumSentences)
         val tts = OfflineTts(assetManager = null, config = config)
         log.i { "OfflineTts ready for $voiceId (sampleRate=${tts.sampleRate()})" }
         return tts
     }
 
-    private fun buildConfig(family: ModelFamily, dir: File, lengthScale: Float): OfflineTtsConfig = when (family) {
-        ModelFamily.PIPER, ModelFamily.VITS -> buildVitsConfig(dir, lengthScale)
-        ModelFamily.MATCHA -> buildMatchaConfig(dir, lengthScale)
-        ModelFamily.KOKORO -> buildKokoroConfig(dir, lengthScale)
-        ModelFamily.KITTEN -> buildKittenConfig(dir, lengthScale)
-        ModelFamily.ZIPVOICE -> buildZipVoiceConfig(dir)
-        ModelFamily.POCKET -> buildPocketConfig(dir)
-        ModelFamily.SUPERTONIC -> buildSupertonicConfig(dir)
+    private fun buildConfig(
+        family: ModelFamily,
+        dir: File,
+        lengthScale: Float,
+        noiseScale: Float,
+        noiseScaleW: Float,
+        useNnapi: Boolean,
+        numThreads: Int,
+        maxNumSentences: Int
+    ): OfflineTtsConfig = when (family) {
+        ModelFamily.PIPER, ModelFamily.VITS -> buildVitsConfig(dir, lengthScale, noiseScale, noiseScaleW, useNnapi, numThreads, maxNumSentences)
+        ModelFamily.MATCHA -> buildMatchaConfig(dir, lengthScale, useNnapi, numThreads, maxNumSentences)
+        ModelFamily.KOKORO -> buildKokoroConfig(dir, lengthScale, useNnapi, numThreads, maxNumSentences)
+        ModelFamily.KITTEN -> buildKittenConfig(dir, lengthScale, useNnapi, numThreads, maxNumSentences)
+        ModelFamily.ZIPVOICE -> buildZipVoiceConfig(dir, useNnapi, numThreads, maxNumSentences)
+        ModelFamily.POCKET -> buildPocketConfig(dir, useNnapi, numThreads, maxNumSentences)
+        ModelFamily.SUPERTONIC -> buildSupertonicConfig(dir, useNnapi, numThreads, maxNumSentences)
         ModelFamily.CUSTOM -> throw IllegalStateException(
             "Custom voices should have been resolved to an effective family before reaching buildConfig.",
         )
     }
 
-    private fun buildVitsConfig(dir: File, lengthScale: Float): OfflineTtsConfig {
+    private fun buildVitsConfig(
+        dir: File,
+        lengthScale: Float,
+        noiseScale: Float,
+        noiseScaleW: Float,
+        useNnapi: Boolean,
+        numThreads: Int,
+        maxNumSentences: Int
+    ): OfflineTtsConfig {
         val modelPath = resolveModelFile(dir, VITS_MODEL_CANDIDATES)
         val tokensPath = File(dir, TOKENS_FILE).absolutePath
         val dataDir = File(dir, ESPEAK_DIR)
@@ -152,14 +202,22 @@ class SherpaTtsRuntime private constructor(
                 vits = OfflineTtsVitsModelConfig(
                     model = modelPath, lexicon = lexiconPath, tokens = tokensPath,
                     dataDir = dataDirPath, dictDir = dictDirPath, lengthScale = lengthScale,
+                    noiseScale = noiseScale, noiseScaleW = noiseScaleW,
                 ),
-                numThreads = 1, debug = false,
+                numThreads = numThreads, debug = false,
+                provider = if (useNnapi) "nnapi" else "cpu"
             ),
-            ruleFsts = collectRuleFsts(dir), maxNumSentences = 2,
+            ruleFsts = collectRuleFsts(dir), maxNumSentences = maxNumSentences,
         )
     }
 
-    private fun buildMatchaConfig(dir: File, lengthScale: Float): OfflineTtsConfig {
+    private fun buildMatchaConfig(
+        dir: File,
+        lengthScale: Float,
+        useNnapi: Boolean,
+        numThreads: Int,
+        maxNumSentences: Int
+    ): OfflineTtsConfig {
         val acoustic = resolveModelFile(dir, MATCHA_ACOUSTIC_CANDIDATES)
         val vocoder = File(dir, VOCODER_FILE)
         check(vocoder.isFile) { "Matcha voice at $dir is missing $VOCODER_FILE" }
@@ -177,13 +235,20 @@ class SherpaTtsRuntime private constructor(
                     lexicon = lexiconPath, tokens = tokensPath,
                     dataDir = dataDirPath, dictDir = dictDirPath, lengthScale = lengthScale,
                 ),
-                numThreads = 1, debug = false,
+                numThreads = numThreads, debug = false,
+                provider = if (useNnapi) "nnapi" else "cpu"
             ),
-            ruleFsts = collectRuleFsts(dir), maxNumSentences = 2,
+            ruleFsts = collectRuleFsts(dir), maxNumSentences = maxNumSentences,
         )
     }
 
-    private fun buildKokoroConfig(dir: File, lengthScale: Float): OfflineTtsConfig {
+    private fun buildKokoroConfig(
+        dir: File,
+        lengthScale: Float,
+        useNnapi: Boolean,
+        numThreads: Int,
+        maxNumSentences: Int
+    ): OfflineTtsConfig {
         val modelPath = resolveModelFile(dir, KOKORO_MODEL_CANDIDATES)
         val voices = File(dir, KOKORO_VOICES_FILE)
         check(voices.isFile) { "Kokoro voice at $dir is missing $KOKORO_VOICES_FILE" }
@@ -201,13 +266,20 @@ class SherpaTtsRuntime private constructor(
                     dataDir = dataDirPath, lexicon = lexiconPath, dictDir = dictDirPath,
                     lengthScale = lengthScale,
                 ),
-                numThreads = 2, debug = false,
+                numThreads = numThreads, debug = false,
+                provider = if (useNnapi) "nnapi" else "cpu"
             ),
-            ruleFsts = collectRuleFsts(dir), maxNumSentences = 2,
+            ruleFsts = collectRuleFsts(dir), maxNumSentences = maxNumSentences,
         )
     }
 
-    private fun buildKittenConfig(dir: File, lengthScale: Float): OfflineTtsConfig {
+    private fun buildKittenConfig(
+        dir: File,
+        lengthScale: Float,
+        useNnapi: Boolean,
+        numThreads: Int,
+        maxNumSentences: Int
+    ): OfflineTtsConfig {
         val modelPath = resolveModelFile(dir, KITTEN_MODEL_CANDIDATES)
         val voices = File(dir, KOKORO_VOICES_FILE)
         check(voices.isFile) { "Kitten voice at $dir is missing $KOKORO_VOICES_FILE" }
@@ -220,16 +292,19 @@ class SherpaTtsRuntime private constructor(
                     model = modelPath, voices = voices.absolutePath, tokens = tokensPath,
                     dataDir = dataDirPath, lengthScale = lengthScale,
                 ),
-                numThreads = 2, debug = false,
+                numThreads = numThreads, debug = false,
+                provider = if (useNnapi) "nnapi" else "cpu"
             ),
-            maxNumSentences = 2,
+            maxNumSentences = maxNumSentences,
         )
     }
 
-    /**
-     * ZipVoice has no lengthScale slot — slider is a no-op for these voices.
-     */
-    private fun buildZipVoiceConfig(dir: File): OfflineTtsConfig {
+    private fun buildZipVoiceConfig(
+        dir: File,
+        useNnapi: Boolean,
+        numThreads: Int,
+        maxNumSentences: Int
+    ): OfflineTtsConfig {
         val encoder = resolveModelFile(dir, ZIPVOICE_ENCODER_CANDIDATES)
         val decoder = resolveModelFile(dir, ZIPVOICE_DECODER_CANDIDATES)
         val vocoder = resolveModelFile(dir, ZIPVOICE_VOCODER_CANDIDATES)
@@ -244,13 +319,19 @@ class SherpaTtsRuntime private constructor(
                     tokens = tokensPath, encoder = encoder, decoder = decoder,
                     vocoder = vocoder, dataDir = dataDirPath, lexicon = lexiconPath,
                 ),
-                numThreads = 2, debug = false,
+                numThreads = numThreads, debug = false,
+                provider = if (useNnapi) "nnapi" else "cpu"
             ),
-            maxNumSentences = 2,
+            maxNumSentences = maxNumSentences,
         )
     }
 
-    private fun buildPocketConfig(dir: File): OfflineTtsConfig {
+    private fun buildPocketConfig(
+        dir: File,
+        useNnapi: Boolean,
+        numThreads: Int,
+        maxNumSentences: Int
+    ): OfflineTtsConfig {
         fun req(name: String): String {
             val f = File(dir, name)
             check(f.isFile) { "Pocket voice at $dir is missing $name" }
@@ -267,13 +348,19 @@ class SherpaTtsRuntime private constructor(
                     vocabJson = req("vocab.json"),
                     tokenScoresJson = req("token_scores.json"),
                 ),
-                numThreads = 2, debug = false,
+                numThreads = numThreads, debug = false,
+                provider = if (useNnapi) "nnapi" else "cpu"
             ),
-            maxNumSentences = 2,
+            maxNumSentences = maxNumSentences,
         )
     }
 
-    private fun buildSupertonicConfig(dir: File): OfflineTtsConfig {
+    private fun buildSupertonicConfig(
+        dir: File,
+        useNnapi: Boolean,
+        numThreads: Int,
+        maxNumSentences: Int
+    ): OfflineTtsConfig {
         fun req(name: String): String {
             val f = File(dir, name)
             check(f.isFile) { "Supertonic voice at $dir is missing $name" }
@@ -290,9 +377,10 @@ class SherpaTtsRuntime private constructor(
                     unicodeIndexer = req("unicode_indexer.bin"),
                     voiceStyle = req("voice.bin"),
                 ),
-                numThreads = 2, debug = false,
+                numThreads = numThreads, debug = false,
+                provider = if (useNnapi) "nnapi" else "cpu"
             ),
-            maxNumSentences = 2,
+            maxNumSentences = maxNumSentences,
         )
     }
 

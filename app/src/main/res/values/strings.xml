@@ -135,6 +135,18 @@
     <string name="settings_size_mb">%1$.1f MB</string>
     <string name="settings_size_gb">%1$.2f GB</string>
 
+    <string name="settings_section_performance">Performance &amp; Hardware</string>
+    <string name="settings_nnapi">Hardware Acceleration (NNAPI)</string>
+    <string name="settings_nnapi_subtitle">Use Android Neural Networks API for faster model inference when supported.</string>
+    <string name="settings_threads">Synthesis Threads</string>
+    <string name="settings_threads_subtitle">Number of threads allocated for CPU synthesis.</string>
+    <string name="settings_threads_dialog_title">Select Thread Count</string>
+    <string name="settings_threads_value">%1$d threads</string>
+    <string name="settings_max_sentences">Synthesis Sentence Limit</string>
+    <string name="settings_max_sentences_subtitle">Maximum number of sentences synthesized in a single JNI call.</string>
+    <string name="settings_max_sentences_dialog_title">Select Sentence Limit</string>
+    <string name="settings_max_sentences_value">%1$d sentences</string>
+
     <!-- UI/UX overhaul: quick switcher, featured, reorder, hero, stepper -->
     <string name="library_subtitle">%1$d installed</string>
     <string name="library_featured">Featured</string>
@@ -269,6 +281,8 @@
     <string name="playground_slider_speed">Speed</string>
     <string name="playground_slider_pitch">Pitch</string>
     <string name="playground_slider_length">Length</string>
+    <string name="playground_slider_noise">Noise Scale</string>
+    <string name="playground_slider_noise_w">Noise Scale W</string>
     <string name="playground_reset">Reset</string>
     <string name="playground_pitch_tooltip">Pitch is implemented via resample — small shifts only.</string>
     <string name="playground_play">Play</string>

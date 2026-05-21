@@ -89,9 +89,13 @@ class PlaygroundViewModel(
     fun setSpeed(value: Float) = setTuning(uiState.value.tuning.copy(speed = value))
     fun setPitch(value: Float) = setTuning(uiState.value.tuning.copy(pitch = value))
     fun setLengthScale(value: Float) = setTuning(uiState.value.tuning.copy(lengthScale = value))
+    fun setNoiseScale(value: Float) = setTuning(uiState.value.tuning.copy(noiseScale = value))
+    fun setNoiseScaleW(value: Float) = setTuning(uiState.value.tuning.copy(noiseScaleW = value))
     fun resetSpeed() = setTuning(uiState.value.tuning.copy(speed = 1f))
     fun resetPitch() = setTuning(uiState.value.tuning.copy(pitch = 1f))
     fun resetLengthScale() = setTuning(uiState.value.tuning.copy(lengthScale = 1f))
+    fun resetNoiseScale() = setTuning(uiState.value.tuning.copy(noiseScale = 0.667f))
+    fun resetNoiseScaleW() = setTuning(uiState.value.tuning.copy(noiseScaleW = 0.8f))
 
     private fun setTuning(tuning: VoiceTuning) {
         viewModelScope.launch { tuningRepo.setTuning(voiceId, tuning) }

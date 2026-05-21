@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Gavel
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SdStorage
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.AlertDialog
@@ -117,6 +119,8 @@ private fun SettingsScreen(
     var defaultPickerLocale by remember { mutableStateOf<String?>(null) }
     var licenseDialogOpen by remember { mutableStateOf(false) }
     var channelPickerOpen by remember { mutableStateOf(false) }
+    var threadsDialogOpen by remember { mutableStateOf(false) }
+    var maxSentencesDialogOpen by remember { mutableStateOf(false) }
 
     // Surface a snackbar for every terminal update-status transition kicked off
     // from this screen. The launch-time auto-check is handled in MainActivity.
@@ -297,6 +301,52 @@ private fun SettingsScreen(
                 )
             }
 
+            item("divider_performance") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
+            item("performance_header") { SectionHeader(stringResource(R.string.settings_section_performance)) }
+            item("nnapi") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Bolt, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_nnapi)) },
+                    supportingContent = { Text(stringResource(R.string.settings_nnapi_subtitle)) },
+                    trailingContent = {
+                        Switch(
+                            checked = state.useNnapi,
+                            onCheckedChange = viewModel::setUseNnapi,
+                        )
+                    },
+                )
+            }
+            item("threads") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Tune, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_threads)) },
+                    supportingContent = { Text(stringResource(R.string.settings_threads_subtitle)) },
+                    trailingContent = {
+                        Text(
+                            stringResource(R.string.settings_threads_value, state.synthesisThreads),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    },
+                    modifier = Modifier.clickableRow { threadsDialogOpen = true },
+                )
+            }
+            item("max_sentences") {
+                ListItem(
+                    leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) },
+                    headlineContent = { Text(stringResource(R.string.settings_max_sentences)) },
+                    supportingContent = { Text(stringResource(R.string.settings_max_sentences_subtitle)) },
+                    trailingContent = {
+                        Text(
+                            stringResource(R.string.settings_max_sentences_value, state.maxNumSentences),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    },
+                    modifier = Modifier.clickableRow { maxSentencesDialogOpen = true },
+                )
+            }
+
             item("divider_updates") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
             item("updates_header") { SectionHeader(stringResource(R.string.settings_section_updates)) }
             item("update_channel") {
@@ -423,6 +473,28 @@ private fun SettingsScreen(
                 channelPickerOpen = false
             },
             onDismiss = { channelPickerOpen = false },
+        )
+    }
+
+    if (threadsDialogOpen) {
+        ThreadsDialog(
+            current = state.synthesisThreads,
+            onPick = { picked ->
+                viewModel.setSynthesisThreads(picked)
+                threadsDialogOpen = false
+            },
+            onDismiss = { threadsDialogOpen = false },
+        )
+    }
+
+    if (maxSentencesDialogOpen) {
+        MaxSentencesDialog(
+            current = state.maxNumSentences,
+            onPick = { picked ->
+                viewModel.setMaxNumSentences(picked)
+                maxSentencesDialogOpen = false
+            },
+            onDismiss = { maxSentencesDialogOpen = false },
         )
     }
 }
@@ -619,4 +691,72 @@ private fun formatBytes(bytes: Long): String {
     } else {
         "%.1f MB".format(mb)
     }
+}
+
+@Composable
+private fun ThreadsDialog(
+    current: Int,
+    onPick: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val options = listOf(1, 2, 4, 8)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_threads_dialog_title)) },
+        text = {
+            Column {
+                options.forEach { option ->
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.settings_threads_value, option)) },
+                        trailingContent = {
+                            RadioButton(
+                                selected = current == option,
+                                onClick = { onPick(option) },
+                            )
+                        },
+                        modifier = Modifier.clickableRow { onPick(option) },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.settings_license_dialog_close))
+            }
+        },
+    )
+}
+
+@Composable
+private fun MaxSentencesDialog(
+    current: Int,
+    onPick: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val options = listOf(1, 2, 4, 8)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_max_sentences_dialog_title)) },
+        text = {
+            Column {
+                options.forEach { option ->
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.settings_max_sentences_value, option)) },
+                        trailingContent = {
+                            RadioButton(
+                                selected = current == option,
+                                onClick = { onPick(option) },
+                            )
+                        },
+                        modifier = Modifier.clickableRow { onPick(option) },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.settings_license_dialog_close))
+            }
+        },
+    )
 }

@@ -54,6 +54,7 @@ class VoicePreviewPlayer(private val context: Context) {
             runtime.synthesize(
                 voiceId = voiceId, text = text, sid = sid,
                 speed = tuning.speed, pitch = tuning.pitch, lengthScale = tuning.lengthScale,
+                noiseScale = tuning.noiseScale, noiseScaleW = tuning.noiseScaleW,
             )
         }.onFailure { log.w(it) { "Tuned synth failed for $voiceId" } }.getOrNull()
     }

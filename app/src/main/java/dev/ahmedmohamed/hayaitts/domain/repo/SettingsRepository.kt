@@ -25,4 +25,13 @@ interface SettingsRepository {
      */
     val lastUpdateCheckMillis: Flow<Long>
     suspend fun setLastUpdateCheckMillis(value: Long)
+
+    val useNnapi: Flow<Boolean>
+    suspend fun setUseNnapi(value: Boolean)
+
+    val synthesisThreads: Flow<Int>
+    suspend fun setSynthesisThreads(value: Int)
+
+    val maxNumSentences: Flow<Int>
+    suspend fun setMaxNumSentences(value: Int)
 }

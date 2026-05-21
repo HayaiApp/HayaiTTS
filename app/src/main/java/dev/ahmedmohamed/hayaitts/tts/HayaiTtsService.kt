@@ -7,8 +7,13 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.TextToSpeechService
 import android.speech.tts.Voice
 import co.touchlab.kermit.Logger
+import dev.ahmedmohamed.hayaitts.data.playground.VoiceTuning
+import dev.ahmedmohamed.hayaitts.data.playground.VoiceTuningRepository
 import dev.ahmedmohamed.hayaitts.data.voices.parseLocale
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.koin.core.context.GlobalContext
 import java.util.Locale
 
 /**
@@ -54,21 +59,61 @@ class HayaiTtsService : TextToSpeechService() {
 
     override fun onGetVoices(): List<Voice> {
         val voices = runtimeOrNull()?.listAvailableVoices().orEmpty()
-        return voices.map { it.toFrameworkVoice() }
+        return voices.flatMap { voice ->
+            if (voice.speakers.size > 1) {
+                voice.speakers.map { speaker ->
+                    val voiceName = "${voice.voiceId}#${speaker.id}#${speaker.name}"
+                    val locale = parseLocale(voice.languages.firstOrNull() ?: "en-US")
+                    Voice(
+                        voiceName,
+                        locale,
+                        Voice.QUALITY_NORMAL,
+                        Voice.LATENCY_NORMAL,
+                        /* requiresNetworkConnection = */ false,
+                        /* features = */ emptySet(),
+                    )
+                }
+            } else {
+                listOf(voice.toFrameworkVoice())
+            }
+        }
     }
 
-    override fun onIsValidVoiceName(name: String?): Int {
-        if (name.isNullOrEmpty()) return TextToSpeech.ERROR
-        val voices = runtimeOrNull()?.listAvailableVoices().orEmpty()
-        return if (voices.any { it.voiceId == name }) TextToSpeech.SUCCESS else TextToSpeech.ERROR
-    }
+    override fun onIsValidVoiceName(name: String?): Int =
+        if (resolveVoiceName(name) != null) TextToSpeech.SUCCESS else TextToSpeech.ERROR
 
     override fun onLoadVoice(name: String?): Int {
-        if (name.isNullOrEmpty()) return TextToSpeech.ERROR
-        val voices = runtimeOrNull()?.listAvailableVoices().orEmpty()
-        if (voices.none { it.voiceId == name }) return TextToSpeech.ERROR
-        lastSelectedVoiceId = name
+        if (resolveVoiceName(name) == null) return TextToSpeech.ERROR
+        lastSelectedVoiceId = name!!
         return TextToSpeech.SUCCESS
+    }
+
+    /**
+     * Parse a framework voice name and validate it against the installed
+     * catalog. Returns the resolved [InstalledVoice] (and optionally the
+     * speaker id parsed from a `voiceId#speakerId#name` form) on success, or
+     * null if the name is malformed or unknown.
+     */
+    private fun resolveVoiceName(name: String?): InstalledVoice? {
+        if (name.isNullOrEmpty()) return null
+        val (voiceId, speakerId) = parseVoiceName(name)
+        val voice = runtimeOrNull()?.listAvailableVoices().orEmpty()
+            .firstOrNull { it.voiceId == voiceId } ?: return null
+        if (speakerId != null && voice.speakers.none { it.id == speakerId }) return null
+        return voice
+    }
+
+    /**
+     * Voice names exposed via [onGetVoices] use the form
+     * `voiceId#speakerId#speakerName` for multi-speaker models and plain
+     * `voiceId` otherwise. This helper recovers both parts.
+     */
+    private fun parseVoiceName(name: String): Pair<String, Int?> {
+        if (name.isEmpty()) return "" to null
+        val parts = name.split("#", limit = 3)
+        val voiceId = parts[0]
+        val speakerId = parts.getOrNull(1)?.toIntOrNull()
+        return voiceId to speakerId
     }
 
     override fun onStop() {
@@ -91,10 +136,13 @@ class HayaiTtsService : TextToSpeechService() {
             return
         }
 
-        // Pick the voice. Order: explicit request.voiceName > last selected > bundled.
+        val requestVoiceName = request.voiceName ?: lastSelectedVoiceId
+        val (selectedVoiceId, selectedSpeakerId) = parseVoiceName(requestVoiceName)
+        val (fallbackVoiceId, _) = parseVoiceName(lastSelectedVoiceId)
+
         val candidates = runtime.listAvailableVoices()
-        val voice = candidates.firstOrNull { it.voiceId == request.voiceName }
-            ?: candidates.firstOrNull { it.voiceId == lastSelectedVoiceId }
+        val voice = candidates.firstOrNull { it.voiceId == selectedVoiceId }
+            ?: candidates.firstOrNull { it.voiceId == fallbackVoiceId }
             ?: candidates.firstOrNull { it.bundled }
             ?: candidates.firstOrNull()
             ?: run {
@@ -110,10 +158,16 @@ class HayaiTtsService : TextToSpeechService() {
             return
         }
 
-        val speed = (request.speechRate.toFloat() / 100f).coerceIn(0.5f, 2.0f)
-        val sid = request.params
-            ?.getString("speakerId")
-            ?.toIntOrNull()
+        val tuningRepo = runCatching { GlobalContext.get().get<VoiceTuningRepository>() }.getOrNull()
+        val tuning = tuningRepo?.let { repo ->
+            runCatching { runBlocking { repo.tuningFor(voice.voiceId).first() } }.getOrNull()
+        } ?: VoiceTuning.Default
+
+        val requestSpeed = (request.speechRate.toFloat() / 100f).coerceIn(0.5f, 2.0f)
+        val speed = (requestSpeed * tuning.speed).coerceIn(0.5f, 2.0f)
+
+        val sid = selectedSpeakerId
+            ?: request.params?.getString("speakerId")?.toIntOrNull()
             ?: voice.speakers.firstOrNull()?.id
             ?: 0
 
@@ -132,7 +186,16 @@ class HayaiTtsService : TextToSpeechService() {
         }
 
         val output = try {
-            runtime.synthesize(voiceId = voice.voiceId, text = text, sid = sid, speed = speed)
+            runtime.synthesize(
+                voiceId = voice.voiceId,
+                text = text,
+                sid = sid,
+                speed = speed,
+                pitch = tuning.pitch,
+                lengthScale = tuning.lengthScale,
+                noiseScale = tuning.noiseScale,
+                noiseScaleW = tuning.noiseScaleW,
+            )
         } catch (t: Throwable) {
             log.e(t) { "sherpa-onnx synthesis failed" }
             callback.error()

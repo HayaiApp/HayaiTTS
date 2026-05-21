@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -52,6 +53,24 @@ class SettingsRepositoryImpl(
         store.edit { it[KEY_LAST_UPDATE_CHECK] = value }
     }
 
+    override val useNnapi: Flow<Boolean> = store.data.map { it[KEY_USE_NNAPI] ?: false }
+
+    override suspend fun setUseNnapi(value: Boolean) {
+        store.edit { it[KEY_USE_NNAPI] = value }
+    }
+
+    override val synthesisThreads: Flow<Int> = store.data.map { it[KEY_SYNTHESIS_THREADS] ?: 2 }
+
+    override suspend fun setSynthesisThreads(value: Int) {
+        store.edit { it[KEY_SYNTHESIS_THREADS] = value }
+    }
+
+    override val maxNumSentences: Flow<Int> = store.data.map { it[KEY_MAX_NUM_SENTENCES] ?: 2 }
+
+    override suspend fun setMaxNumSentences(value: Int) {
+        store.edit { it[KEY_MAX_NUM_SENTENCES] = value }
+    }
+
     private companion object {
         // wifi-only defaults to true so first-time users on metered cell never
         // burn 85 MB without an explicit opt-in.
@@ -60,5 +79,8 @@ class SettingsRepositoryImpl(
         val KEY_STORAGE_LOCATION = stringPreferencesKey("storage_location")
         val KEY_UPDATE_CHANNEL = stringPreferencesKey("update_channel")
         val KEY_LAST_UPDATE_CHECK = longPreferencesKey("last_update_check_ms")
+        val KEY_USE_NNAPI = booleanPreferencesKey("use_nnapi")
+        val KEY_SYNTHESIS_THREADS = intPreferencesKey("synthesis_threads")
+        val KEY_MAX_NUM_SENTENCES = intPreferencesKey("max_num_sentences")
     }
 }

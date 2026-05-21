@@ -48,6 +48,9 @@ class SettingsViewModel(
         val defaultsByLocale: Map<String, String> = emptyMap(),
         val totalInstalledBytes: Long = 0L,
         val moveProgress: MoveProgress = MoveProgress.Idle,
+        val useNnapi: Boolean = false,
+        val synthesisThreads: Int = 2,
+        val maxNumSentences: Int = 2,
     ) {
         /** Locales covered by the union of installed voices. */
         val installedLocales: List<String>
@@ -71,6 +74,9 @@ class SettingsViewModel(
         defaults.defaults,
         totalBytes,
         moveProgress,
+        settings.useNnapi,
+        settings.synthesisThreads,
+        settings.maxNumSentences,
     ) { values ->
         SettingsUiState(
             wifiOnly = values[0] as Boolean,
@@ -80,6 +86,9 @@ class SettingsViewModel(
             defaultsByLocale = @Suppress("UNCHECKED_CAST") (values[3] as Map<String, String>),
             totalInstalledBytes = values[4] as Long,
             moveProgress = values[5] as MoveProgress,
+            useNnapi = values[6] as Boolean,
+            synthesisThreads = values[7] as Int,
+            maxNumSentences = values[8] as Int,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -96,6 +105,18 @@ class SettingsViewModel(
 
     fun setWifiOnly(value: Boolean) {
         viewModelScope.launch { settings.setWifiOnly(value) }
+    }
+
+    fun setUseNnapi(value: Boolean) {
+        viewModelScope.launch { settings.setUseNnapi(value) }
+    }
+
+    fun setSynthesisThreads(value: Int) {
+        viewModelScope.launch { settings.setSynthesisThreads(value) }
+    }
+
+    fun setMaxNumSentences(value: Int) {
+        viewModelScope.launch { settings.setMaxNumSentences(value) }
     }
 
     /**

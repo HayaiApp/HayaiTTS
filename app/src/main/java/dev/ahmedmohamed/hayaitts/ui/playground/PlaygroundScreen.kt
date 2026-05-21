@@ -76,6 +76,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.R
 import dev.ahmedmohamed.hayaitts.data.db.entities.PlaygroundSampleEntity
 import dev.ahmedmohamed.hayaitts.data.playground.VoiceTuning
+import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.Speaker
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -130,9 +131,13 @@ fun PlaygroundScreen(
             onSpeedChange = viewModel::setSpeed,
             onPitchChange = viewModel::setPitch,
             onLengthChange = viewModel::setLengthScale,
+            onNoiseChange = viewModel::setNoiseScale,
+            onNoiseWChange = viewModel::setNoiseScaleW,
             onResetSpeed = viewModel::resetSpeed,
             onResetPitch = viewModel::resetPitch,
             onResetLength = viewModel::resetLengthScale,
+            onResetNoise = viewModel::resetNoiseScale,
+            onResetNoiseW = viewModel::resetNoiseScaleW,
             onGenerate = viewModel::generate,
             onStop = viewModel::stop,
             onReplay = viewModel::replay,
@@ -152,9 +157,13 @@ private fun PlaygroundBody(
     onSpeedChange: (Float) -> Unit,
     onPitchChange: (Float) -> Unit,
     onLengthChange: (Float) -> Unit,
+    onNoiseChange: (Float) -> Unit,
+    onNoiseWChange: (Float) -> Unit,
     onResetSpeed: () -> Unit,
     onResetPitch: () -> Unit,
     onResetLength: () -> Unit,
+    onResetNoise: () -> Unit,
+    onResetNoiseW: () -> Unit,
     onGenerate: () -> Unit,
     onStop: () -> Unit,
     onReplay: (PlaygroundSampleEntity) -> Unit,
@@ -166,11 +175,18 @@ private fun PlaygroundBody(
     ) {
         Spacer(Modifier.height(4.dp))
         ComposerSection(state.text, state.isInstalled, onTextChange)
+        val effectiveFamily = state.installed?.effectiveFamily
+            ?: state.installed?.family
+            ?: state.card?.modelFamily
+        val isVits = effectiveFamily == ModelFamily.VITS || effectiveFamily == ModelFamily.PIPER
         TuningPanel(
             tuning = state.tuning, speakers = state.speakers, selectedSid = state.selectedSid,
             onPickSpeaker = onPickSpeaker,
             onSpeedChange = onSpeedChange, onPitchChange = onPitchChange, onLengthChange = onLengthChange,
+            onNoiseChange = onNoiseChange, onNoiseWChange = onNoiseWChange,
             onResetSpeed = onResetSpeed, onResetPitch = onResetPitch, onResetLength = onResetLength,
+            onResetNoise = onResetNoise, onResetNoiseW = onResetNoiseW,
+            isVits = isVits,
             accent = accent,
         )
         GenerateRow(
@@ -219,9 +235,14 @@ private fun TuningPanel(
     onSpeedChange: (Float) -> Unit,
     onPitchChange: (Float) -> Unit,
     onLengthChange: (Float) -> Unit,
+    onNoiseChange: (Float) -> Unit,
+    onNoiseWChange: (Float) -> Unit,
     onResetSpeed: () -> Unit,
     onResetPitch: () -> Unit,
     onResetLength: () -> Unit,
+    onResetNoise: () -> Unit,
+    onResetNoiseW: () -> Unit,
+    isVits: Boolean,
     accent: Color,
 ) {
     Box(
@@ -244,6 +265,12 @@ private fun TuningPanel(
                 trailing = { PitchTooltip() })
             TuningSlider(stringResource(R.string.playground_slider_length), tuning.lengthScale,
                 VoiceTuning.LENGTH_MIN, VoiceTuning.LENGTH_MAX, onLengthChange, onResetLength)
+            if (isVits) {
+                TuningSlider(stringResource(R.string.playground_slider_noise), tuning.noiseScale,
+                    VoiceTuning.NOISE_SCALE_MIN, VoiceTuning.NOISE_SCALE_MAX, onNoiseChange, onResetNoise)
+                TuningSlider(stringResource(R.string.playground_slider_noise_w), tuning.noiseScaleW,
+                    VoiceTuning.NOISE_SCALE_W_MIN, VoiceTuning.NOISE_SCALE_W_MAX, onNoiseWChange, onResetNoiseW)
+            }
         }
     }
 }
