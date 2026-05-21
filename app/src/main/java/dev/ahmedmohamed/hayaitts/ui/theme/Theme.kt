@@ -76,6 +76,7 @@ fun HayaiTtsTheme(
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         motionScheme = MotionScheme.expressive(),
+        typography = AppTypography,
         content = content,
     )
 }

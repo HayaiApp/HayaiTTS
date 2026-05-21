@@ -1,5 +1,5 @@
 [versions]
-agp = "8.8.0"
+agp = "8.8.2"
 kotlin = "2.1.10"
 ksp = "2.1.10-1.0.30"
 
@@ -11,7 +11,7 @@ composeBom = "2025.10.01"
 # 1.5.0-alpha18 is the version where these were promoted to public Kotlin API
 # (with `LoadingIndicator` / `MaterialShapes` getting re-marked
 # `@ExperimentalMaterial3ExpressiveApi` in later alphas).
-material3 = "1.5.0-alpha18"
+material3 = "1.5.0-alpha20"
 
 androidxCore = "1.15.0"
 googleMaterial = "1.12.0"
@@ -62,6 +62,7 @@ compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
 
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
