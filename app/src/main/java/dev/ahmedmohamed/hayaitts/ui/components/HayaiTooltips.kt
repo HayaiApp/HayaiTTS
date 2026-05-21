@@ -22,7 +22,7 @@ fun HayaiRichTooltipBox(
 ) {
     val state = rememberTooltipState(isPersistent = false)
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
         tooltip = {
             RichTooltip(
                 title = { Text(title) },

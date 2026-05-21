@@ -3,7 +3,7 @@
 package dev.ahmedmohamed.hayaitts.ui.help
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -34,11 +34,11 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material.icons.outlined.Help
+import androidx.compose.material.icons.automirrored.outlined.Help
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.SdStorage
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Card
@@ -124,7 +124,7 @@ fun HelpScreen(onBack: () -> Unit) {
         ) {
             item("getting_started") {
                 ExpandableCard(
-                    icon = Icons.Outlined.Help,
+                    icon = Icons.AutoMirrored.Outlined.Help,
                     title = stringResource(R.string.help_section_getting_started_title),
                     body = stringResource(R.string.help_section_getting_started_body),
                 )
@@ -152,12 +152,12 @@ fun HelpScreen(onBack: () -> Unit) {
                         TextButton(onClick = {
                             runCatching {
                                 context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, Uri.parse(SHERPA_DOCS_URL))
+                                    Intent(Intent.ACTION_VIEW, SHERPA_DOCS_URL.toUri())
                                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                                 )
                             }
                         }) {
-                            Icon(Icons.Outlined.OpenInNew, contentDescription = null)
+                            Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null)
                             Spacer(Modifier.size(8.dp))
                             Text(stringResource(R.string.help_section_custom_voices_action))
                         }
@@ -194,12 +194,12 @@ fun HelpScreen(onBack: () -> Unit) {
                         TextButton(onClick = {
                             runCatching {
                                 context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, Uri.parse(REPO_URL))
+                                    Intent(Intent.ACTION_VIEW, REPO_URL.toUri())
                                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                                 )
                             }
                         }) {
-                            Icon(Icons.Outlined.OpenInNew, contentDescription = null)
+                            Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null)
                             Spacer(Modifier.size(8.dp))
                             Text(stringResource(R.string.help_section_about_action))
                         }

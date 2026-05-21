@@ -28,7 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.LibraryMusic
-import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.RecordVoiceOver
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material3.Button
@@ -108,17 +108,17 @@ fun OnboardingScreen(
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
                 pageSpacing = 16.dp,
             ) { page ->
-                val pageOffset = (
-                    (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-                ).absoluteValue
-                val parallax = (1f - pageOffset.coerceIn(0f, 1f) * 0.06f)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer {
+                            val pageOffset = (
+                                (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                            ).absoluteValue.coerceIn(0f, 1f)
+                            val parallax = 1f - pageOffset * 0.06f
                             scaleX = parallax
                             scaleY = parallax
-                            alpha = 1f - pageOffset.coerceIn(0f, 1f) * 0.4f
+                            alpha = 1f - pageOffset * 0.4f
                         },
                 ) {
                     when (page) {
@@ -220,7 +220,7 @@ private fun EngineCard(
         body = stringResource(R.string.onboarding_engine_body),
         action = {
             FilledTonalButton(onClick = onOpenSystemSettings) {
-                Icon(Icons.Outlined.OpenInNew, contentDescription = null)
+                Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null)
                 Spacer(Modifier.size(8.dp))
                 Text(stringResource(R.string.onboarding_engine_action))
             }

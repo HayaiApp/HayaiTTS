@@ -87,8 +87,8 @@ fun InstalledVoiceCard(
     onToggleDefault: (locale: String) -> Unit,
     onToggleFavorite: () -> Unit,
     onUninstall: () -> Unit,
-    onChooseSpeaker: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    onChooseSpeaker: (() -> Unit)? = null,
 ) {
     val family = voice.effectiveFamily ?: voice.family
     Card(

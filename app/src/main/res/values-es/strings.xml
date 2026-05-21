@@ -11,30 +11,21 @@
     <string name="library_featured">Destacadas</string>
     <string name="library_installed_header">Todas las instaladas</string>
     <string name="library_downloading">Descargando…</string>
-    <string name="library_extracting">Extrayendo…</string>
-    <string name="library_download_failed">Error de descarga: %1$s</string>
     <string name="library_download_cancelled">Descarga cancelada</string>
     <string name="library_import_action">Importar voz</string>
     <string name="library_open_settings">Ajustes</string>
-    <string name="library_test_download">Descarga de prueba (Alan, en-GB)</string>
-    <string name="library_test_download_again">Volver a descargar Alan</string>
 
     <!-- Voice card / chips -->
-    <string name="voice_amy_subtitle">Inglés (EE. UU.) • Piper • Calidad baja</string>
     <string name="voice_chip_bundled">Incluida</string>
     <string name="voice_chip_coming_soon">Próximamente</string>
     <string name="voice_chip_recommended">Recomendada para tu dispositivo</string>
     <string name="custom_chip">Personalizada</string>
-    <string name="voice_preview_action">Previsualizar</string>
     <string name="voice_favorite">Marcar como favorita</string>
     <string name="voice_unfavorite">Quitar de favoritas</string>
 
     <!-- Browse -->
-    <string name="browse_title">Explorar modelos</string>
-    <string name="browse_subtitle">%1$d voces</string>
     <string name="browse_empty_title">Ninguna voz coincide con los filtros</string>
     <string name="browse_empty_subtitle">Prueba a ampliar los filtros de idioma o nivel.</string>
-    <string name="browse_search_placeholder">Buscar voces</string>
     <string name="browse_search_placeholder_count">Buscar entre %1$d voces</string>
     <string name="browse_open_filters">Abrir filtros</string>
     <string name="browse_filter_sheet_title">Filtros</string>
@@ -43,9 +34,7 @@
     <string name="browse_filter_language">Idioma</string>
     <string name="browse_filter_tier">Nivel</string>
     <string name="browse_filter_family">Familia</string>
-    <string name="browse_filter_clear">Borrar</string>
     <string name="browse_filter_clear_all">Borrar filtros</string>
-    <string name="browse_filter_apply">Aplicar</string>
     <string name="browse_filter_gender">Tipo de voz</string>
     <string name="browse_filter_gender_female">Femenina</string>
     <string name="browse_filter_gender_male">Masculina</string>
@@ -54,7 +43,6 @@
     <string name="browse_tier_low">Bajo</string>
     <string name="browse_tier_mid">Medio</string>
     <string name="browse_tier_high">Alto</string>
-    <string name="browse_refresh">Actualizar catálogo</string>
 
     <!-- Actions -->
     <string name="action_clear">Borrar</string>
@@ -74,7 +62,6 @@
     <!-- Voice detail -->
     <string name="voice_default_label">Predeterminada para %1$s</string>
     <string name="voice_set_default">Usar como predeterminada para %1$s</string>
-    <string name="voice_clear_default">Quitar predeterminada</string>
     <string name="voice_choose_default_speaker">Elegir locutor predeterminado…</string>
     <string name="speaker_picker_title">Locutor predeterminado</string>
     <string name="speaker_picker_reset">Usar el de la voz</string>
@@ -90,8 +77,6 @@
     <string name="voice_detail_install_primary">Instalar voz</string>
     <string name="voice_detail_cancel_primary">Cancelar descarga</string>
     <string name="voice_detail_uninstall_action">Desinstalar</string>
-    <string name="voice_detail_set_default_action">Marcar predeterminada</string>
-    <string name="voice_detail_clear_default_action">Quitar predeterminada</string>
     <string name="voice_detail_open_playground">Abrir en el Playground</string>
     <string name="voice_detail_coming_soon_hint">Esta familia de modelos aún no es compatible con la versión actual de sherpa-onnx. Una próxima actualización la habilitará.</string>
 
@@ -103,8 +88,6 @@
     <!-- Download -->
     <string name="download_in_progress">Descargando voz neuronal…</string>
     <string name="download_extracting">Extrayendo…</string>
-    <string name="download_channel_name">Descargas de voz</string>
-    <string name="download_channel_description">Notificaciones mostradas mientras se descarga o extrae un modelo de voz.</string>
     <string name="download_active_channel_name">Descargas de voz (activas)</string>
     <string name="download_active_channel_description">Progreso de descargas de voz en curso.</string>
     <string name="download_complete_channel_name">Descargas de voz (completadas)</string>
@@ -128,7 +111,6 @@
     <string name="import_analyzing">Analizando paquete…</string>
     <string name="import_analyzing_failed">No se pudo leer el paquete: %1$s</string>
     <string name="import_unsupported_family">%1$s aún no es compatible con esta versión.</string>
-    <string name="import_detected_family">Familia detectada</string>
     <string name="import_family_override">Familia</string>
     <string name="import_voice_name">Nombre de la voz</string>
     <string name="import_languages">Idiomas</string>
@@ -139,9 +121,6 @@
     <string name="import_progress_copying">Copiando paquete…</string>
     <string name="import_progress_extracting">Extrayendo…</string>
     <string name="import_progress_validating">Validando…</string>
-    <string name="import_validation_failed">Al paquete le falta %1$s para %2$s. Elige otra familia o cancela.</string>
-    <string name="import_done">Importación completada.</string>
-    <string name="import_size_label">%1$s · %2$d KB</string>
     <string name="import_lang_add">Añadir idioma</string>
     <string name="import_lang_add_placeholder">Etiqueta BCP-47 (p. ej. es-ES)</string>
     <string name="import_lang_add_ok">Añadir</string>
@@ -160,7 +139,6 @@
     <!-- Settings -->
     <string name="settings_title">Ajustes</string>
     <string name="settings_subtitle">Ajusta descargas, almacenamiento y predeterminadas</string>
-    <string name="settings_license">Licencia: GPL-3.0</string>
     <string name="settings_section_downloads">Descargas</string>
     <string name="settings_wifi_only">Solo Wi-Fi</string>
     <string name="settings_wifi_only_subtitle">Bloquea descargas en redes móviles con consumo medido.</string>
@@ -168,7 +146,6 @@
     <string name="settings_storage_internal">Almacenamiento interno</string>
     <string name="settings_storage_external">Tarjeta SD externa</string>
     <string name="settings_storage_external_unavailable">No se detectó almacenamiento externo</string>
-    <string name="settings_storage_restart_hint">Cambiar esta opción moverá todas las voces instaladas a la nueva ubicación.</string>
     <string name="settings_storage_moving">Moviendo voz %1$d / %2$d (%3$s)…</string>
     <string name="settings_storage_move_failed">Error al mover: %1$s</string>
     <string name="settings_section_defaults">Voces predeterminadas</string>
@@ -321,7 +298,6 @@
     <string name="downloads_empty_title">Nada descargando</string>
     <string name="downloads_empty_subtitle">Las descargas que inicies desde Explorar aparecerán aquí.</string>
     <string name="downloads_status_queued">En cola</string>
-    <string name="downloads_status_extracting">Extrayendo…</string>
     <string name="downloads_status_extracting_pct">Extrayendo %1$d%%</string>
     <string name="downloads_status_failed">Error: %1$s</string>
     <string name="downloads_status_completed">Completada</string>

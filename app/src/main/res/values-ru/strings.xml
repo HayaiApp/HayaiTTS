@@ -10,28 +10,19 @@
     <string name="library_featured">Рекомендуем</string>
     <string name="library_installed_header">Все установленные</string>
     <string name="library_downloading">Загрузка…</string>
-    <string name="library_extracting">Распаковка…</string>
-    <string name="library_download_failed">Ошибка загрузки: %1$s</string>
     <string name="library_download_cancelled">Загрузка отменена</string>
     <string name="library_import_action">Импорт голоса</string>
     <string name="library_open_settings">Настройки</string>
-    <string name="library_test_download">Тестовая загрузка (Alan, en-GB)</string>
-    <string name="library_test_download_again">Перезагрузить Alan</string>
 
-    <string name="voice_amy_subtitle">Английский (США) • Piper • Низкое качество</string>
     <string name="voice_chip_bundled">Встроено</string>
     <string name="voice_chip_coming_soon">Скоро</string>
     <string name="voice_chip_recommended">Рекомендовано для вашего устройства</string>
     <string name="custom_chip">Свой</string>
-    <string name="voice_preview_action">Предпросмотр</string>
     <string name="voice_favorite">В избранное</string>
     <string name="voice_unfavorite">Убрать из избранного</string>
 
-    <string name="browse_title">Просмотр моделей</string>
-    <string name="browse_subtitle">голосов: %1$d</string>
     <string name="browse_empty_title">Ни один голос не подходит под фильтры</string>
     <string name="browse_empty_subtitle">Попробуйте расширить фильтры по языку или уровню.</string>
-    <string name="browse_search_placeholder">Поиск голосов</string>
     <string name="browse_search_placeholder_count">Поиск среди %1$d голосов</string>
     <string name="browse_open_filters">Открыть фильтры</string>
     <string name="browse_filter_sheet_title">Фильтры</string>
@@ -40,9 +31,7 @@
     <string name="browse_filter_language">Язык</string>
     <string name="browse_filter_tier">Уровень</string>
     <string name="browse_filter_family">Семейство</string>
-    <string name="browse_filter_clear">Очистить</string>
     <string name="browse_filter_clear_all">Очистить фильтры</string>
-    <string name="browse_filter_apply">Применить</string>
     <string name="browse_filter_gender">Тип голоса</string>
     <string name="browse_filter_gender_female">Женский</string>
     <string name="browse_filter_gender_male">Мужской</string>
@@ -51,7 +40,6 @@
     <string name="browse_tier_low">Низкий</string>
     <string name="browse_tier_mid">Средний</string>
     <string name="browse_tier_high">Высокий</string>
-    <string name="browse_refresh">Обновить каталог</string>
 
     <string name="action_clear">Очистить</string>
     <string name="action_install">Установить</string>
@@ -69,7 +57,6 @@
 
     <string name="voice_default_label">По умолчанию для %1$s</string>
     <string name="voice_set_default">Сделать по умолчанию для %1$s</string>
-    <string name="voice_clear_default">Снять «по умолчанию»</string>
     <string name="voice_choose_default_speaker">Выбрать диктора по умолчанию…</string>
     <string name="speaker_picker_title">Диктор по умолчанию</string>
     <string name="speaker_picker_reset">Как у голоса</string>
@@ -85,8 +72,6 @@
     <string name="voice_detail_install_primary">Установить голос</string>
     <string name="voice_detail_cancel_primary">Отменить загрузку</string>
     <string name="voice_detail_uninstall_action">Удалить</string>
-    <string name="voice_detail_set_default_action">Сделать по умолчанию</string>
-    <string name="voice_detail_clear_default_action">Снять «по умолчанию»</string>
     <string name="voice_detail_open_playground">Открыть в Playground</string>
     <string name="voice_detail_coming_soon_hint">Это семейство моделей пока не поддерживается текущей сборкой sherpa-onnx. Будущее обновление включит его.</string>
 
@@ -96,8 +81,6 @@
 
     <string name="download_in_progress">Загрузка нейросетевого голоса…</string>
     <string name="download_extracting">Распаковка…</string>
-    <string name="download_channel_name">Загрузки голосов</string>
-    <string name="download_channel_description">Уведомления, которые показываются во время загрузки или распаковки модели голоса.</string>
     <string name="download_active_channel_name">Загрузки голосов (активные)</string>
     <string name="download_active_channel_description">Прогресс активных загрузок голосов.</string>
     <string name="download_complete_channel_name">Загрузки голосов (завершённые)</string>
@@ -119,7 +102,6 @@
     <string name="import_analyzing">Анализ пакета…</string>
     <string name="import_analyzing_failed">Не удалось прочитать пакет: %1$s</string>
     <string name="import_unsupported_family">%1$s пока не поддерживается этой сборкой.</string>
-    <string name="import_detected_family">Обнаруженное семейство</string>
     <string name="import_family_override">Семейство</string>
     <string name="import_voice_name">Имя голоса</string>
     <string name="import_languages">Языки</string>
@@ -130,9 +112,6 @@
     <string name="import_progress_copying">Копирование пакета…</string>
     <string name="import_progress_extracting">Распаковка…</string>
     <string name="import_progress_validating">Проверка…</string>
-    <string name="import_validation_failed">В пакете отсутствует %1$s для %2$s. Выберите другое семейство или отмените.</string>
-    <string name="import_done">Импорт завершён.</string>
-    <string name="import_size_label">%1$s · %2$d КБ</string>
     <string name="import_lang_add">Добавить язык</string>
     <string name="import_lang_add_placeholder">Тег BCP-47 (напр. ru-RU)</string>
     <string name="import_lang_add_ok">Добавить</string>
@@ -149,7 +128,6 @@
 
     <string name="settings_title">Настройки</string>
     <string name="settings_subtitle">Загрузки, хранение, голоса по умолчанию</string>
-    <string name="settings_license">Лицензия: GPL-3.0</string>
     <string name="settings_section_downloads">Загрузки</string>
     <string name="settings_wifi_only">Только по Wi-Fi</string>
     <string name="settings_wifi_only_subtitle">Блокировать загрузки в мобильной сети с учётом трафика.</string>
@@ -157,7 +135,6 @@
     <string name="settings_storage_internal">Внутренний накопитель</string>
     <string name="settings_storage_external">Внешняя SD-карта</string>
     <string name="settings_storage_external_unavailable">Внешнее хранилище не найдено</string>
-    <string name="settings_storage_restart_hint">Изменение перемещает все установленные голоса в новое место.</string>
     <string name="settings_storage_moving">Перемещение голоса %1$d / %2$d (%3$s)…</string>
     <string name="settings_storage_move_failed">Ошибка перемещения: %1$s</string>
     <string name="settings_section_defaults">Голоса по умолчанию</string>
@@ -304,7 +281,6 @@
     <string name="downloads_empty_title">Ничего не загружается</string>
     <string name="downloads_empty_subtitle">Загрузки, запущенные из «Просмотра», появятся здесь.</string>
     <string name="downloads_status_queued">В очереди</string>
-    <string name="downloads_status_extracting">Распаковка…</string>
     <string name="downloads_status_extracting_pct">Распаковка %1$d%%</string>
     <string name="downloads_status_failed">Ошибка: %1$s</string>
     <string name="downloads_status_completed">Завершено</string>

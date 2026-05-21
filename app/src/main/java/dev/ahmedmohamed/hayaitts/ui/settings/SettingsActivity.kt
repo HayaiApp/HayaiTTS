@@ -3,7 +3,7 @@
 package dev.ahmedmohamed.hayaitts.ui.settings
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,9 +24,9 @@ import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Gavel
-import androidx.compose.material.icons.outlined.Help
+import androidx.compose.material.icons.automirrored.outlined.Help
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SdStorage
@@ -63,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -111,7 +112,7 @@ private fun SettingsScreen(
     val updateChannel by updateViewModel.updateChannel.collectAsStateWithLifecycle()
     val lastChecked by updateViewModel.lastChecked.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     val upToDateMessage = stringResource(R.string.settings_update_uptodate)
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
@@ -419,7 +420,7 @@ private fun SettingsScreen(
             }
             item("help") {
                 ListItem(
-                    leadingContent = { Icon(Icons.Outlined.Help, contentDescription = null) },
+                    leadingContent = { Icon(Icons.AutoMirrored.Outlined.Help, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_help_label)) },
                     supportingContent = { Text(stringResource(R.string.settings_help_subtitle)) },
                     modifier = Modifier.clickableRow {
@@ -437,12 +438,12 @@ private fun SettingsScreen(
             }
             item("powered_by") {
                 ListItem(
-                    leadingContent = { Icon(Icons.Outlined.OpenInNew, contentDescription = null) },
+                    leadingContent = { Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_powered_by)) },
                     supportingContent = { Text(stringResource(R.string.settings_powered_by_subtitle)) },
                     modifier = Modifier.clickableRow {
                         context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse(SHERPA_REPO_URL)),
+                            Intent(Intent.ACTION_VIEW, SHERPA_REPO_URL.toUri()),
                         )
                     },
                 )

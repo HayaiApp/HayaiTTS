@@ -5,7 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
@@ -41,7 +41,6 @@ object DownloadNotifications {
     const val NOTIFICATION_ID = NOTIFICATION_ID_ACTIVE
 
     fun ensureChannels(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = context.getSystemService<NotificationManager>() ?: return
         // Drop the legacy single-channel from <= 0.1.0 so users don't end up
         // with a stale, mis-importance channel hanging around.
@@ -169,7 +168,7 @@ object DownloadNotifications {
     }
 
     private fun openDownloadsPendingIntent(context: Context): PendingIntent {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(DEEP_LINK_DOWNLOADS))
+        val intent = Intent(Intent.ACTION_VIEW, DEEP_LINK_DOWNLOADS.toUri())
             .setPackage(context.packageName)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         return PendingIntent.getActivity(

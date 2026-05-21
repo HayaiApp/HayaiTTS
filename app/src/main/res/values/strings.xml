@@ -1,31 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PluralsCandidate">
     <string name="app_name">HayaiTTS</string>
     <string name="library_empty_title">No voices installed yet</string>
     <string name="library_empty_subtitle">Browse the catalog to download offline neural voices</string>
     <string name="library_browse_action">Browse models</string>
     <string name="library_title">Voices</string>
-    <string name="voice_amy_name" translatable="false">Amy</string>
-    <string name="voice_amy_subtitle">English (US) • Piper • Low quality</string>
     <string name="voice_chip_bundled">Bundled</string>
-    <string name="voice_preview_action">Preview</string>
     <string name="settings_title">Settings</string>
-    <string name="settings_license">License: GPL-3.0</string>
-    <string name="download_channel_name">Voice downloads</string>
-    <string name="download_channel_description">Notifications shown while a voice model is downloading or extracting.</string>
     <string name="download_in_progress">Downloading neural voice…</string>
-    <string name="library_test_download">Test download (Alan, en-GB)</string>
-    <string name="library_test_download_again">Re-download Alan</string>
     <string name="library_downloading">Downloading…</string>
-    <string name="library_extracting">Extracting…</string>
-    <string name="library_download_failed">Download failed: %1$s</string>
     <string name="library_download_cancelled">Download cancelled</string>
 
     <!-- Browse + Voice Detail (Phase 4b) -->
-    <string name="browse_title">Browse models</string>
     <string name="browse_empty_title">No voices match these filters</string>
     <string name="browse_empty_subtitle">Try widening your language or tier filters.</string>
-    <string name="browse_search_placeholder">Search voices</string>
     <string name="browse_search_placeholder_count">Search %1$d voices</string>
     <string name="browse_open_filters">Open filters</string>
     <string name="browse_filter_sheet_title">Filters</string>
@@ -35,8 +23,6 @@
     <string name="browse_filter_language">Language</string>
     <string name="browse_filter_tier">Tier</string>
     <string name="browse_filter_family">Family</string>
-    <string name="browse_filter_clear">Clear</string>
-    <string name="browse_filter_apply">Apply</string>
     <string name="browse_tier_all">All tiers</string>
     <string name="browse_tier_low">Low</string>
     <string name="browse_tier_mid">Mid</string>
@@ -51,7 +37,6 @@
     <string name="action_more">More</string>
     <string name="voice_default_label">Default for %1$s</string>
     <string name="voice_set_default">Set as default for %1$s</string>
-    <string name="voice_clear_default">Clear default</string>
     <string name="voice_choose_default_speaker">Choose default speaker…</string>
     <string name="speaker_picker_title">Default speaker</string>
     <string name="speaker_picker_reset">Use voice default</string>
@@ -62,7 +47,6 @@
     <string name="voice_detail_preview_text">The quick brown fox jumps over the lazy dog.</string>
     <string name="voice_detail_preview_not_installed">Install the voice to preview</string>
     <string name="voice_detail_license">License: %1$s</string>
-    <string name="voice_detail_size" translatable="false">%1$d MB</string>
     <string name="voice_detail_sample_rate" translatable="false">%1$d Hz</string>
     <string name="uninstall_confirm_title">Uninstall voice?</string>
     <string name="uninstall_confirm_message">This will free up disk space. You can re-download it later from Browse.</string>
@@ -89,7 +73,6 @@
     <string name="import_analyzing">Analyzing bundle…</string>
     <string name="import_analyzing_failed">Could not read this bundle: %1$s</string>
     <string name="import_unsupported_family">%1$s is not yet supported by this app build.</string>
-    <string name="import_detected_family">Detected family</string>
     <string name="import_family_override">Family</string>
     <string name="import_voice_name">Voice name</string>
     <string name="import_languages">Languages</string>
@@ -100,9 +83,6 @@
     <string name="import_progress_copying">Copying bundle…</string>
     <string name="import_progress_extracting">Extracting…</string>
     <string name="import_progress_validating">Validating…</string>
-    <string name="import_validation_failed">Bundle is missing %1$s for %2$s. Pick a different family or cancel.</string>
-    <string name="import_done">Imported successfully.</string>
-    <string name="import_size_label">%1$s · %2$d KB</string>
     <string name="import_lang_add">Add language</string>
     <string name="import_lang_add_placeholder">BCP-47 tag (e.g. en-US)</string>
     <string name="import_lang_add_ok">Add</string>
@@ -117,7 +97,6 @@
     <string name="settings_storage_internal">Internal storage</string>
     <string name="settings_storage_external">External SD card</string>
     <string name="settings_storage_external_unavailable">No external storage detected</string>
-    <string name="settings_storage_restart_hint">Switching this preference relocates every installed voice to the new location.</string>
     <string name="settings_storage_moving">Moving voice %1$d / %2$d (%3$s)…</string>
     <string name="settings_storage_move_failed">Move failed: %1$s</string>
     <string name="settings_section_defaults">Default voices</string>
@@ -137,8 +116,6 @@
     <string name="settings_license_subtitle">Tap to read the full license</string>
     <string name="settings_license_dialog_title">License</string>
     <string name="settings_license_dialog_close">Close</string>
-    <string name="settings_size_mb" translatable="false">%1$.1f MB</string>
-    <string name="settings_size_gb" translatable="false">%1$.2f GB</string>
 
     <string name="settings_section_performance">Performance &amp; Hardware</string>
     <string name="settings_nnapi">Hardware Acceleration (NNAPI)</string>
@@ -156,8 +133,6 @@
     <string name="library_subtitle">%1$d installed</string>
     <string name="library_featured">Featured</string>
     <string name="library_installed_header">All installed</string>
-    <string name="browse_subtitle">%1$d voices</string>
-    <string name="browse_refresh">Refresh catalog</string>
     <string name="browse_filter_clear_all">Clear filters</string>
     <string name="browse_filter_gender">Voice type</string>
     <string name="browse_filter_gender_female">Female</string>
@@ -168,8 +143,6 @@
     <string name="voice_detail_install_primary">Install voice</string>
     <string name="voice_detail_cancel_primary">Cancel download</string>
     <string name="voice_detail_uninstall_action">Uninstall</string>
-    <string name="voice_detail_set_default_action">Set default</string>
-    <string name="voice_detail_clear_default_action">Clear default</string>
     <string name="quick_switch_title">Quick switch</string>
     <string name="quick_switch_subtitle">Pick the default voice for the moment</string>
     <string name="quick_switch_current">Current default</string>
@@ -316,7 +289,6 @@
     <string name="downloads_empty_subtitle">Downloads you start from Browse will appear here.</string>
     <string name="downloads_status_queued">Queued</string>
     <string name="downloads_status_running" translatable="false">%1$s / %2$s · %3$d%%</string>
-    <string name="downloads_status_extracting">Extracting…</string>
     <string name="downloads_status_extracting_pct">Extracting %1$d%%</string>
     <string name="downloads_status_failed">Failed: %1$s</string>
     <string name="downloads_status_completed">Completed</string>

@@ -1,6 +1,7 @@
 package dev.ahmedmohamed.hayaitts.ui.custom
 
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.ahmedmohamed.hayaitts.data.custom.CustomBundleAnalyzer
@@ -29,7 +30,7 @@ class CustomImportViewModel(
     private val installer: CustomBundleInstaller,
 ) : ViewModel() {
 
-    private val uri: Uri = Uri.parse(URLDecoder.decode(encodedUri, "UTF-8"))
+    private val uri: Uri = URLDecoder.decode(encodedUri, "UTF-8").toUri()
 
     enum class FamilyChoice(val family: ModelFamily, val supported: Boolean) {
         PIPER(ModelFamily.PIPER, true),

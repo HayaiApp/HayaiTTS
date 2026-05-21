@@ -10,28 +10,19 @@
     <string name="library_featured">Em destaque</string>
     <string name="library_installed_header">Todas as instaladas</string>
     <string name="library_downloading">Baixando…</string>
-    <string name="library_extracting">Extraindo…</string>
-    <string name="library_download_failed">Falha no download: %1$s</string>
     <string name="library_download_cancelled">Download cancelado</string>
     <string name="library_import_action">Importar voz</string>
     <string name="library_open_settings">Configurações</string>
-    <string name="library_test_download">Download de teste (Alan, en-GB)</string>
-    <string name="library_test_download_again">Rebaixar Alan</string>
 
-    <string name="voice_amy_subtitle">Inglês (EUA) • Piper • Qualidade baixa</string>
     <string name="voice_chip_bundled">Inclusa</string>
     <string name="voice_chip_coming_soon">Em breve</string>
     <string name="voice_chip_recommended">Recomendada para seu aparelho</string>
     <string name="custom_chip">Personalizada</string>
-    <string name="voice_preview_action">Pré-visualizar</string>
     <string name="voice_favorite">Favoritar voz</string>
     <string name="voice_unfavorite">Desfavoritar voz</string>
 
-    <string name="browse_title">Explorar modelos</string>
-    <string name="browse_subtitle">%1$d vozes</string>
     <string name="browse_empty_title">Nenhuma voz corresponde aos filtros</string>
     <string name="browse_empty_subtitle">Tente ampliar os filtros de idioma ou qualidade.</string>
-    <string name="browse_search_placeholder">Buscar vozes</string>
     <string name="browse_search_placeholder_count">Buscar entre %1$d vozes</string>
     <string name="browse_open_filters">Abrir filtros</string>
     <string name="browse_filter_sheet_title">Filtros</string>
@@ -40,9 +31,7 @@
     <string name="browse_filter_language">Idioma</string>
     <string name="browse_filter_tier">Qualidade</string>
     <string name="browse_filter_family">Família</string>
-    <string name="browse_filter_clear">Limpar</string>
     <string name="browse_filter_clear_all">Limpar filtros</string>
-    <string name="browse_filter_apply">Aplicar</string>
     <string name="browse_filter_gender">Tipo de voz</string>
     <string name="browse_filter_gender_female">Feminina</string>
     <string name="browse_filter_gender_male">Masculina</string>
@@ -51,7 +40,6 @@
     <string name="browse_tier_low">Baixa</string>
     <string name="browse_tier_mid">Média</string>
     <string name="browse_tier_high">Alta</string>
-    <string name="browse_refresh">Atualizar catálogo</string>
 
     <string name="action_clear">Limpar</string>
     <string name="action_install">Instalar</string>
@@ -69,7 +57,6 @@
 
     <string name="voice_default_label">Padrão para %1$s</string>
     <string name="voice_set_default">Definir como padrão para %1$s</string>
-    <string name="voice_clear_default">Remover padrão</string>
     <string name="voice_choose_default_speaker">Escolher locutor padrão…</string>
     <string name="speaker_picker_title">Locutor padrão</string>
     <string name="speaker_picker_reset">Usar o padrão da voz</string>
@@ -85,8 +72,6 @@
     <string name="voice_detail_install_primary">Instalar voz</string>
     <string name="voice_detail_cancel_primary">Cancelar download</string>
     <string name="voice_detail_uninstall_action">Desinstalar</string>
-    <string name="voice_detail_set_default_action">Definir padrão</string>
-    <string name="voice_detail_clear_default_action">Remover padrão</string>
     <string name="voice_detail_open_playground">Abrir no Playground</string>
     <string name="voice_detail_coming_soon_hint">Esta família de modelos ainda não é suportada pela build atual do sherpa-onnx. Uma atualização futura habilitará.</string>
 
@@ -96,8 +81,6 @@
 
     <string name="download_in_progress">Baixando voz neural…</string>
     <string name="download_extracting">Extraindo…</string>
-    <string name="download_channel_name">Downloads de voz</string>
-    <string name="download_channel_description">Notificações exibidas enquanto um modelo de voz está sendo baixado ou extraído.</string>
     <string name="download_active_channel_name">Downloads de voz (ativos)</string>
     <string name="download_active_channel_description">Progresso dos downloads de voz em andamento.</string>
     <string name="download_complete_channel_name">Downloads de voz (concluídos)</string>
@@ -119,7 +102,6 @@
     <string name="import_analyzing">Analisando o pacote…</string>
     <string name="import_analyzing_failed">Não foi possível ler este pacote: %1$s</string>
     <string name="import_unsupported_family">%1$s ainda não é suportada nesta versão.</string>
-    <string name="import_detected_family">Família detectada</string>
     <string name="import_family_override">Família</string>
     <string name="import_voice_name">Nome da voz</string>
     <string name="import_languages">Idiomas</string>
@@ -130,9 +112,6 @@
     <string name="import_progress_copying">Copiando o pacote…</string>
     <string name="import_progress_extracting">Extraindo…</string>
     <string name="import_progress_validating">Validando…</string>
-    <string name="import_validation_failed">Falta %1$s no pacote para %2$s. Escolha outra família ou cancele.</string>
-    <string name="import_done">Importação concluída.</string>
-    <string name="import_size_label">%1$s · %2$d KB</string>
     <string name="import_lang_add">Adicionar idioma</string>
     <string name="import_lang_add_placeholder">Tag BCP-47 (ex.: pt-BR)</string>
     <string name="import_lang_add_ok">Adicionar</string>
@@ -149,7 +128,6 @@
 
     <string name="settings_title">Configurações</string>
     <string name="settings_subtitle">Ajuste downloads, armazenamento e padrões</string>
-    <string name="settings_license">Licença: GPL-3.0</string>
     <string name="settings_section_downloads">Downloads</string>
     <string name="settings_wifi_only">Somente Wi-Fi</string>
     <string name="settings_wifi_only_subtitle">Bloqueia downloads em redes móveis com tarifa.</string>
@@ -157,7 +135,6 @@
     <string name="settings_storage_internal">Armazenamento interno</string>
     <string name="settings_storage_external">Cartão SD externo</string>
     <string name="settings_storage_external_unavailable">Nenhum armazenamento externo detectado</string>
-    <string name="settings_storage_restart_hint">Mudar esta opção move todas as vozes instaladas para o novo local.</string>
     <string name="settings_storage_moving">Movendo voz %1$d / %2$d (%3$s)…</string>
     <string name="settings_storage_move_failed">Falha ao mover: %1$s</string>
     <string name="settings_section_defaults">Vozes padrão</string>
@@ -227,7 +204,7 @@
     <string name="onboarding_welcome_title">Bem-vindo ao HayaiTTS</string>
     <string name="onboarding_welcome_body">Síntese de fala neural offline para Android. Cada voz roda no seu aparelho — sem nuvem, sem telemetria, sem cota.</string>
     <string name="onboarding_engine_title">Defina o HayaiTTS como seu motor</string>
-    <string name="onboarding_engine_body">Abra Configurações → Sistema → Idiomas e entrada → Mecanismos de texto para voz e escolha HayaiTTS como o motor preferido. Apps que leem texto em voz alta passarão pelo HayaiTTS automaticamente.</string>
+    <string name="onboarding_engine_body">Abra Configurações → Sistema → Idiomas e entrada → Mecanismos de texto para voz e escolha HayaiTTS como o motor preferido. Apps que lêem texto em voz alta passarão pelo HayaiTTS automaticamente.</string>
     <string name="onboarding_engine_action">Abrir configurações de TTS do sistema</string>
     <string name="onboarding_tier_title">Escolha vozes para o seu aparelho</string>
     <string name="onboarding_tier_recommendation_low">Recomendado para o seu aparelho: Baixa. Modelos baixos funcionam até em hardware básico.</string>
@@ -304,7 +281,6 @@
     <string name="downloads_empty_title">Nada baixando</string>
     <string name="downloads_empty_subtitle">Os downloads iniciados em Explorar aparecerão aqui.</string>
     <string name="downloads_status_queued">Na fila</string>
-    <string name="downloads_status_extracting">Extraindo…</string>
     <string name="downloads_status_extracting_pct">Extraindo %1$d%%</string>
     <string name="downloads_status_failed">Falha: %1$s</string>
     <string name="downloads_status_completed">Concluído</string>

@@ -1,5 +1,6 @@
 package dev.ahmedmohamed.hayaitts.tts
 
+import android.annotation.SuppressLint
 import android.content.Context
 import co.touchlab.kermit.Logger
 import com.k2fsa.sherpa.onnx.OfflineTts
@@ -438,6 +439,10 @@ class SherpaTtsRuntime private constructor(
         private val ZIPVOICE_VOCODER_CANDIDATES = listOf("vocos_24khz.onnx", "vocos_22khz.onnx", "vocoder.onnx")
         private val RULE_FST_FILES = listOf("date.fst", "number.fst", "phone.fst")
 
+        // We always pass applicationContext into the constructor below, so the
+        // held context is process-scoped and not an actual leak. Lint can't see
+        // through the indirection.
+        @SuppressLint("StaticFieldLeak")
         @Volatile
         private var instance: SherpaTtsRuntime? = null
 

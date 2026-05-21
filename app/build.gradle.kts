@@ -122,6 +122,21 @@ android {
         }
     }
 
+    // Suppress the lint version-bump advisories. The "newer version available"
+    // checks here all point at versions we have already decided not to take:
+    // AGP 9.x conflicts with the standalone kotlin-android plugin,
+    // material3 alpha20+ transitively requires AGP 9.x, Kotlin 2.3.21 has no
+    // matching KSP build, and okhttp 5.x is a major API migration. The
+    // rationale is documented in gradle/libs.versions.toml. Leaving these
+    // enabled would mean every CI run reports the same known-rejected bumps.
+    lint {
+        disable += setOf(
+            "AndroidGradlePluginVersion",
+            "GradleDependency",
+            "NewerVersionAvailable",
+        )
+    }
+
     // Keep .onnx weights uncompressed inside the APK so the sherpa-onnx native
     // layer can mmap them directly from the install location instead of
     // inflating ~28 MB into RAM on every cold start.

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup + Device-to-device transfer rules. Because android:allowBackup
+  is false (see AndroidManifest.xml), both the cloud backup and the local
+  device-transfer paths are disabled outright. The empty rule sets keep lint
+  happy on API 31+ while preserving the existing "don't back up anything"
+  policy — downloaded voice models are large and easy to re-fetch from the
+  catalog after a restore, so there is no benefit to copying them.
+-->
+<data-extraction-rules>
+    <cloud-backup />
+    <device-transfer />
+</data-extraction-rules>

@@ -30,7 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Female
-import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.RecordVoiceOver
@@ -279,13 +279,13 @@ private fun TuningPanel(
 private fun PitchTooltip() {
     val tooltipState = rememberTooltipState(isPersistent = true)
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
         tooltip = { PlainTooltip { Text(stringResource(R.string.playground_pitch_tooltip)) } },
         state = tooltipState,
     ) {
         val scope = rememberCoroutineScope()
         IconButton(onClick = { scope.launch { tooltipState.show() } }) {
-            Icon(Icons.Outlined.HelpOutline,
+            Icon(Icons.AutoMirrored.Outlined.HelpOutline,
                 contentDescription = stringResource(R.string.playground_pitch_tooltip),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }

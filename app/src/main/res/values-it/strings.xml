@@ -11,28 +11,19 @@
     <string name="library_featured">In evidenza</string>
     <string name="library_installed_header">Tutte le installate</string>
     <string name="library_downloading">Scaricamento…</string>
-    <string name="library_extracting">Estrazione…</string>
-    <string name="library_download_failed">Download non riuscito: %1$s</string>
     <string name="library_download_cancelled">Download annullato</string>
     <string name="library_import_action">Importa voce</string>
     <string name="library_open_settings">Impostazioni</string>
-    <string name="library_test_download">Download di prova (Alan, en-GB)</string>
-    <string name="library_test_download_again">Riscarica Alan</string>
 
-    <string name="voice_amy_subtitle">Inglese (USA) • Piper • Qualità bassa</string>
     <string name="voice_chip_bundled">Inclusa</string>
     <string name="voice_chip_coming_soon">Prossimamente</string>
     <string name="voice_chip_recommended">Consigliata per il tuo dispositivo</string>
     <string name="custom_chip">Personalizzata</string>
-    <string name="voice_preview_action">Anteprima</string>
     <string name="voice_favorite">Aggiungi ai preferiti</string>
     <string name="voice_unfavorite">Rimuovi dai preferiti</string>
 
-    <string name="browse_title">Sfoglia modelli</string>
-    <string name="browse_subtitle">%1$d voci</string>
     <string name="browse_empty_title">Nessuna voce corrisponde ai filtri</string>
     <string name="browse_empty_subtitle">Prova ad ampliare i filtri di lingua o qualità.</string>
-    <string name="browse_search_placeholder">Cerca voci</string>
     <string name="browse_search_placeholder_count">Cerca tra %1$d voci</string>
     <string name="browse_open_filters">Apri filtri</string>
     <string name="browse_filter_sheet_title">Filtri</string>
@@ -41,9 +32,7 @@
     <string name="browse_filter_language">Lingua</string>
     <string name="browse_filter_tier">Qualità</string>
     <string name="browse_filter_family">Famiglia</string>
-    <string name="browse_filter_clear">Cancella</string>
     <string name="browse_filter_clear_all">Cancella filtri</string>
-    <string name="browse_filter_apply">Applica</string>
     <string name="browse_filter_gender">Tipo di voce</string>
     <string name="browse_filter_gender_female">Femminile</string>
     <string name="browse_filter_gender_male">Maschile</string>
@@ -52,7 +41,6 @@
     <string name="browse_tier_low">Bassa</string>
     <string name="browse_tier_mid">Media</string>
     <string name="browse_tier_high">Alta</string>
-    <string name="browse_refresh">Aggiorna catalogo</string>
 
     <string name="action_clear">Cancella</string>
     <string name="action_install">Installa</string>
@@ -70,7 +58,6 @@
 
     <string name="voice_default_label">Predefinita per %1$s</string>
     <string name="voice_set_default">Imposta come predefinita per %1$s</string>
-    <string name="voice_clear_default">Rimuovi predefinita</string>
     <string name="voice_choose_default_speaker">Scegli speaker predefinito…</string>
     <string name="speaker_picker_title">Speaker predefinito</string>
     <string name="speaker_picker_reset">Usa quello della voce</string>
@@ -86,8 +73,6 @@
     <string name="voice_detail_install_primary">Installa voce</string>
     <string name="voice_detail_cancel_primary">Annulla download</string>
     <string name="voice_detail_uninstall_action">Disinstalla</string>
-    <string name="voice_detail_set_default_action">Imposta predefinita</string>
-    <string name="voice_detail_clear_default_action">Rimuovi predefinita</string>
     <string name="voice_detail_open_playground">Apri nel Playground</string>
     <string name="voice_detail_coming_soon_hint">Questa famiglia di modelli non è ancora supportata dalla build sherpa-onnx corrente. Un aggiornamento futuro la abiliterà.</string>
 
@@ -97,8 +82,6 @@
 
     <string name="download_in_progress">Download della voce neurale in corso…</string>
     <string name="download_extracting">Estrazione…</string>
-    <string name="download_channel_name">Download voci</string>
-    <string name="download_channel_description">Notifiche mostrate durante il download o l\'estrazione di un modello di voce.</string>
     <string name="download_active_channel_name">Download voci (attivi)</string>
     <string name="download_active_channel_description">Avanzamento dei download voci in corso.</string>
     <string name="download_complete_channel_name">Download voci (completati)</string>
@@ -120,7 +103,6 @@
     <string name="import_analyzing">Analisi del pacchetto…</string>
     <string name="import_analyzing_failed">Impossibile leggere il pacchetto: %1$s</string>
     <string name="import_unsupported_family">%1$s non è ancora supportato in questa versione.</string>
-    <string name="import_detected_family">Famiglia rilevata</string>
     <string name="import_family_override">Famiglia</string>
     <string name="import_voice_name">Nome della voce</string>
     <string name="import_languages">Lingue</string>
@@ -131,9 +113,6 @@
     <string name="import_progress_copying">Copia del pacchetto…</string>
     <string name="import_progress_extracting">Estrazione…</string>
     <string name="import_progress_validating">Convalida…</string>
-    <string name="import_validation_failed">Nel pacchetto manca %1$s per %2$s. Scegli un\'altra famiglia o annulla.</string>
-    <string name="import_done">Importazione completata.</string>
-    <string name="import_size_label">%1$s · %2$d KB</string>
     <string name="import_lang_add">Aggiungi lingua</string>
     <string name="import_lang_add_placeholder">Tag BCP-47 (es. it-IT)</string>
     <string name="import_lang_add_ok">Aggiungi</string>
@@ -150,7 +129,6 @@
 
     <string name="settings_title">Impostazioni</string>
     <string name="settings_subtitle">Imposta download, archiviazione e predefinite</string>
-    <string name="settings_license">Licenza: GPL-3.0</string>
     <string name="settings_section_downloads">Download</string>
     <string name="settings_wifi_only">Solo Wi-Fi</string>
     <string name="settings_wifi_only_subtitle">Blocca i download su reti mobili a consumo.</string>
@@ -158,7 +136,6 @@
     <string name="settings_storage_internal">Memoria interna</string>
     <string name="settings_storage_external">Scheda SD esterna</string>
     <string name="settings_storage_external_unavailable">Nessuna memoria esterna rilevata</string>
-    <string name="settings_storage_restart_hint">Cambiare questa opzione sposta tutte le voci installate nel nuovo percorso.</string>
     <string name="settings_storage_moving">Spostamento voce %1$d / %2$d (%3$s)…</string>
     <string name="settings_storage_move_failed">Spostamento non riuscito: %1$s</string>
     <string name="settings_section_defaults">Voci predefinite</string>
@@ -305,7 +282,6 @@
     <string name="downloads_empty_title">Nessun download in corso</string>
     <string name="downloads_empty_subtitle">I download che avvii da Sfoglia appariranno qui.</string>
     <string name="downloads_status_queued">In coda</string>
-    <string name="downloads_status_extracting">Estrazione…</string>
     <string name="downloads_status_extracting_pct">Estrazione %1$d%%</string>
     <string name="downloads_status_failed">Non riuscito: %1$s</string>
     <string name="downloads_status_completed">Completato</string>

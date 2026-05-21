@@ -1,5 +1,6 @@
 package dev.ahmedmohamed.hayaitts.ui.settings
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -32,6 +33,7 @@ import java.io.File
  * the Storage section refreshes the on-disk total in IO and pushes the
  * result back through [recomputedSizes].
  */
+@SuppressLint("StaticFieldLeak") // Koin wires `context` with androidContext() — guaranteed Application — so the field-leak rule fires on a false positive.
 class SettingsViewModel(
     private val context: Context,
     private val settings: SettingsRepository,

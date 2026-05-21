@@ -10,28 +10,19 @@
     <string name="library_featured">추천</string>
     <string name="library_installed_header">설치된 모든 음성</string>
     <string name="library_downloading">다운로드 중…</string>
-    <string name="library_extracting">압축 해제 중…</string>
-    <string name="library_download_failed">다운로드 실패: %1$s</string>
     <string name="library_download_cancelled">다운로드를 취소했습니다</string>
     <string name="library_import_action">음성 가져오기</string>
     <string name="library_open_settings">설정</string>
-    <string name="library_test_download">테스트 다운로드 (Alan, en-GB)</string>
-    <string name="library_test_download_again">Alan 다시 다운로드</string>
 
-    <string name="voice_amy_subtitle">영어(미국) • Piper • 저품질</string>
     <string name="voice_chip_bundled">내장</string>
     <string name="voice_chip_coming_soon">곧 제공</string>
     <string name="voice_chip_recommended">기기에 추천</string>
     <string name="custom_chip">사용자 지정</string>
-    <string name="voice_preview_action">미리듣기</string>
     <string name="voice_favorite">즐겨찾기에 추가</string>
     <string name="voice_unfavorite">즐겨찾기에서 제거</string>
 
-    <string name="browse_title">모델 둘러보기</string>
-    <string name="browse_subtitle">음성 %1$d개</string>
     <string name="browse_empty_title">필터에 맞는 음성이 없습니다</string>
     <string name="browse_empty_subtitle">언어나 품질 필터를 넓혀 보세요.</string>
-    <string name="browse_search_placeholder">음성 검색</string>
     <string name="browse_search_placeholder_count">음성 %1$d개에서 검색</string>
     <string name="browse_open_filters">필터 열기</string>
     <string name="browse_filter_sheet_title">필터</string>
@@ -40,9 +31,7 @@
     <string name="browse_filter_language">언어</string>
     <string name="browse_filter_tier">품질</string>
     <string name="browse_filter_family">계열</string>
-    <string name="browse_filter_clear">지우기</string>
     <string name="browse_filter_clear_all">필터 지우기</string>
-    <string name="browse_filter_apply">적용</string>
     <string name="browse_filter_gender">음성 유형</string>
     <string name="browse_filter_gender_female">여성</string>
     <string name="browse_filter_gender_male">남성</string>
@@ -51,7 +40,6 @@
     <string name="browse_tier_low">낮음</string>
     <string name="browse_tier_mid">중간</string>
     <string name="browse_tier_high">높음</string>
-    <string name="browse_refresh">카탈로그 새로고침</string>
 
     <string name="action_clear">지우기</string>
     <string name="action_install">설치</string>
@@ -69,7 +57,6 @@
 
     <string name="voice_default_label">%1$s 기본값</string>
     <string name="voice_set_default">%1$s 기본값으로 설정</string>
-    <string name="voice_clear_default">기본값 해제</string>
     <string name="voice_choose_default_speaker">기본 화자 선택…</string>
     <string name="speaker_picker_title">기본 화자</string>
     <string name="speaker_picker_reset">음성 기본값 사용</string>
@@ -85,8 +72,6 @@
     <string name="voice_detail_install_primary">음성 설치</string>
     <string name="voice_detail_cancel_primary">다운로드 취소</string>
     <string name="voice_detail_uninstall_action">제거</string>
-    <string name="voice_detail_set_default_action">기본값 설정</string>
-    <string name="voice_detail_clear_default_action">기본값 해제</string>
     <string name="voice_detail_open_playground">Playground에서 열기</string>
     <string name="voice_detail_coming_soon_hint">이 모델 계열은 현재 sherpa-onnx 빌드에서 지원되지 않습니다. 추후 업데이트에서 활성화됩니다.</string>
 
@@ -96,8 +81,6 @@
 
     <string name="download_in_progress">뉴럴 음성 다운로드 중…</string>
     <string name="download_extracting">압축 해제 중…</string>
-    <string name="download_channel_name">음성 다운로드</string>
-    <string name="download_channel_description">음성 모델을 다운로드하거나 압축 해제하는 동안 표시되는 알림입니다.</string>
     <string name="download_active_channel_name">음성 다운로드(진행)</string>
     <string name="download_active_channel_description">진행 중인 음성 다운로드의 진행률.</string>
     <string name="download_complete_channel_name">음성 다운로드(완료)</string>
@@ -119,7 +102,6 @@
     <string name="import_analyzing">패키지 분석 중…</string>
     <string name="import_analyzing_failed">패키지를 읽을 수 없음: %1$s</string>
     <string name="import_unsupported_family">%1$s 은(는) 이 빌드에서 아직 지원되지 않습니다.</string>
-    <string name="import_detected_family">감지된 계열</string>
     <string name="import_family_override">계열</string>
     <string name="import_voice_name">음성 이름</string>
     <string name="import_languages">언어</string>
@@ -130,9 +112,6 @@
     <string name="import_progress_copying">패키지 복사 중…</string>
     <string name="import_progress_extracting">압축 해제 중…</string>
     <string name="import_progress_validating">유효성 검사 중…</string>
-    <string name="import_validation_failed">%2$s 에 필요한 %1$s 이(가) 패키지에 없습니다. 다른 계열을 선택하거나 취소하세요.</string>
-    <string name="import_done">가져오기를 완료했습니다.</string>
-    <string name="import_size_label">%1$s · %2$d KB</string>
     <string name="import_lang_add">언어 추가</string>
     <string name="import_lang_add_placeholder">BCP-47 태그(예: ko-KR)</string>
     <string name="import_lang_add_ok">추가</string>
@@ -149,7 +128,6 @@
 
     <string name="settings_title">설정</string>
     <string name="settings_subtitle">다운로드, 저장소, 기본값 조정</string>
-    <string name="settings_license">라이선스: GPL-3.0</string>
     <string name="settings_section_downloads">다운로드</string>
     <string name="settings_wifi_only">Wi-Fi에서만</string>
     <string name="settings_wifi_only_subtitle">데이터 요금이 부과되는 모바일 네트워크에서 다운로드를 차단합니다.</string>
@@ -157,7 +135,6 @@
     <string name="settings_storage_internal">내부 저장소</string>
     <string name="settings_storage_external">외장 SD 카드</string>
     <string name="settings_storage_external_unavailable">외부 저장소를 찾지 못함</string>
-    <string name="settings_storage_restart_hint">이 설정을 바꾸면 설치된 모든 음성이 새 위치로 이동합니다.</string>
     <string name="settings_storage_moving">음성 이동 중 %1$d / %2$d (%3$s)…</string>
     <string name="settings_storage_move_failed">이동 실패: %1$s</string>
     <string name="settings_section_defaults">기본 음성</string>
@@ -304,7 +281,6 @@
     <string name="downloads_empty_title">다운로드 중인 항목 없음</string>
     <string name="downloads_empty_subtitle">둘러보기에서 시작한 다운로드가 여기에 표시됩니다.</string>
     <string name="downloads_status_queued">대기 중</string>
-    <string name="downloads_status_extracting">압축 해제 중…</string>
     <string name="downloads_status_extracting_pct">압축 해제 %1$d%%</string>
     <string name="downloads_status_failed">실패: %1$s</string>
     <string name="downloads_status_completed">완료</string>

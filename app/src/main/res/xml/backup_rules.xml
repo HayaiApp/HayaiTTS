@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup rules for Android < 12. Empty by design: android:allowBackup is
+  already false in the manifest, but lint also wants this file so the
+  full-backup pathway has a configured (and empty) rule set. Downloaded voice
+  models live under cacheDir and are excluded from backups anyway.
+-->
+<full-backup-content>
+</full-backup-content>

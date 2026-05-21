@@ -10,28 +10,19 @@
     <string name="library_featured">精选</string>
     <string name="library_installed_header">全部已安装</string>
     <string name="library_downloading">正在下载…</string>
-    <string name="library_extracting">正在解压…</string>
-    <string name="library_download_failed">下载失败：%1$s</string>
     <string name="library_download_cancelled">下载已取消</string>
     <string name="library_import_action">导入语音</string>
     <string name="library_open_settings">设置</string>
-    <string name="library_test_download">测试下载（Alan, en-GB）</string>
-    <string name="library_test_download_again">重新下载 Alan</string>
 
-    <string name="voice_amy_subtitle">英语（美国）• Piper • 低质量</string>
     <string name="voice_chip_bundled">内置</string>
     <string name="voice_chip_coming_soon">即将推出</string>
     <string name="voice_chip_recommended">推荐给你的设备</string>
     <string name="custom_chip">自定义</string>
-    <string name="voice_preview_action">预览</string>
     <string name="voice_favorite">收藏语音</string>
     <string name="voice_unfavorite">取消收藏</string>
 
-    <string name="browse_title">浏览模型</string>
-    <string name="browse_subtitle">%1$d 个语音</string>
     <string name="browse_empty_title">没有语音符合所选筛选条件</string>
     <string name="browse_empty_subtitle">尝试放宽语言或质量筛选。</string>
-    <string name="browse_search_placeholder">搜索语音</string>
     <string name="browse_search_placeholder_count">在 %1$d 个语音中搜索</string>
     <string name="browse_open_filters">打开筛选</string>
     <string name="browse_filter_sheet_title">筛选</string>
@@ -40,9 +31,7 @@
     <string name="browse_filter_language">语言</string>
     <string name="browse_filter_tier">质量</string>
     <string name="browse_filter_family">系列</string>
-    <string name="browse_filter_clear">清除</string>
     <string name="browse_filter_clear_all">清除筛选</string>
-    <string name="browse_filter_apply">应用</string>
     <string name="browse_filter_gender">语音类型</string>
     <string name="browse_filter_gender_female">女声</string>
     <string name="browse_filter_gender_male">男声</string>
@@ -51,7 +40,6 @@
     <string name="browse_tier_low">低</string>
     <string name="browse_tier_mid">中</string>
     <string name="browse_tier_high">高</string>
-    <string name="browse_refresh">刷新目录</string>
 
     <string name="action_clear">清除</string>
     <string name="action_install">安装</string>
@@ -69,7 +57,6 @@
 
     <string name="voice_default_label">%1$s 的默认</string>
     <string name="voice_set_default">设为 %1$s 的默认</string>
-    <string name="voice_clear_default">清除默认</string>
     <string name="voice_choose_default_speaker">选择默认讲述人…</string>
     <string name="speaker_picker_title">默认讲述人</string>
     <string name="speaker_picker_reset">使用语音默认</string>
@@ -85,8 +72,6 @@
     <string name="voice_detail_install_primary">安装语音</string>
     <string name="voice_detail_cancel_primary">取消下载</string>
     <string name="voice_detail_uninstall_action">卸载</string>
-    <string name="voice_detail_set_default_action">设为默认</string>
-    <string name="voice_detail_clear_default_action">清除默认</string>
     <string name="voice_detail_open_playground">在 Playground 中打开</string>
     <string name="voice_detail_coming_soon_hint">当前 sherpa-onnx 构建尚不支持该模型系列。未来的更新将启用它。</string>
 
@@ -96,8 +81,6 @@
 
     <string name="download_in_progress">正在下载神经语音…</string>
     <string name="download_extracting">正在解压…</string>
-    <string name="download_channel_name">语音下载</string>
-    <string name="download_channel_description">在下载或解压语音模型时显示的通知。</string>
     <string name="download_active_channel_name">语音下载（进行中）</string>
     <string name="download_active_channel_description">正在进行的语音下载进度。</string>
     <string name="download_complete_channel_name">语音下载（已完成）</string>
@@ -119,7 +102,6 @@
     <string name="import_analyzing">正在分析语音包…</string>
     <string name="import_analyzing_failed">无法读取该语音包：%1$s</string>
     <string name="import_unsupported_family">本版本暂不支持 %1$s。</string>
-    <string name="import_detected_family">检测到的系列</string>
     <string name="import_family_override">系列</string>
     <string name="import_voice_name">语音名称</string>
     <string name="import_languages">语言</string>
@@ -130,9 +112,6 @@
     <string name="import_progress_copying">正在复制语音包…</string>
     <string name="import_progress_extracting">正在解压…</string>
     <string name="import_progress_validating">正在校验…</string>
-    <string name="import_validation_failed">语音包缺少 %2$s 所需的 %1$s。请选择其他系列或取消。</string>
-    <string name="import_done">导入完成。</string>
-    <string name="import_size_label">%1$s · %2$d KB</string>
     <string name="import_lang_add">添加语言</string>
     <string name="import_lang_add_placeholder">BCP-47 标签（例如 zh-CN）</string>
     <string name="import_lang_add_ok">添加</string>
@@ -149,7 +128,6 @@
 
     <string name="settings_title">设置</string>
     <string name="settings_subtitle">调整下载、存储、默认设置</string>
-    <string name="settings_license">许可证：GPL-3.0</string>
     <string name="settings_section_downloads">下载</string>
     <string name="settings_wifi_only">仅 Wi-Fi</string>
     <string name="settings_wifi_only_subtitle">在按流量计费的移动网络上阻止下载。</string>
@@ -157,7 +135,6 @@
     <string name="settings_storage_internal">内部存储</string>
     <string name="settings_storage_external">外置 SD 卡</string>
     <string name="settings_storage_external_unavailable">未检测到外部存储</string>
-    <string name="settings_storage_restart_hint">切换此选项会把已安装的全部语音迁移到新位置。</string>
     <string name="settings_storage_moving">正在移动语音 %1$d / %2$d (%3$s)…</string>
     <string name="settings_storage_move_failed">移动失败：%1$s</string>
     <string name="settings_section_defaults">默认语音</string>
@@ -304,7 +281,6 @@
     <string name="downloads_empty_title">没有正在下载的项目</string>
     <string name="downloads_empty_subtitle">在「浏览」中开始的下载会显示在这里。</string>
     <string name="downloads_status_queued">排队中</string>
-    <string name="downloads_status_extracting">正在解压…</string>
     <string name="downloads_status_extracting_pct">正在解压 %1$d%%</string>
     <string name="downloads_status_failed">失败：%1$s</string>
     <string name="downloads_status_completed">已完成</string>

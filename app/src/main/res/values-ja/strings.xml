@@ -10,28 +10,19 @@
     <string name="library_featured">注目</string>
     <string name="library_installed_header">インストール済みすべて</string>
     <string name="library_downloading">ダウンロード中…</string>
-    <string name="library_extracting">展開中…</string>
-    <string name="library_download_failed">ダウンロード失敗: %1$s</string>
     <string name="library_download_cancelled">ダウンロードをキャンセルしました</string>
     <string name="library_import_action">音声をインポート</string>
     <string name="library_open_settings">設定</string>
-    <string name="library_test_download">テストダウンロード (Alan, en-GB)</string>
-    <string name="library_test_download_again">Alan を再ダウンロード</string>
 
-    <string name="voice_amy_subtitle">英語（米国）• Piper • 低品質</string>
     <string name="voice_chip_bundled">同梱</string>
     <string name="voice_chip_coming_soon">近日提供</string>
     <string name="voice_chip_recommended">このデバイスにおすすめ</string>
     <string name="custom_chip">カスタム</string>
-    <string name="voice_preview_action">プレビュー</string>
     <string name="voice_favorite">お気に入りに追加</string>
     <string name="voice_unfavorite">お気に入りから外す</string>
 
-    <string name="browse_title">モデルを見る</string>
-    <string name="browse_subtitle">%1$d 個の音声</string>
     <string name="browse_empty_title">条件に合う音声はありません</string>
     <string name="browse_empty_subtitle">言語や品質のフィルターを広げてみてください。</string>
-    <string name="browse_search_placeholder">音声を検索</string>
     <string name="browse_search_placeholder_count">%1$d 個の音声から検索</string>
     <string name="browse_open_filters">フィルターを開く</string>
     <string name="browse_filter_sheet_title">フィルター</string>
@@ -40,9 +31,7 @@
     <string name="browse_filter_language">言語</string>
     <string name="browse_filter_tier">品質</string>
     <string name="browse_filter_family">ファミリー</string>
-    <string name="browse_filter_clear">クリア</string>
     <string name="browse_filter_clear_all">フィルターをクリア</string>
-    <string name="browse_filter_apply">適用</string>
     <string name="browse_filter_gender">音声タイプ</string>
     <string name="browse_filter_gender_female">女性</string>
     <string name="browse_filter_gender_male">男性</string>
@@ -51,7 +40,6 @@
     <string name="browse_tier_low">低</string>
     <string name="browse_tier_mid">中</string>
     <string name="browse_tier_high">高</string>
-    <string name="browse_refresh">カタログを更新</string>
 
     <string name="action_clear">クリア</string>
     <string name="action_install">インストール</string>
@@ -69,7 +57,6 @@
 
     <string name="voice_default_label">%1$s の既定</string>
     <string name="voice_set_default">%1$s の既定に設定</string>
-    <string name="voice_clear_default">既定を解除</string>
     <string name="voice_choose_default_speaker">既定の話者を選択…</string>
     <string name="speaker_picker_title">既定の話者</string>
     <string name="speaker_picker_reset">音声の既定に戻す</string>
@@ -85,8 +72,6 @@
     <string name="voice_detail_install_primary">音声をインストール</string>
     <string name="voice_detail_cancel_primary">ダウンロードをキャンセル</string>
     <string name="voice_detail_uninstall_action">アンインストール</string>
-    <string name="voice_detail_set_default_action">既定に設定</string>
-    <string name="voice_detail_clear_default_action">既定を解除</string>
     <string name="voice_detail_open_playground">Playground で開く</string>
     <string name="voice_detail_coming_soon_hint">このモデルファミリーは現在の sherpa-onnx ビルドではサポートされていません。今後のアップデートで対応予定です。</string>
 
@@ -96,8 +81,6 @@
 
     <string name="download_in_progress">ニューラル音声をダウンロード中…</string>
     <string name="download_extracting">展開中…</string>
-    <string name="download_channel_name">音声ダウンロード</string>
-    <string name="download_channel_description">音声モデルのダウンロードや展開中に表示される通知です。</string>
     <string name="download_active_channel_name">音声ダウンロード（進行中）</string>
     <string name="download_active_channel_description">進行中の音声ダウンロードの進捗。</string>
     <string name="download_complete_channel_name">音声ダウンロード（完了）</string>
@@ -119,7 +102,6 @@
     <string name="import_analyzing">パッケージを解析中…</string>
     <string name="import_analyzing_failed">このパッケージを読み取れませんでした: %1$s</string>
     <string name="import_unsupported_family">%1$s はこのビルドでは未対応です。</string>
-    <string name="import_detected_family">検出されたファミリー</string>
     <string name="import_family_override">ファミリー</string>
     <string name="import_voice_name">音声名</string>
     <string name="import_languages">言語</string>
@@ -130,9 +112,6 @@
     <string name="import_progress_copying">パッケージをコピー中…</string>
     <string name="import_progress_extracting">展開中…</string>
     <string name="import_progress_validating">検証中…</string>
-    <string name="import_validation_failed">%2$s に必要な %1$s がパッケージにありません。別のファミリーを選ぶかキャンセルしてください。</string>
-    <string name="import_done">インポートが完了しました。</string>
-    <string name="import_size_label">%1$s · %2$d KB</string>
     <string name="import_lang_add">言語を追加</string>
     <string name="import_lang_add_placeholder">BCP-47 タグ（例: ja-JP）</string>
     <string name="import_lang_add_ok">追加</string>
@@ -149,7 +128,6 @@
 
     <string name="settings_title">設定</string>
     <string name="settings_subtitle">ダウンロード・ストレージ・既定を調整</string>
-    <string name="settings_license">ライセンス: GPL-3.0</string>
     <string name="settings_section_downloads">ダウンロード</string>
     <string name="settings_wifi_only">Wi-Fi のみ</string>
     <string name="settings_wifi_only_subtitle">従量課金のモバイル回線でのダウンロードをブロック。</string>
@@ -157,7 +135,6 @@
     <string name="settings_storage_internal">内部ストレージ</string>
     <string name="settings_storage_external">外部 SD カード</string>
     <string name="settings_storage_external_unavailable">外部ストレージが見つかりません</string>
-    <string name="settings_storage_restart_hint">この設定を変更すると、インストール済みのすべての音声を新しい場所へ移動します。</string>
     <string name="settings_storage_moving">音声を移動中 %1$d / %2$d (%3$s)…</string>
     <string name="settings_storage_move_failed">移動に失敗: %1$s</string>
     <string name="settings_section_defaults">既定の音声</string>
@@ -304,7 +281,6 @@
     <string name="downloads_empty_title">ダウンロード中の項目はありません</string>
     <string name="downloads_empty_subtitle">「見る」から開始したダウンロードがここに表示されます。</string>
     <string name="downloads_status_queued">待機中</string>
-    <string name="downloads_status_extracting">展開中…</string>
     <string name="downloads_status_extracting_pct">展開中 %1$d%%</string>
     <string name="downloads_status_failed">失敗: %1$s</string>
     <string name="downloads_status_completed">完了</string>
