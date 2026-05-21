@@ -86,9 +86,8 @@ fun CustomImportScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            androidx.compose.material3.LargeFlexibleTopAppBar(
+            androidx.compose.material3.TopAppBar(
                 title = { Text(stringResource(R.string.import_title)) },
-                subtitle = { Text(stringResource(R.string.import_subtitle)) },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Icon(
@@ -212,11 +211,9 @@ private fun ImportStepper(phase: CustomImportViewModel.Phase) {
 @Composable
 private fun AnalyzingBody() {
     PhasePanel(
-        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(
-            topStart = 48.dp, topEnd = 32.dp, bottomEnd = 48.dp, bottomStart = 32.dp,
-        ),
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
     ) {
         ContainedLoadingIndicator()
         Spacer(Modifier.height(20.dp))
@@ -473,23 +470,9 @@ private fun AddLanguageDialog(
 
 @Composable
 private fun ImportingBody(progress: CustomBundleInstaller.Progress) {
-    val (containerColor, contentColor) = when (progress.step) {
-        CustomBundleInstaller.Step.Copying ->
-            MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
-        CustomBundleInstaller.Step.Extracting ->
-            MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
-        CustomBundleInstaller.Step.Validating ->
-            MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
-    }
-    val shape = when (progress.step) {
-        CustomBundleInstaller.Step.Copying -> androidx.compose.foundation.shape.RoundedCornerShape(
-            topStart = 32.dp, topEnd = 56.dp, bottomEnd = 32.dp, bottomStart = 56.dp,
-        )
-        CustomBundleInstaller.Step.Extracting -> androidx.compose.foundation.shape.RoundedCornerShape(
-            topStart = 56.dp, topEnd = 32.dp, bottomEnd = 56.dp, bottomStart = 32.dp,
-        )
-        CustomBundleInstaller.Step.Validating -> androidx.compose.foundation.shape.RoundedCornerShape(48.dp)
-    }
+    val containerColor = MaterialTheme.colorScheme.surfaceContainer
+    val contentColor = MaterialTheme.colorScheme.onSurface
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
     PhasePanel(
         containerColor = containerColor,
         contentColor = contentColor,

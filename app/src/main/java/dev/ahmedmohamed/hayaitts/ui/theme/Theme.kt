@@ -57,7 +57,10 @@ private val DarkScheme: ColorScheme = expressiveDarkColorScheme().copy(
 @Composable
 fun HayaiTtsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    // v2: dynamic color is **off by default** so the system wallpaper never
+    // bleeds tints into the UI. The monochrome scheme is the design contract.
+    // Callers that need wallpaper-derived theming can opt back in explicitly.
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme: ColorScheme = when {

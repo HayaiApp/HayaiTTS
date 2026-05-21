@@ -2,7 +2,6 @@
 
 package dev.ahmedmohamed.hayaitts.ui.library
 
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -32,22 +31,16 @@ import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Reorder
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -69,18 +62,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.R
-import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
-import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
 import dev.ahmedmohamed.hayaitts.ui.components.EmptyState
 import dev.ahmedmohamed.hayaitts.ui.components.FeaturedVoiceCard
-import dev.ahmedmohamed.hayaitts.ui.components.HayaiRichTooltipBox
 import dev.ahmedmohamed.hayaitts.ui.components.InstalledVoiceCard
-import dev.ahmedmohamed.hayaitts.ui.settings.SettingsActivity
 import dev.ahmedmohamed.hayaitts.ui.speaker.SpeakerPickerActivity
-import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 
 /**
  * The home tab. Hosts:
@@ -105,19 +92,6 @@ fun LibraryScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
 
-    // P2: count active downloads for the top-bar badge. Sourced from Koin so
-    // we do not have to grow the LibraryViewModel.
-    val downloadRepository: DownloadRepository = koinInject()
-    val activeDownloadCount by remember(downloadRepository) {
-        downloadRepository.states.map { snapshot ->
-            snapshot.values.count { s ->
-                s is DownloadState.Queued ||
-                    s is DownloadState.Running ||
-                    s is DownloadState.Extracting
-            }
-        }
-    }.collectAsStateWithLifecycle(initialValue = 0)
-
     var pendingUninstall by remember { mutableStateOf<InstalledVoice?>(null) }
     var reorderMode by remember { mutableStateOf(false) }
 
@@ -132,57 +106,28 @@ fun LibraryScreen(
     ) { uri -> if (uri != null) onImport(uri.toString()) }
 
     val context = LocalContext.current
-    val openSettings = {
-        context.startActivity(Intent(context, SettingsActivity::class.java))
-    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            MediumFlexibleTopAppBar(
+            TopAppBar(
                 title = { Text(stringResource(R.string.library_title)) },
-                subtitle = {
-                    Text(
-                        text = stringResource(
-                            R.string.library_subtitle,
-                            state.installed.size,
-                        ),
-                    )
-                },
                 actions = {
-                    HayaiRichTooltipBox(
-                        title = stringResource(R.string.tooltip_quick_switch_title),
-                        description = stringResource(R.string.tooltip_quick_switch_body),
-                    ) {
-                        IconButton(onClick = onOpenQuickSwitch) {
-                            Icon(
-                                Icons.Outlined.SwapHoriz,
-                                contentDescription = stringResource(R.string.quick_switch_title),
-                            )
-                        }
+                    IconButton(onClick = onOpenQuickSwitch) {
+                        Icon(
+                            Icons.Outlined.SwapHoriz,
+                            contentDescription = stringResource(R.string.quick_switch_title),
+                        )
                     }
-                    HayaiRichTooltipBox(
-                        title = stringResource(R.string.tooltip_import_title),
-                        description = stringResource(R.string.tooltip_import_body),
-                    ) {
-                        IconButton(
-                            onClick = {
-                                // Broad MIME filter — tar.bz2 has no canonical type;
-                                // .onnx files surface as octet-stream; the */* is a
-                                // last-resort for strict pickers.
-                                pickFile.launch(IMPORT_MIME_TYPES)
-                            },
-                        ) {
-                            Icon(
-                                Icons.Outlined.UploadFile,
-                                contentDescription = stringResource(R.string.library_import_action),
-                            )
-                        }
+                    IconButton(onClick = { pickFile.launch(IMPORT_MIME_TYPES) }) {
+                        Icon(
+                            Icons.Outlined.UploadFile,
+                            contentDescription = stringResource(R.string.library_import_action),
+                        )
                     }
                     AnimatedVisibility(visible = state.installed.isNotEmpty()) {
                         IconButton(onClick = {
                             if (reorderMode) {
-                                // Commit: persist the buffer's current order.
                                 viewModel.saveVoiceOrder(orderBuffer.map { it.voiceId })
                                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             }
@@ -196,40 +141,10 @@ fun LibraryScreen(
                             )
                         }
                     }
-                    // Downloads entry: badge shows active count when > 0.
-                    BadgedBox(
-                        badge = {
-                            if (activeDownloadCount > 0) {
-                                Badge { Text("$activeDownloadCount") }
-                            }
-                        },
-                    ) {
-                        IconButton(onClick = onOpenDownloads) {
-                            Icon(
-                                Icons.Outlined.CloudDownload,
-                                contentDescription = stringResource(R.string.downloads_open),
-                            )
-                        }
-                    }
-                    IconButton(onClick = openSettings) {
-                        Icon(
-                            Icons.Outlined.Settings,
-                            contentDescription = stringResource(R.string.library_open_settings),
-                        )
-                    }
                 },
                 scrollBehavior = scrollBehavior,
             )
         },
-        floatingActionButton = {
-            LibraryFloatingActions(
-                onBrowse = onBrowse,
-                onQuickSwitch = onOpenQuickSwitch,
-                onImport = { pickFile.launch(IMPORT_MIME_TYPES) },
-                visible = !reorderMode,
-            )
-        },
-        floatingActionButtonPosition = FabPosition.Center,
     ) { innerPadding ->
         AnimatedContent(
             targetState = state.installed.isEmpty(),
@@ -324,10 +239,12 @@ private fun LibraryBody(
         if (voices.size > 1) {
             item("featured_header") {
                 Text(
-                    text = stringResource(R.string.library_featured),
-                    style = androidx.compose.material3.MaterialTheme.typography.titleSmall,
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    text = stringResource(R.string.library_featured).uppercase(),
+                    style = androidx.compose.material3.MaterialTheme.typography.labelMedium.copy(
+                        letterSpacing = androidx.compose.ui.unit.TextUnit(1.2f, androidx.compose.ui.unit.TextUnitType.Sp),
+                    ),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
                 )
             }
             item("featured_row") {
@@ -353,10 +270,12 @@ private fun LibraryBody(
             }
             item("installed_header") {
                 Text(
-                    text = stringResource(R.string.library_installed_header),
-                    style = androidx.compose.material3.MaterialTheme.typography.titleSmall,
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
+                    text = stringResource(R.string.library_installed_header).uppercase(),
+                    style = androidx.compose.material3.MaterialTheme.typography.labelMedium.copy(
+                        letterSpacing = androidx.compose.ui.unit.TextUnit(1.2f, androidx.compose.ui.unit.TextUnitType.Sp),
+                    ),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 16.dp),
                 )
             }
         }
@@ -497,46 +416,6 @@ private fun ReorderRow(
                 imageVector = Icons.Outlined.KeyboardArrowDown,
                 contentDescription = stringResource(R.string.action_move_down),
             )
-        }
-    }
-}
-
-/**
- * Bottom-anchored M3 Expressive [HorizontalFloatingToolbar]. Hidden during
- * reorder so it doesn't compete with the on-card move buttons. Hosted in the
- * Scaffold's `floatingActionButton` slot so it doesn't intercept list taps.
- */
-@Composable
-private fun LibraryFloatingActions(
-    onBrowse: () -> Unit,
-    onQuickSwitch: () -> Unit,
-    onImport: () -> Unit,
-    visible: Boolean,
-) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn() + expandVertically(),
-        exit = fadeOut() + shrinkVertically(),
-    ) {
-        HorizontalFloatingToolbar(expanded = true) {
-            IconButton(onClick = onBrowse) {
-                Icon(
-                    Icons.Outlined.Search,
-                    contentDescription = stringResource(R.string.library_browse_action),
-                )
-            }
-            IconButton(onClick = onImport) {
-                Icon(
-                    Icons.Outlined.UploadFile,
-                    contentDescription = stringResource(R.string.library_import_action),
-                )
-            }
-            IconButton(onClick = onQuickSwitch) {
-                Icon(
-                    Icons.Outlined.SwapHoriz,
-                    contentDescription = stringResource(R.string.quick_switch_title),
-                )
-            }
         }
     }
 }

@@ -111,9 +111,8 @@ fun PlaygroundScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.playground_title)) },
-                subtitle = { Text(state.title) },
+            androidx.compose.material3.TopAppBar(
+                title = { Text(state.title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.action_back))
@@ -337,7 +336,7 @@ private fun SpeakerChip(speaker: Speaker, selected: Boolean, onPick: () -> Unit,
     )
     Row(
         modifier = Modifier.clip(RoundedCornerShape(50))
-            .background(if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface)
+            .background(if (selected) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.surface)
             .then(if (borderWidth > 0f) Modifier.border(borderWidth.dp, accent, RoundedCornerShape(50)) else Modifier)
             .clickable(onClick = onPick)
             .padding(horizontal = 12.dp, vertical = 8.dp),

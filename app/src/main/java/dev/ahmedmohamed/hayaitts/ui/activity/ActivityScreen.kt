@@ -20,12 +20,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.MultiChoiceSegmentedButtonRow
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -61,11 +60,24 @@ fun ActivityScreen(onBack: () -> Unit) {
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            MediumFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.activity_title)) },
-                subtitle = { Text(stringResource(R.string.activity_subtitle)) },
-                scrollBehavior = scrollBehavior,
-            )
+            Column {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.activity_title)) },
+                    scrollBehavior = scrollBehavior,
+                )
+                PrimaryScrollableTabRow(
+                    selectedTabIndex = Pane.entries.indexOf(selected),
+                    edgePadding = 16.dp,
+                ) {
+                    Pane.entries.forEachIndexed { i, pane ->
+                        Tab(
+                            selected = selected == pane,
+                            onClick = { selected = pane },
+                            text = { Text(stringResource(pane.labelRes), maxLines = 1) },
+                        )
+                    }
+                }
+            }
         },
     ) { padding ->
         Column(
@@ -73,19 +85,6 @@ fun ActivityScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            MultiChoiceSegmentedButtonRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-            ) {
-                Pane.entries.forEachIndexed { i, pane ->
-                    SegmentedButton(
-                        checked = selected == pane,
-                        onCheckedChange = { selected = pane },
-                        shape = SegmentedButtonDefaults.itemShape(i, Pane.entries.size),
-                    ) { Text(stringResource(pane.labelRes), maxLines = 1) }
-                }
-            }
             when (selected) {
                 Pane.Downloads -> DownloadsPane(state.downloads.filter {
                     it.state is DownloadState.Queued || it.state is DownloadState.Running
@@ -107,45 +106,46 @@ private fun DownloadsPane(rows: List<ActivityViewModel.DownloadRow>) {
         EmptyPane(text = stringResource(R.string.empty_section))
         return
     }
-    LazyColumn(
-        contentPadding = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(rows, key = { it.voiceId }) { row -> DownloadRowCard(row) }
+    LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
+        items(rows, key = { it.voiceId }) { row -> DownloadRowItem(row) }
     }
 }
 
 @Composable
-private fun DownloadRowCard(row: ActivityViewModel.DownloadRow) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
+private fun DownloadRowItem(row: ActivityViewModel.DownloadRow) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(row.title, style = MaterialTheme.typography.titleMedium)
-            val (label, fraction) = when (val s = row.state) {
-                is DownloadState.Idle -> "Idle" to null
-                is DownloadState.Queued -> "Queued" to null
-                is DownloadState.Running -> "${(s.pct * 100).toInt()}%" to s.pct
-                is DownloadState.Extracting -> "Extracting ${(s.pct * 100).toInt()}%" to s.pct
-                is DownloadState.Done -> "Installed" to 1f
-                is DownloadState.Failed -> "Failed: ${s.reason}" to null
-                is DownloadState.Cancelled -> "Cancelled" to null
-            }
-            if (fraction != null) {
-                LinearWavyProgressIndicator(
-                    progress = { fraction },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            } else {
-                LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
-            Text(label, style = MaterialTheme.typography.labelMedium)
+        Text(row.title, style = MaterialTheme.typography.titleMedium)
+        val (label, fraction) = when (val s = row.state) {
+            is DownloadState.Idle -> "Idle" to null
+            is DownloadState.Queued -> "Queued" to null
+            is DownloadState.Running -> "${(s.pct * 100).toInt()}%" to s.pct
+            is DownloadState.Extracting -> "Extracting ${(s.pct * 100).toInt()}%" to s.pct
+            is DownloadState.Done -> "Installed" to 1f
+            is DownloadState.Failed -> "Failed: ${s.reason}" to null
+            is DownloadState.Cancelled -> "Cancelled" to null
         }
+        if (fraction != null) {
+            LinearWavyProgressIndicator(
+                progress = { fraction },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        } else {
+            LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
+    androidx.compose.material3.HorizontalDivider(
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+    )
 }
 
 @Composable
@@ -159,25 +159,26 @@ private fun GenerationsPane(events: List<SynthesisTelemetryRepository.Event>) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(events, key = { it.timestamp }) { event ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                ),
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "${event.voiceId}  ·  ${stringResource(R.string.activity_rtf, event.rtf)}",
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(
-                        text = "synth ${event.synthMs} ms · audio ${event.audioMs} ms · ${event.textLength} chars",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
-                    )
-                }
+                Text(
+                    text = "${event.voiceId}  ·  ${stringResource(R.string.activity_rtf, event.rtf)}",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(
+                    text = "synth ${event.synthMs} ms · audio ${event.audioMs} ms · ${event.textLength} chars",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontFamily = FontFamily.Monospace,
+                )
             }
+            androidx.compose.material3.HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            )
         }
     }
 }
@@ -218,16 +219,19 @@ private fun RequestLogPane(events: List<SynthesisTelemetryRepository.Event>) {
 
 @Composable
 private fun CachePane(installedCount: Int, bytes: Long) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        shape = RoundedCornerShape(24.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.activity_pane_cache), style = MaterialTheme.typography.titleLarge)
-            Text("$installedCount voices installed", style = MaterialTheme.typography.bodyMedium)
-            val mb = bytes / 1_000_000L
-            Text("$mb MB on disk", style = MaterialTheme.typography.bodyMedium)
-        }
+        Text("$installedCount voices installed", style = MaterialTheme.typography.titleMedium)
+        val mb = bytes / 1_000_000L
+        Text(
+            "$mb MB on disk",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

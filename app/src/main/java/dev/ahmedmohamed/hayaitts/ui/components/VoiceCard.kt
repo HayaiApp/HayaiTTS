@@ -9,7 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -92,21 +92,12 @@ fun InstalledVoiceCard(
     onChooseSpeaker: (() -> Unit)? = null,
 ) {
     val family = voice.effectiveFamily ?: voice.family
-    val identity = family.identityOrDefault()
-    Card(
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .border(
-                width = 1.dp,
-                color = identity.accent.copy(alpha = 0.28f),
-                shape = RoundedCornerShape(12.dp),
-            ),
-        onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
+            .clickable(onClick = onClick)
+            .padding(horizontal = 24.dp, vertical = 16.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 FamilyBadge(family = family, downloadState = DownloadState.Done)
                 Spacer(Modifier.size(12.dp))
@@ -164,19 +155,15 @@ fun InstalledVoiceCard(
                                     )
                                 }
                             } else null,
-                            colors = if (isDefault) {
-                                AssistChipDefaults.assistChipColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                )
-                            } else AssistChipDefaults.assistChipColors(),
+                            colors = AssistChipDefaults.assistChipColors(),
                         )
                     }
                 }
             }
-        }
     }
+    androidx.compose.material3.HorizontalDivider(
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+    )
 }
 
 /** Browse variant: a catalog entry with state-driven action button. */
@@ -195,14 +182,12 @@ fun CatalogVoiceCard(
      */
     recommendedTier: Tier? = null,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        onClick = onOpen,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpen)
+            .padding(horizontal = 24.dp, vertical = 16.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 FamilyBadge(family = card.modelFamily, downloadState = downloadState)
                 Spacer(Modifier.size(12.dp))
@@ -234,11 +219,6 @@ fun CatalogVoiceCard(
                                 contentDescription = null,
                             )
                         },
-                        colors = SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            iconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        ),
                     )
                 }
                 if (!card.available) {
@@ -295,8 +275,10 @@ fun CatalogVoiceCard(
                     }
                 }
             }
-        }
     }
+    androidx.compose.material3.HorizontalDivider(
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+    )
 }
 
 private enum class ActionState { Idle, Running, Installed, Unavailable }

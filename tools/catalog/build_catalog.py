@@ -83,6 +83,8 @@ class Voice:
     modelFileName: str | None = None
     lexiconFileName: str | None = None
     dictDirName: str | None = None
+    demoUrl: str | None = None
+    sampleAudioUrl: str | None = None
 
     def to_json(self) -> dict:
         # Required fields; optional ones only when set so the JSON stays compact.
@@ -95,7 +97,8 @@ class Voice:
             "available": self.available,
         }
         for k in ("vocoderUrl", "vocoderFileName", "vocoderSha256",
-                  "modelFileName", "lexiconFileName", "dictDirName"):
+                  "modelFileName", "lexiconFileName", "dictDirName",
+                  "demoUrl", "sampleAudioUrl"):
             v = getattr(self, k)
             if v is not None:
                 d[k] = v
@@ -233,7 +236,28 @@ def parse_subpage(language: str, slug: str) -> Voice | None:
         modelFileName=derive_model_filename(text, family),
         lexiconFileName="lexicon.txt" if "lexicon.txt" in text else None,
         dictDirName="dict" if re.search(r'\bdict/', text) else None,
+        demoUrl=demo_url_for(family, voice_id),
     )
+
+
+# Hosted demos let users hear a voice before downloading. We point at the
+# upstream HuggingFace Space for each family where one is publicly maintained
+# and ungated. Per-voice deep links don't exist on most spaces, so the Space
+# root is the best we can offer; the user picks the voice from the Space UI.
+def demo_url_for(family: str, voice_id: str) -> str | None:
+    if family in ("piper", "vits"):
+        # k2-fsa's official sherpa-onnx TTS demo Space exposes a model picker
+        # that includes every Piper voice we catalogue.
+        return "https://huggingface.co/spaces/k2-fsa/text-to-speech"
+    if family == "kokoro":
+        return "https://huggingface.co/spaces/hexgrad/Kokoro-TTS"
+    if family == "kitten":
+        return "https://huggingface.co/KittenML/kitten-tts-nano-0.2"
+    if family == "matcha":
+        return "https://huggingface.co/spaces/shivammehta25/Matcha-TTS"
+    if family == "supertonic":
+        return "https://huggingface.co/Supertone/supertonic"
+    return None
 
 
 def parse_speakers_and_rate(text: str) -> tuple[int | None, int | None]:

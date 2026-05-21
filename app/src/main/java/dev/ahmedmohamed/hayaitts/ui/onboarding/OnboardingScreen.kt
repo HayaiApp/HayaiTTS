@@ -417,20 +417,10 @@ private fun PageIndicator(
 }
 
 @Composable
-private fun accentForPage(page: Int): Color = when (page % 4) {
-    0 -> MaterialTheme.colorScheme.primaryContainer
-    1 -> MaterialTheme.colorScheme.tertiaryContainer
-    2 -> MaterialTheme.colorScheme.secondaryContainer
-    else -> MaterialTheme.colorScheme.primary
-}
+private fun accentForPage(page: Int): Color = MaterialTheme.colorScheme.surfaceContainerHigh
 
 @Composable
-private fun onAccentForPage(page: Int): Color = when (page % 4) {
-    0 -> MaterialTheme.colorScheme.onPrimaryContainer
-    1 -> MaterialTheme.colorScheme.onTertiaryContainer
-    2 -> MaterialTheme.colorScheme.onSecondaryContainer
-    else -> MaterialTheme.colorScheme.onPrimary
-}
+private fun onAccentForPage(page: Int): Color = MaterialTheme.colorScheme.onSurface
 
 private fun expressiveShapeForPage(page: Int): RoundedCornerShape {
     val offset = (page * 6) % 16

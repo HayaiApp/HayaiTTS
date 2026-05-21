@@ -87,15 +87,8 @@ fun DownloadsScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
+            androidx.compose.material3.TopAppBar(
                 title = { Text(stringResource(R.string.downloads_title)) },
-                subtitle = {
-                    val activeCount = state.activeCount
-                    Text(
-                        text = if (activeCount > 0) stringResource(R.string.downloads_subtitle_active, activeCount)
-                        else stringResource(R.string.downloads_subtitle_idle),
-                    )
-                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.action_back))
@@ -232,14 +225,9 @@ private fun DownloadRow(
     onRemoveHistory: (() -> Unit)?,
 ) {
     val family = row.voiceCard?.modelFamily ?: ModelFamily.PIPER
-    val targetContainer = when (row.state) {
-        is DownloadState.Running, is DownloadState.Extracting -> MaterialTheme.colorScheme.tertiaryContainer
-        is DownloadState.Failed, DownloadState.Cancelled -> MaterialTheme.colorScheme.errorContainer
-        else -> MaterialTheme.colorScheme.surfaceContainer
-    }
+    val targetContainer = MaterialTheme.colorScheme.surfaceContainer
     val targetContent = when (row.state) {
-        is DownloadState.Running, is DownloadState.Extracting -> MaterialTheme.colorScheme.onTertiaryContainer
-        is DownloadState.Failed, DownloadState.Cancelled -> MaterialTheme.colorScheme.onErrorContainer
+        is DownloadState.Failed, DownloadState.Cancelled -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.onSurface
     }
     val containerColor by animateColorAsState(

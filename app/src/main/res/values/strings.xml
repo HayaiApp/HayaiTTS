@@ -319,6 +319,7 @@
 
     <string name="empty_section">Nothing here yet.</string>
     <string name="speak_selection_label">Speak with HayaiTTS</string>
+    <string name="voice_detail_open_demo">Try in browser</string>
 
     <!-- v2 NavigationBar tabs. -->
     <string name="nav_library">Library</string>

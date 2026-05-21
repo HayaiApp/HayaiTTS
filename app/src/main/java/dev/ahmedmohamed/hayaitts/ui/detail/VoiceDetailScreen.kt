@@ -33,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.CloudDownload
@@ -54,12 +55,12 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -131,13 +132,9 @@ fun VoiceDetailScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
+            TopAppBar(
                 title = {
                     Text(text = installed?.title ?: card?.title ?: voiceId)
-                },
-                subtitle = {
-                    val languages = card?.languages ?: installed?.languages.orEmpty()
-                    Text(text = languages.joinToString())
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -220,6 +217,33 @@ fun VoiceDetailScreen(
                 onPlay = viewModel::play,
                 onStop = viewModel::stop,
             )
+            // v2: hosted-demo link when the voice isn't installed yet — lets
+            // the user audition the upstream voice in their browser before
+            // committing to the download.
+            val demoUrl = state.card?.demoUrl
+            if (!state.isInstalled && demoUrl != null) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                ) {
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = {
+                            context.startActivity(
+                                android.content.Intent(
+                                    android.content.Intent.ACTION_VIEW,
+                                    android.net.Uri.parse(demoUrl),
+                                ),
+                            )
+                        },
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.OpenInNew,
+                            contentDescription = null,
+                        )
+                        Spacer(Modifier.size(8.dp))
+                        Text(stringResource(R.string.voice_detail_open_demo))
+                    }
+                }
+            }
             if (state.isInstalled && installed != null) {
                 DefaultLocaleSection(
                     locales = installed.languages,
@@ -243,74 +267,47 @@ private fun HeroBlock(state: VoiceDetailViewModel.UiState) {
     val installed = state.installed
     val tier = card?.tierEnum ?: installed?.tier
     val family = card?.modelFamily ?: installed?.family
-    val identity = family.identityOrDefault()
     val languages = card?.languages ?: installed?.languages.orEmpty()
     val license = card?.license
     val size = card?.approxSizeMb
     val sampleRate = card?.sampleRateHz ?: installed?.sampleRateHz
     val speakers = installed?.speakers?.size ?: card?.speakers?.size ?: 1
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(20.dp),
+            .padding(horizontal = 24.dp, vertical = 16.dp),
     ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondaryContainer),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = identity.icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    )
-                }
-                Spacer(Modifier.size(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = installed?.title ?: card?.title ?: "—",
-                        style = MaterialTheme.typography.headlineSmall,
-                    )
-                    Text(
-                        text = stringResource(
-                            R.string.voice_detail_speakers_count,
-                            speakers,
-                        ),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (sampleRate != null) {
-                        Text(
-                            text = stringResource(R.string.voice_detail_sample_rate, sampleRate),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+        Text(
+            text = installed?.title ?: card?.title ?: "—",
+            style = MaterialTheme.typography.displaySmall,
+        )
+        Spacer(Modifier.height(4.dp))
+        val subtitleLine = buildString {
+            append(stringResource(R.string.voice_detail_speakers_count, speakers))
+            if (sampleRate != null) {
+                append(" · ")
+                append(stringResource(R.string.voice_detail_sample_rate, sampleRate))
             }
-            Spacer(Modifier.height(16.dp))
-            ChipRow {
-                languages.forEach { LanguageChip(it) }
-                family?.let { FamilyChip(it) }
-                tier?.let { TierChip(tier = it, sizeMb = size) }
-            }
-            if (license != null) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.voice_detail_license, license),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+        }
+        Text(
+            text = subtitleLine,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(16.dp))
+        ChipRow {
+            languages.forEach { LanguageChip(it) }
+            family?.let { FamilyChip(it) }
+            tier?.let { TierChip(tier = it, sizeMb = size) }
+        }
+        if (license != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.voice_detail_license, license),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -557,13 +554,7 @@ private fun DefaultLocaleSection(
                             )
                         }
                     } else null,
-                    colors = if (isDefault) {
-                        AssistChipDefaults.assistChipColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    } else AssistChipDefaults.assistChipColors(),
+                    colors = AssistChipDefaults.assistChipColors(),
                 )
             }
         }
@@ -621,10 +612,6 @@ private fun PrimaryAction(
                     onClick = {},
                     enabled = false,
                     label = { Text(stringResource(R.string.voice_chip_coming_soon)) },
-                    colors = AssistChipDefaults.assistChipColors(
-                        disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        disabledLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                    ),
                 )
                 Text(
                     text = stringResource(R.string.voice_detail_coming_soon_hint),

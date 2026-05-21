@@ -66,6 +66,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.BuildConfig
 import dev.ahmedmohamed.hayaitts.R
@@ -161,9 +162,8 @@ fun SettingsScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
+            androidx.compose.material3.TopAppBar(
                 title = { Text(stringResource(R.string.settings_title)) },
-                subtitle = { Text(stringResource(R.string.settings_subtitle)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -256,7 +256,6 @@ fun SettingsScreen(
                 )
             }
 
-            item("divider_1") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
             item("defaults_header") { SectionHeader(stringResource(R.string.settings_section_defaults)) }
             if (state.installedLocales.isEmpty()) {
                 item("defaults_empty") {
@@ -279,7 +278,6 @@ fun SettingsScreen(
                 }
             }
 
-            item("divider_2") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
             item("storage_header") { SectionHeader(stringResource(R.string.settings_section_storage)) }
             item("total_size") {
                 ListItem(
@@ -304,7 +302,6 @@ fun SettingsScreen(
                 )
             }
 
-            item("divider_performance") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
             item("performance_header") { SectionHeader(stringResource(R.string.settings_section_performance)) }
             item("nnapi") {
                 ListItem(
@@ -350,7 +347,6 @@ fun SettingsScreen(
                 )
             }
 
-            item("divider_updates") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
             item("updates_header") { SectionHeader(stringResource(R.string.settings_section_updates)) }
             item("update_channel") {
                 ListItem(
@@ -401,7 +397,6 @@ fun SettingsScreen(
                 )
             }
 
-            item("divider_3") { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
             item("about_header") { SectionHeader(stringResource(R.string.settings_section_about)) }
             item("version") {
                 ListItem(
@@ -574,10 +569,10 @@ private fun formatRelativeTime(epochMs: Long): String {
 @Composable
 private fun SectionHeader(text: String) {
     Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 1.2.sp),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
     )
 }
 

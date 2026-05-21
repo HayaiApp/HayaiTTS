@@ -65,6 +65,20 @@ data class VoiceCard(
      * defaults to the trusted-asset code path until the repository marks it.
      */
     val fromRemote: Boolean = false,
+    /**
+     * Optional URL to a hosted demo (e.g. a Hugging Face Space) where the
+     * user can hear this voice **before downloading**. Voice Detail surfaces
+     * this as a "Try in browser" link button. Null for voices with no public
+     * demo (most non-marketed Piper voices).
+     */
+    val demoUrl: String? = null,
+    /**
+     * Optional direct URL to a short sample audio clip (WAV/MP3) for in-app
+     * preview. When present, Voice Detail's Listen button streams this clip
+     * instead of synthesising locally, so the user can audition a voice
+     * before committing to the download.
+     */
+    val sampleAudioUrl: String? = null,
 ) {
     val modelFamily: ModelFamily get() = ModelFamily.fromCatalog(family)
     val tierEnum: Tier get() = Tier.fromCatalog(tier)

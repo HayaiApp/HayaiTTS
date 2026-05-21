@@ -211,21 +211,15 @@ private fun SearchHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                Icons.AutoMirrored.Outlined.ArrowBack,
-                contentDescription = stringResource(R.string.action_back),
-            )
-        }
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 4.dp),
+                .padding(end = 4.dp),
             singleLine = true,
             shape = CircleShape,
             placeholder = {

@@ -100,9 +100,8 @@ fun HelpScreen(onBack: () -> Unit) {
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
+            androidx.compose.material3.TopAppBar(
                 title = { Text(stringResource(R.string.help_title)) },
-                subtitle = { Text(stringResource(R.string.help_subtitle)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -221,20 +220,18 @@ private fun ExpandableCard(
     val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "chevron-rot")
 
     val containerColor by animateColorAsState(
-        targetValue = if (expanded) MaterialTheme.colorScheme.primaryContainer
-        else MaterialTheme.colorScheme.surfaceContainerHighest,
+        targetValue = if (expanded) MaterialTheme.colorScheme.surfaceContainerHighest
+        else MaterialTheme.colorScheme.surfaceContainer,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "expand-bg",
     )
     val contentColor by animateColorAsState(
-        targetValue = if (expanded) MaterialTheme.colorScheme.onPrimaryContainer
-        else MaterialTheme.colorScheme.onSurface,
+        targetValue = MaterialTheme.colorScheme.onSurface,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "expand-fg",
     )
     val accentColor by animateColorAsState(
-        targetValue = if (expanded) MaterialTheme.colorScheme.onPrimaryContainer
-        else MaterialTheme.colorScheme.primary,
+        targetValue = MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = spring(),
         label = "expand-accent",
     )
