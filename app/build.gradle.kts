@@ -14,6 +14,13 @@ plugins {
 // default (Android Studio ships JBR 21, which is the canonical target).
 kotlin {
     jvmToolchain(21)
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        freeCompilerArgs.addAll(
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi",
+        )
+    }
 }
 
 android {
@@ -106,13 +113,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += listOf(
-            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
-            "-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi",
-        )
-    }
+    // Note: kotlinOptions DSL was deprecated in Kotlin 2.2 — switched to the
+    // Kotlin Gradle Plugin compilerOptions DSL at the top of the file.
 
     packaging {
         resources {

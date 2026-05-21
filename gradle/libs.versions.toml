@@ -1,55 +1,54 @@
 [versions]
-agp = "8.8.2"
-kotlin = "2.1.10"
-ksp = "2.1.10-1.0.30"
+# Latest as of 2026-01. AGP 9.x ships built-in Kotlin which conflicts with the
+# standalone kotlin-android plugin, and the alpha-stage compose 1.12 line
+# (which the newest material3 alphas transitively pull in) requires AGP 9.x —
+# both are too bleeding for production. AGP 8.13 + Gradle 8.14 is the latest
+# stable pair; material3 1.5.0-alpha18 is the highest version that stays on
+# the AGP-8-compatible compose 1.11 line.
+agp = "8.13.0"
+kotlin = "2.2.0"
+ksp = "2.2.0-2.0.2"
 
 # Compose BOM pins all compose artifacts; material3 is pinned separately so we
-# can opt into the M3 Expressive line (1.4.x) once available.
-composeBom = "2025.10.01"
-# Material3 1.4.0 ships `MaterialExpressiveTheme` and `expressiveLightColorScheme`
-# as `internal` Kotlin symbols (public in bytecode but inaccessible from source).
-# 1.5.0-alpha18 is the version where these were promoted to public Kotlin API
-# (with `LoadingIndicator` / `MaterialShapes` getting re-marked
-# `@ExperimentalMaterial3ExpressiveApi` in later alphas).
+# can stay on the M3 Expressive alpha line until it promotes to stable.
+composeBom = "2025.11.00"
 material3 = "1.5.0-alpha18"
 
-androidxCore = "1.15.0"
-googleMaterial = "1.12.0"
-androidxLifecycle = "2.8.7"
-androidxActivity = "1.10.0"
-androidxAppcompat = "1.7.0"
-navigationCompose = "2.8.5"
+androidxCore = "1.16.0"
+googleMaterial = "1.13.0"
+androidxLifecycle = "2.9.0"
+androidxActivity = "1.10.1"
+androidxAppcompat = "1.7.1"
+navigationCompose = "2.9.0"
 
-koin = "4.0.1"
-room = "2.7.0"
-coroutines = "1.9.0"
+koin = "4.1.0"
+room = "2.7.1"
+coroutines = "1.10.1"
 okhttp = "4.12.0"
-datastore = "1.1.1"
-workManager = "2.10.0"
-kermit = "2.0.4"
+datastore = "1.1.3"
+workManager = "2.10.1"
+kermit = "2.0.5"
 
 # tar.bz2 extraction for sherpa-onnx voice bundles. Apache Commons Compress
 # bundles its own BZip2 + TAR codecs so we do not need to shell out or pull
 # in a JNI dep.
-commonsCompress = "1.27.1"
+commonsCompress = "1.28.0"
 
 # kotlinx.serialization used to (de)serialize the catalog JSON and the
 # speakers list stored as a TEXT column on Room.
-kotlinxSerialization = "1.7.3"
+kotlinxSerialization = "1.8.0"
 
 # Official k2-fsa/sherpa-onnx Android AAR, dropped into app/libs/. Upstream only
 # distributes the AAR via GitHub releases — there is no Maven coordinate — so we
 # vendor it. v1.13.2 (Phase 7) ships every TTS family we care about: VITS, Piper,
-# Matcha, Kokoro, Kitten, ZipVoice, Pocket, Supertonic. The bihe0832 Maven mirror
-# we used in Phase 5 (6.25.12 == upstream v1.10.x) was missing Kokoro / Kitten
-# JNI symbols entirely; switching to the upstream AAR unblocked them.
+# Matcha, Kokoro, Kitten, ZipVoice, Pocket, Supertonic.
 sherpaOnnxAar = "1.13.2"
 
 # Test infrastructure.
 junit4 = "4.13.2"
-androidxTestExt = "1.2.1"
-androidxTestRunner = "1.6.2"
-androidxTestCore = "1.6.1"
+androidxTestExt = "1.3.0"
+androidxTestRunner = "1.7.0"
+androidxTestCore = "1.7.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }

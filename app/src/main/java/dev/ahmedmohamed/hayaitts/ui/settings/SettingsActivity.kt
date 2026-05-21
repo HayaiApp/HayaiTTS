@@ -111,6 +111,8 @@ private fun SettingsScreen(
     val updateChannel by updateViewModel.updateChannel.collectAsStateWithLifecycle()
     val lastChecked by updateViewModel.lastChecked.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalContext.current.resources
+    val upToDateMessage = stringResource(R.string.settings_update_uptodate)
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         state = rememberTopAppBarState(),
@@ -127,18 +129,18 @@ private fun SettingsScreen(
     LaunchedEffect(updateStatus) {
         when (val s = updateStatus) {
             is UpdateStatus.UpToDate -> {
-                snackbarHostState.showSnackbar(context.getString(R.string.settings_update_uptodate))
+                snackbarHostState.showSnackbar(upToDateMessage)
                 updateViewModel.consumeStatus()
             }
             is UpdateStatus.Available -> {
                 snackbarHostState.showSnackbar(
-                    context.getString(R.string.settings_update_available, s.tag),
+                    resources.getString(R.string.settings_update_available, s.tag),
                 )
                 // Do NOT consume — MainActivity's dialog observes the same state.
             }
             is UpdateStatus.Failed -> {
                 snackbarHostState.showSnackbar(
-                    context.getString(R.string.settings_update_failed, s.reason),
+                    resources.getString(R.string.settings_update_failed, s.reason),
                 )
                 updateViewModel.consumeStatus()
             }
@@ -150,7 +152,7 @@ private fun SettingsScreen(
     LaunchedEffect(cacheClearedBytes) {
         val freed = cacheClearedBytes ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(
-            context.getString(R.string.settings_clear_cache_done, formatBytes(freed)),
+            resources.getString(R.string.settings_clear_cache_done, formatBytes(freed)),
         )
         viewModel.consumeCacheClearedEvent()
     }
