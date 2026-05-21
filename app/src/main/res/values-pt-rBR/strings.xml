@@ -2,9 +2,8 @@
 <resources>
     <string name="app_name">HayaiTTS</string>
 
-    <!-- Library -->
     <string name="library_empty_title">Nenhuma voz instalada ainda</string>
-    <string name="library_empty_subtitle">Navegue pelo catálogo para baixar vozes neurais offline</string>
+    <string name="library_empty_subtitle">Explore o catálogo para baixar vozes neurais offline</string>
     <string name="library_browse_action">Explorar modelos</string>
     <string name="library_title">Vozes</string>
     <string name="library_subtitle">%1$d instaladas</string>
@@ -15,17 +14,19 @@
     <string name="library_download_failed">Falha no download: %1$s</string>
     <string name="library_download_cancelled">Download cancelado</string>
     <string name="library_import_action">Importar voz</string>
+    <string name="library_open_settings">Configurações</string>
+    <string name="library_test_download">Download de teste (Alan, en-GB)</string>
+    <string name="library_test_download_again">Rebaixar Alan</string>
 
-    <!-- Voice card / chips -->
-    <string name="voice_chip_bundled">Incluída</string>
+    <string name="voice_amy_subtitle">Inglês (EUA) • Piper • Qualidade baixa</string>
+    <string name="voice_chip_bundled">Inclusa</string>
     <string name="voice_chip_coming_soon">Em breve</string>
-    <string name="voice_chip_recommended">Recomendada para seu dispositivo</string>
+    <string name="voice_chip_recommended">Recomendada para seu aparelho</string>
     <string name="custom_chip">Personalizada</string>
     <string name="voice_preview_action">Pré-visualizar</string>
     <string name="voice_favorite">Favoritar voz</string>
     <string name="voice_unfavorite">Desfavoritar voz</string>
 
-    <!-- Browse -->
     <string name="browse_title">Explorar modelos</string>
     <string name="browse_subtitle">%1$d vozes</string>
     <string name="browse_empty_title">Nenhuma voz corresponde aos filtros</string>
@@ -42,13 +43,16 @@
     <string name="browse_filter_clear">Limpar</string>
     <string name="browse_filter_clear_all">Limpar filtros</string>
     <string name="browse_filter_apply">Aplicar</string>
-    <string name="browse_tier_all">Todas as qualidades</string>
+    <string name="browse_filter_gender">Tipo de voz</string>
+    <string name="browse_filter_gender_female">Feminina</string>
+    <string name="browse_filter_gender_male">Masculina</string>
+    <string name="browse_filter_gender_unknown">Não especificada</string>
+    <string name="browse_tier_all">Todas</string>
     <string name="browse_tier_low">Baixa</string>
     <string name="browse_tier_mid">Média</string>
     <string name="browse_tier_high">Alta</string>
     <string name="browse_refresh">Atualizar catálogo</string>
 
-    <!-- Actions -->
     <string name="action_clear">Limpar</string>
     <string name="action_install">Instalar</string>
     <string name="action_installed">Instalada</string>
@@ -63,52 +67,72 @@
     <string name="action_move_up">Mover para cima</string>
     <string name="action_move_down">Mover para baixo</string>
 
-    <!-- Voice detail -->
     <string name="voice_default_label">Padrão para %1$s</string>
     <string name="voice_set_default">Definir como padrão para %1$s</string>
     <string name="voice_clear_default">Remover padrão</string>
+    <string name="voice_choose_default_speaker">Escolher locutor padrão…</string>
+    <string name="speaker_picker_title">Locutor padrão</string>
+    <string name="speaker_picker_reset">Usar o padrão da voz</string>
+    <string name="speaker_picker_reset_subtitle">Voltar ao primeiro locutor desta voz.</string>
     <string name="voice_detail_speakers">Locutores</string>
     <string name="voice_detail_speakers_count">%1$d locutores</string>
-    <string name="voice_detail_preview">Pré-visualizar</string>
-    <string name="voice_detail_preview_text">A rápida raposa marrom salta sobre o cão preguiçoso.</string>
-    <string name="voice_detail_preview_not_installed">Instale a voz para ouvir a prévia</string>
+    <string name="voice_detail_preview">Pré-visualização</string>
+    <string name="voice_detail_preview_text">A rápida raposa marrom pula sobre o cão preguiçoso.</string>
+    <string name="voice_detail_preview_not_installed">Instale a voz para pré-visualizar</string>
     <string name="voice_detail_license">Licença: %1$s</string>
     <string name="voice_detail_set_default_header">Usar como padrão</string>
-    <string name="voice_detail_coming_soon_hint">Esta família de modelos ainda não é suportada pelo build atual do sherpa-onnx. Uma atualização futura habilitará.</string>
+    <string name="voice_detail_actions_overflow">Mais ações</string>
+    <string name="voice_detail_install_primary">Instalar voz</string>
+    <string name="voice_detail_cancel_primary">Cancelar download</string>
+    <string name="voice_detail_uninstall_action">Desinstalar</string>
+    <string name="voice_detail_set_default_action">Definir padrão</string>
+    <string name="voice_detail_clear_default_action">Remover padrão</string>
+    <string name="voice_detail_open_playground">Abrir no Playground</string>
+    <string name="voice_detail_coming_soon_hint">Esta família de modelos ainda não é suportada pela build atual do sherpa-onnx. Uma atualização futura habilitará.</string>
 
-    <!-- Uninstall -->
     <string name="uninstall_confirm_title">Desinstalar voz?</string>
-    <string name="uninstall_confirm_message">Isso liberará espaço. Você pode baixá-la novamente em Explorar.</string>
-    <string name="bundled_not_uninstallable">Vozes incluídas não podem ser desinstaladas.</string>
+    <string name="uninstall_confirm_message">Isso liberará espaço em disco. Você pode rebaixá-la depois em Explorar.</string>
+    <string name="bundled_not_uninstallable">Vozes inclusas não podem ser desinstaladas.</string>
 
-    <!-- Download -->
     <string name="download_in_progress">Baixando voz neural…</string>
-    <string name="download_progress_running">%1$d MB / %2$d MB · %3$d%%</string>
     <string name="download_extracting">Extraindo…</string>
+    <string name="download_channel_name">Downloads de voz</string>
+    <string name="download_channel_description">Notificações exibidas enquanto um modelo de voz está sendo baixado ou extraído.</string>
+    <string name="download_active_channel_name">Downloads de voz (ativos)</string>
+    <string name="download_active_channel_description">Progresso dos downloads de voz em andamento.</string>
+    <string name="download_complete_channel_name">Downloads de voz (concluídos)</string>
+    <string name="download_complete_channel_description">Notificações únicas de instalação ou erro.</string>
+    <string name="download_notification_big_text">Baixando voz neural (%1$s / %2$s)</string>
+    <string name="download_notification_big_text_indeterminate">Baixando voz neural…</string>
+    <string name="download_notification_installed_title">%1$s instalada</string>
+    <string name="download_notification_installed_text">Voz pronta para uso.</string>
+    <string name="download_notification_failed_title">Falha no download: %1$s</string>
+    <string name="download_notification_failed_text">%1$s — toque para tentar novamente</string>
+    <string name="download_notification_action_cancel">Cancelar</string>
+    <string name="download_notification_action_retry">Tentar novamente</string>
 
-    <!-- Family labels -->
     <string name="family_custom">Personalizada</string>
     <string name="family_unknown">Desconhecida</string>
 
-    <!-- Import wizard -->
     <string name="import_title">Importar voz</string>
     <string name="import_subtitle">Traga seu próprio pacote de voz</string>
-    <string name="import_analyzing">Analisando pacote…</string>
-    <string name="import_analyzing_failed">Não foi possível ler o pacote: %1$s</string>
-    <string name="import_unsupported_family">%1$s ainda não é suportada nesta versão do app.</string>
+    <string name="import_analyzing">Analisando o pacote…</string>
+    <string name="import_analyzing_failed">Não foi possível ler este pacote: %1$s</string>
+    <string name="import_unsupported_family">%1$s ainda não é suportada nesta versão.</string>
     <string name="import_detected_family">Família detectada</string>
     <string name="import_family_override">Família</string>
     <string name="import_voice_name">Nome da voz</string>
     <string name="import_languages">Idiomas</string>
     <string name="import_files_header">Arquivos (%1$d)</string>
     <string name="import_speakers_header">Locutores (%1$d)</string>
-    <string name="import_no_speakers">Lista de locutores não encontrada — será usado um único locutor (sid 0).</string>
+    <string name="import_no_speakers">Lista de locutores não encontrada — usando um locutor padrão (sid 0).</string>
     <string name="import_action_import">Importar</string>
-    <string name="import_progress_copying">Copiando pacote…</string>
+    <string name="import_progress_copying">Copiando o pacote…</string>
     <string name="import_progress_extracting">Extraindo…</string>
     <string name="import_progress_validating">Validando…</string>
     <string name="import_validation_failed">Falta %1$s no pacote para %2$s. Escolha outra família ou cancele.</string>
     <string name="import_done">Importação concluída.</string>
+    <string name="import_size_label">%1$s · %2$d KB</string>
     <string name="import_lang_add">Adicionar idioma</string>
     <string name="import_lang_add_placeholder">Tag BCP-47 (ex.: pt-BR)</string>
     <string name="import_lang_add_ok">Adicionar</string>
@@ -116,7 +140,6 @@
     <string name="import_step_confirm">Confirmar</string>
     <string name="import_step_install">Instalar</string>
 
-    <!-- Quick switcher -->
     <string name="quick_switch_title">Troca rápida</string>
     <string name="quick_switch_subtitle">Escolha a voz padrão do momento</string>
     <string name="quick_switch_current">Padrão atual</string>
@@ -124,28 +147,28 @@
     <string name="quick_switch_add">Adicionar voz</string>
     <string name="quick_switch_empty">Instale uma voz para ativar a troca rápida.</string>
 
-    <!-- Settings -->
     <string name="settings_title">Configurações</string>
-    <string name="settings_subtitle">Ajuste downloads, armazenamento e vozes padrão</string>
+    <string name="settings_subtitle">Ajuste downloads, armazenamento e padrões</string>
+    <string name="settings_license">Licença: GPL-3.0</string>
     <string name="settings_section_downloads">Downloads</string>
-    <string name="settings_wifi_only">Apenas Wi-Fi</string>
-    <string name="settings_wifi_only_subtitle">Bloqueia downloads em redes móveis tarifadas.</string>
+    <string name="settings_wifi_only">Somente Wi-Fi</string>
+    <string name="settings_wifi_only_subtitle">Bloqueia downloads em redes móveis com tarifa.</string>
     <string name="settings_storage_location">Local de armazenamento</string>
     <string name="settings_storage_internal">Armazenamento interno</string>
     <string name="settings_storage_external">Cartão SD externo</string>
     <string name="settings_storage_external_unavailable">Nenhum armazenamento externo detectado</string>
-    <string name="settings_storage_restart_hint">Alterar esta opção move todas as vozes instaladas para o novo local.</string>
+    <string name="settings_storage_restart_hint">Mudar esta opção move todas as vozes instaladas para o novo local.</string>
     <string name="settings_storage_moving">Movendo voz %1$d / %2$d (%3$s)…</string>
     <string name="settings_storage_move_failed">Falha ao mover: %1$s</string>
     <string name="settings_section_defaults">Vozes padrão</string>
     <string name="settings_defaults_empty">Instale uma voz para definir padrões por idioma.</string>
-    <string name="settings_pick_voice_title">Escolha o padrão para %1$s</string>
+    <string name="settings_pick_voice_title">Padrão para %1$s</string>
     <string name="settings_pick_voice_clear">Sem padrão</string>
     <string name="settings_section_storage">Armazenamento</string>
     <string name="settings_total_models_size">Vozes instaladas: %1$s</string>
     <string name="settings_clear_cache">Limpar cache de downloads</string>
-    <string name="settings_clear_cache_subtitle">Remove arquivos parciais de downloads cancelados.</string>
-    <string name="settings_clear_cache_done">%1$s liberados</string>
+    <string name="settings_clear_cache_subtitle">Remove arquivos parciais deixados por downloads cancelados.</string>
+    <string name="settings_clear_cache_done">Liberado %1$s</string>
     <string name="settings_section_about">Sobre</string>
     <string name="settings_version">Versão %1$s (%2$d)</string>
     <string name="settings_powered_by">Modelos com tecnologia sherpa-onnx</string>
@@ -154,4 +177,144 @@
     <string name="settings_license_subtitle">Toque para ler a licença completa</string>
     <string name="settings_license_dialog_title">Licença</string>
     <string name="settings_license_dialog_close">Fechar</string>
+    <string name="settings_help_label">Ajuda e FAQ</string>
+    <string name="settings_help_subtitle">Configuração, solução de problemas e dicas</string>
+    <string name="settings_section_performance">Desempenho e hardware</string>
+    <string name="settings_nnapi">Aceleração por hardware (NNAPI)</string>
+    <string name="settings_nnapi_subtitle">Usa a Neural Networks API do Android para inferência mais rápida quando suportado.</string>
+    <string name="settings_threads">Threads de síntese</string>
+    <string name="settings_threads_subtitle">Número de threads dedicados à síntese pela CPU.</string>
+    <string name="settings_threads_dialog_title">Selecionar número de threads</string>
+    <string name="settings_threads_value">%1$d threads</string>
+    <string name="settings_max_sentences">Limite de frases por síntese</string>
+    <string name="settings_max_sentences_subtitle">Máximo de frases sintetizadas em uma única chamada JNI.</string>
+    <string name="settings_max_sentences_dialog_title">Selecionar limite de frases</string>
+    <string name="settings_max_sentences_value">%1$d frases</string>
+
+    <string name="settings_section_updates">Atualizações</string>
+    <string name="settings_update_channel">Canal de atualizações</string>
+    <string name="settings_update_channel_stable">Estável</string>
+    <string name="settings_update_channel_beta">Beta</string>
+    <string name="settings_update_channel_nightly">Nightly</string>
+    <string name="settings_update_channel_dialog_title">Canal de atualizações</string>
+    <string name="settings_update_channel_stable_subtitle">Apenas versões marcadas.</string>
+    <string name="settings_update_channel_beta_subtitle">Estável mais betas marcadas (vX.Y.Z-bN).</string>
+    <string name="settings_update_channel_nightly_subtitle">Todas as builds, inclusive nightlies. Pode ser instável.</string>
+    <string name="settings_current_version">Versão atual</string>
+    <string name="settings_check_for_updates">Buscar atualizações</string>
+    <string name="settings_check_for_updates_subtitle">Procurar agora uma versão mais recente neste canal.</string>
+    <string name="settings_checking_for_updates">Procurando atualizações…</string>
+    <string name="settings_last_checked">Última verificação</string>
+    <string name="settings_last_checked_never">Nunca</string>
+    <string name="settings_last_checked_just_now">Agora mesmo</string>
+    <string name="settings_last_checked_minutes">há %1$d min</string>
+    <string name="settings_last_checked_hours">há %1$d h</string>
+    <string name="settings_last_checked_days">há %1$d d</string>
+    <string name="settings_update_uptodate">Você está na versão mais recente.</string>
+    <string name="settings_update_available">Atualização disponível: %1$s</string>
+    <string name="settings_update_failed">Falha ao verificar atualização: %1$s</string>
+    <string name="update_dialog_title">Nova versão disponível</string>
+    <string name="update_action_install">Atualizar agora</string>
+    <string name="update_action_later">Mais tarde</string>
+    <string name="update_channel_stable">Estável</string>
+    <string name="update_channel_beta">Beta</string>
+    <string name="update_channel_nightly">Nightly</string>
+    <string name="update_download_failed">Falha no download: %1$s</string>
+    <string name="update_no_changelog">Sem notas de versão.</string>
+
+    <string name="onboarding_skip">Pular</string>
+    <string name="onboarding_next">Avançar</string>
+    <string name="onboarding_welcome_title">Bem-vindo ao HayaiTTS</string>
+    <string name="onboarding_welcome_body">Síntese de fala neural offline para Android. Cada voz roda no seu aparelho — sem nuvem, sem telemetria, sem cota.</string>
+    <string name="onboarding_engine_title">Defina o HayaiTTS como seu motor</string>
+    <string name="onboarding_engine_body">Abra Configurações → Sistema → Idiomas e entrada → Mecanismos de texto para voz e escolha HayaiTTS como o motor preferido. Apps que leem texto em voz alta passarão pelo HayaiTTS automaticamente.</string>
+    <string name="onboarding_engine_action">Abrir configurações de TTS do sistema</string>
+    <string name="onboarding_tier_title">Escolha vozes para o seu aparelho</string>
+    <string name="onboarding_tier_recommendation_low">Recomendado para o seu aparelho: Baixa. Modelos baixos funcionam até em hardware básico.</string>
+    <string name="onboarding_tier_recommendation_mid">Recomendado para o seu aparelho: Média. Modelos médios equilibram velocidade e qualidade na maioria dos celulares.</string>
+    <string name="onboarding_tier_recommendation_high">Recomendado para o seu aparelho: Alta. Seu hardware roda nossos modelos maiores com folga.</string>
+    <string name="onboarding_tier_low">Baixa — a mais rápida e leve, roda em qualquer celular</string>
+    <string name="onboarding_tier_mid">Média — equilíbrio entre velocidade e qualidade (recomendado)</string>
+    <string name="onboarding_tier_high">Alta — melhor qualidade, precisa de ao menos 4 GB de RAM</string>
+    <string name="onboarding_ready_title">Pronto para explorar</string>
+    <string name="onboarding_ready_body">Explore mais de 188 vozes em 8 famílias de modelos. Ou importe seu próprio pacote pela aba Biblioteca.</string>
+    <string name="onboarding_ready_action">Começar</string>
+
+    <string name="help_title">Ajuda e FAQ</string>
+    <string name="help_subtitle">Primeiros passos, vozes, solução de problemas</string>
+    <string name="help_section_getting_started_title">Primeiros passos</string>
+    <string name="help_section_getting_started_body">1. Explore o catálogo e instale uma voz para o seu idioma.\n2. Abra Configurações → Sistema → Idiomas e entrada → Mecanismos de texto para voz e defina HayaiTTS como motor preferido.\n3. Teste a síntese em qualquer app que leia texto: acessibilidade, leitores de e-book, navegação ou assistentes.</string>
+    <string name="help_section_choose_voice_title">Escolhendo a voz certa</string>
+    <string name="help_section_choose_voice_body">As vozes vêm em três níveis de qualidade:\n• Baixa — a mais rápida e leve, roda em qualquer celular.\n• Média — equilíbrio entre velocidade e qualidade. Recomendado.\n• Alta — melhor qualidade, precisa de ao menos 4 GB de RAM.\n\nCada família de modelos tem pontos fortes: Piper é rápido e leve, VITS / Matcha / Kokoro priorizam expressividade, e Supertonic / ZipVoice / Pocket apostam na naturalidade. O catálogo mostra o selo «Recomendada para seu aparelho» nas vozes compatíveis.</string>
+    <string name="help_section_locale_defaults_title">Padrões por idioma</string>
+    <string name="help_section_locale_defaults_body">Você pode instalar várias vozes para o mesmo idioma e alternar entre elas em dois lugares:\n• Configurações → Vozes padrão — escolha uma voz por idioma.\n• Troca rápida (ícone no topo) — mude a voz padrão sem sair do app atual.\nO framework TTS do sistema usa sua padrão quando um app pede esse idioma.</string>
+    <string name="help_section_custom_voices_title">Vozes personalizadas</string>
+    <string name="help_section_custom_voices_body">Use a ação Importar na barra superior da Biblioteca para trazer seus próprios pacotes sherpa-onnx. Formatos aceitos:\n• .tar.bz2 — o arquivo sherpa-onnx canônico.\n• .zip — pacote extraído e recompactado.\n• .onnx — um único modelo (tentamos inferir a família).\n\nO assistente analisa o pacote, detecta a família do modelo e permite ajustar nome e tags de idioma antes de instalar.</string>
+    <string name="help_section_custom_voices_action">Abrir documentação do sherpa-onnx TTS</string>
+    <string name="help_section_storage_title">Local de armazenamento</string>
+    <string name="help_section_storage_body">Por padrão as vozes ficam no armazenamento interno do app. Se o seu aparelho tem cartão SD, mova todas as vozes pela Configurações → Local de armazenamento → Cartão SD externo. A migração é ao vivo — as vozes são copiadas durante a operação.\n\nDesinstalar o app remove as vozes internas, mas NÃO as do cartão SD; apague a pasta manualmente para recuperar o espaço.</string>
+    <string name="help_section_updates_title">Atualizações do app</string>
+    <string name="help_section_updates_body">O HayaiTTS busca novas versões ao abrir (limitado a uma vez a cada 6 horas). Quando há atualização, uma caixa de diálogo oferece baixar e instalar. Canais:\n• Estável — versões de produção, menor risco.\n• Beta — candidatos a versão, dias antes da estável.\n• Nightly — o último commit em main, pode ter arestas.\nEscolha um canal em Configurações → Canal de atualizações.</string>
+    <string name="help_section_troubleshooting_title">Solução de problemas</string>
+    <string name="help_section_troubleshooting_body">As vozes não aparecem em outros apps — defina HayaiTTS como motor padrão do sistema (Configurações → Sistema → Idiomas e entrada → Mecanismos de texto para voz).\n\nDownload falhou: checksum não confere — tente novamente em Explorar. Se persistir, o modelo upstream mudou; abra um chamado.\n\nA síntese fica em silêncio — os arquivos do modelo podem ter corrompido por uma extração interrompida. Desinstale a voz pela Biblioteca e reinstale por Explorar.\n\nO app quebra ao escolher voz — verifique se o catálogo terminou de carregar. Se persistir, limpe o cache em Configurações → Armazenamento.</string>
+    <string name="help_section_about_title">Sobre</string>
+    <string name="help_section_about_body">HayaiTTS é um motor de síntese de fala open-source e offline para Android. Baseado em sherpa-onnx com vozes neurais de Piper, Kokoro, VITS, Matcha, Kitten, ZipVoice, Pocket e Supertonic. Licenciado sob GPL-3.0.</string>
+    <string name="help_section_about_action">Ver no GitHub</string>
+
+    <string name="tooltip_import_title">Importar uma voz</string>
+    <string name="tooltip_import_body">Importe um pacote de voz (.tar.bz2 / .zip / .onnx) do armazenamento do aparelho.</string>
+    <string name="tooltip_filter_title">Filtrar o catálogo</string>
+    <string name="tooltip_filter_body">Filtre vozes por idioma, nível de qualidade e família de modelo.</string>
+    <string name="tooltip_quick_switch_title">Troca rápida</string>
+    <string name="tooltip_quick_switch_body">Defina rapidamente a voz padrão para qualquer idioma.</string>
+    <string name="tooltip_preview_play_title">Pré-visualizar voz</string>
+    <string name="tooltip_preview_play_body">Gere uma pré-visualização com o locutor selecionado e velocidade / tom atuais.</string>
+
+    <string name="playground_title">Playground</string>
+    <string name="playground_text_header">Texto</string>
+    <string name="playground_text_placeholder">Digite algo para sintetizar…</string>
+    <string name="playground_tuning_header">Ajustes</string>
+    <string name="playground_slider_speed">Velocidade</string>
+    <string name="playground_slider_pitch">Tom</string>
+    <string name="playground_slider_length">Comprimento</string>
+    <string name="playground_slider_noise">Escala de ruído</string>
+    <string name="playground_slider_noise_w">Escala de ruído W</string>
+    <string name="playground_reset">Redefinir</string>
+    <string name="playground_pitch_tooltip">O tom é aplicado por resample — apenas pequenos desvios.</string>
+    <string name="playground_play">Reproduzir</string>
+    <string name="playground_generating">Gerando…</string>
+    <string name="playground_not_installed">Instale esta voz para usar o playground.</string>
+    <string name="playground_history_header">Histórico</string>
+    <string name="playground_history_empty">As amostras geradas aparecerão aqui.</string>
+    <string name="playground_history_play">Reproduzir amostra</string>
+    <string name="playground_history_delete">Excluir amostra</string>
+    <string name="playground_time_just_now">agora mesmo</string>
+    <string name="playground_time_minutes">há %1$d min</string>
+    <string name="playground_time_hours">há %1$d h</string>
+    <string name="playground_time_days">há %1$d d</string>
+
+    <string name="downloads_title">Downloads</string>
+    <string name="downloads_subtitle_active">%1$d ativos</string>
+    <string name="downloads_subtitle_idle">Nenhum download ativo</string>
+    <string name="downloads_open">Abrir downloads</string>
+    <string name="downloads_clear_completed">Limpar concluídos</string>
+    <string name="downloads_section_active">Ativos</string>
+    <string name="downloads_section_failed">Com falha</string>
+    <string name="downloads_section_completed">Concluídos recentemente</string>
+    <string name="downloads_empty_title">Nada baixando</string>
+    <string name="downloads_empty_subtitle">Os downloads iniciados em Explorar aparecerão aqui.</string>
+    <string name="downloads_status_queued">Na fila</string>
+    <string name="downloads_status_extracting">Extraindo…</string>
+    <string name="downloads_status_extracting_pct">Extraindo %1$d%%</string>
+    <string name="downloads_status_failed">Falha: %1$s</string>
+    <string name="downloads_status_completed">Concluído</string>
+    <string name="downloads_status_completed_ago">Concluído há %1$s</string>
+    <string name="downloads_action_retry">Tentar novamente</string>
+    <string name="downloads_action_redownload">Rebaixar</string>
+    <string name="downloads_action_remove_history">Remover do histórico</string>
+    <string name="downloads_action_cancel">Cancelar</string>
+    <string name="downloads_time_just_now">agora mesmo</string>
+    <string name="downloads_time_minutes">%1$d min</string>
+    <string name="downloads_time_hours">%1$d h</string>
+    <string name="downloads_time_days">%1$d d</string>
 </resources>

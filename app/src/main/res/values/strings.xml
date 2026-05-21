@@ -5,7 +5,7 @@
     <string name="library_empty_subtitle">Browse the catalog to download offline neural voices</string>
     <string name="library_browse_action">Browse models</string>
     <string name="library_title">Voices</string>
-    <string name="voice_amy_name">Amy</string>
+    <string name="voice_amy_name" translatable="false">Amy</string>
     <string name="voice_amy_subtitle">English (US) • Piper • Low quality</string>
     <string name="voice_chip_bundled">Bundled</string>
     <string name="voice_preview_action">Preview</string>
@@ -56,29 +56,29 @@
     <string name="speaker_picker_title">Default speaker</string>
     <string name="speaker_picker_reset">Use voice default</string>
     <string name="speaker_picker_reset_subtitle">Fall back to the first speaker in this voice.</string>
-    <string name="speaker_picker_subtitle">id %1$d · %2$s</string>
+    <string name="speaker_picker_subtitle" translatable="false">id %1$d · %2$s</string>
     <string name="voice_detail_speakers">Speakers</string>
     <string name="voice_detail_preview">Preview</string>
     <string name="voice_detail_preview_text">The quick brown fox jumps over the lazy dog.</string>
     <string name="voice_detail_preview_not_installed">Install the voice to preview</string>
     <string name="voice_detail_license">License: %1$s</string>
-    <string name="voice_detail_size">%1$d MB</string>
-    <string name="voice_detail_sample_rate">%1$d Hz</string>
+    <string name="voice_detail_size" translatable="false">%1$d MB</string>
+    <string name="voice_detail_sample_rate" translatable="false">%1$d Hz</string>
     <string name="uninstall_confirm_title">Uninstall voice?</string>
     <string name="uninstall_confirm_message">This will free up disk space. You can re-download it later from Browse.</string>
     <string name="bundled_not_uninstallable">Bundled voices can\'t be uninstalled.</string>
-    <string name="download_progress_running">%1$d MB / %2$d MB · %3$d%%</string>
+    <string name="download_progress_running" translatable="false">%1$d MB / %2$d MB · %3$d%%</string>
     <string name="download_extracting">Extracting…</string>
-    <string name="family_piper">Piper</string>
-    <string name="family_kokoro">Kokoro</string>
-    <string name="family_vits">VITS</string>
-    <string name="family_matcha">Matcha</string>
-    <string name="family_kitten">Kitten</string>
-    <string name="family_zipvoice">ZipVoice</string>
-    <string name="family_pocket">Pocket</string>
-    <string name="family_supertonic">Supertonic</string>
+    <string name="family_piper" translatable="false">Piper</string>
+    <string name="family_kokoro" translatable="false">Kokoro</string>
+    <string name="family_vits" translatable="false">VITS</string>
+    <string name="family_matcha" translatable="false">Matcha</string>
+    <string name="family_kitten" translatable="false">Kitten</string>
+    <string name="family_zipvoice" translatable="false">ZipVoice</string>
+    <string name="family_pocket" translatable="false">Pocket</string>
+    <string name="family_supertonic" translatable="false">Supertonic</string>
     <string name="family_custom">Custom</string>
-    <string name="tier_size_label">~%1$d MB</string>
+    <string name="tier_size_label" translatable="false">~%1$d MB</string>
     <string name="voice_chip_coming_soon">Coming soon</string>
     <string name="voice_detail_coming_soon_hint">This model family isn\'t supported by the current sherpa-onnx build. A future update will enable it.</string>
 
@@ -137,8 +137,8 @@
     <string name="settings_license_subtitle">Tap to read the full license</string>
     <string name="settings_license_dialog_title">License</string>
     <string name="settings_license_dialog_close">Close</string>
-    <string name="settings_size_mb">%1$.1f MB</string>
-    <string name="settings_size_gb">%1$.2f GB</string>
+    <string name="settings_size_mb" translatable="false">%1$.1f MB</string>
+    <string name="settings_size_gb" translatable="false">%1$.2f GB</string>
 
     <string name="settings_section_performance">Performance &amp; Hardware</string>
     <string name="settings_nnapi">Hardware Acceleration (NNAPI)</string>
@@ -201,7 +201,7 @@
     <string name="settings_update_channel_beta_subtitle">Stable plus tagged betas (vX.Y.Z-bN).</string>
     <string name="settings_update_channel_nightly_subtitle">All builds including ad-hoc nightlies. May be unstable.</string>
     <string name="settings_current_version">Current version</string>
-    <string name="settings_current_version_value">%1$s (%2$d)</string>
+    <string name="settings_current_version_value" translatable="false">%1$s (%2$d)</string>
     <string name="settings_check_for_updates">Check for updates</string>
     <string name="settings_check_for_updates_subtitle">Look for a newer release on this channel now.</string>
     <string name="settings_checking_for_updates">Checking for updates…</string>
@@ -220,7 +220,7 @@
     <string name="update_channel_stable">Stable</string>
     <string name="update_channel_beta">Beta</string>
     <string name="update_channel_nightly">Nightly</string>
-    <string name="update_progress_caption">%1$s / %2$s · %3$d%%</string>
+    <string name="update_progress_caption" translatable="false">%1$s / %2$s · %3$d%%</string>
     <string name="update_download_failed">Download failed: %1$s</string>
     <string name="update_no_changelog">No release notes provided.</string>
 
@@ -295,7 +295,7 @@
     <string name="playground_not_installed">Install this voice to use the playground.</string>
     <string name="playground_history_header">History</string>
     <string name="playground_history_empty">Generated samples will appear here.</string>
-    <string name="playground_history_chip">%1$s / %2$s / %3$s</string>
+    <string name="playground_history_chip" translatable="false">%1$s / %2$s / %3$s</string>
     <string name="playground_history_play">Replay sample</string>
     <string name="playground_history_delete">Delete sample</string>
     <string name="playground_time_just_now">just now</string>
@@ -315,7 +315,7 @@
     <string name="downloads_empty_title">Nothing downloading</string>
     <string name="downloads_empty_subtitle">Downloads you start from Browse will appear here.</string>
     <string name="downloads_status_queued">Queued</string>
-    <string name="downloads_status_running">%1$s / %2$s · %3$d%%</string>
+    <string name="downloads_status_running" translatable="false">%1$s / %2$s · %3$d%%</string>
     <string name="downloads_status_extracting">Extracting…</string>
     <string name="downloads_status_extracting_pct">Extracting %1$d%%</string>
     <string name="downloads_status_failed">Failed: %1$s</string>
@@ -325,9 +325,9 @@
     <string name="downloads_action_redownload">Re-download</string>
     <string name="downloads_action_remove_history">Remove from history</string>
     <string name="downloads_action_cancel">Cancel</string>
-    <string name="downloads_size_kb">%1$d KB</string>
-    <string name="downloads_size_mb">%1$d MB</string>
-    <string name="downloads_size_unknown">--</string>
+    <string name="downloads_size_kb" translatable="false">%1$d KB</string>
+    <string name="downloads_size_mb" translatable="false">%1$d MB</string>
+    <string name="downloads_size_unknown" translatable="false">--</string>
     <string name="downloads_time_just_now">just now</string>
     <string name="downloads_time_minutes">%1$d min</string>
     <string name="downloads_time_hours">%1$d hr</string>
