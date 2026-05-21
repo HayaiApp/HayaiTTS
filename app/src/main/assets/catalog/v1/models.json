@@ -65,7 +65,8 @@
       ],
       "tier": "low",
       "title": "Kitten (8 speakers)",
-      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2"
+      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/kitten-micro-en-v0_8.mp3"
     },
     {
       "approxSizeMb": 157,
@@ -132,7 +133,8 @@
       ],
       "tier": "low",
       "title": "Kitten (8 speakers)",
-      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2"
+      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/kitten-mini-en-v0_1-fp16.mp3"
     },
     {
       "approxSizeMb": 68,
@@ -198,7 +200,8 @@
       ],
       "tier": "low",
       "title": "Kitten (8 speakers)",
-      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2"
+      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/kitten-mini-en-v0_8.mp3"
     },
     {
       "approxSizeMb": 27,
@@ -265,7 +268,8 @@
       ],
       "tier": "low",
       "title": "Kitten (8 speakers)",
-      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2"
+      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/kitten-nano-en-v0_1-fp16.mp3"
     },
     {
       "approxSizeMb": 27,
@@ -332,7 +336,8 @@
       ],
       "tier": "low",
       "title": "Kitten (8 speakers)",
-      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2"
+      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/kitten-nano-en-v0_2-fp16.mp3"
     },
     {
       "approxSizeMb": 64,
@@ -399,7 +404,8 @@
       ],
       "tier": "low",
       "title": "Kitten (8 speakers)",
-      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2"
+      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/kitten-nano-en-v0_8-fp32.mp3"
     },
     {
       "approxSizeMb": 31,
@@ -466,7 +472,8 @@
       ],
       "tier": "low",
       "title": "Kitten (8 speakers)",
-      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2"
+      "demoUrl": "https://huggingface.co/KittenML/kitten-tts-nano-0.2",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/kitten-nano-en-v0_8-int8.mp3"
     },
     {
       "approxSizeMb": 320,
@@ -550,7 +557,8 @@
       ],
       "tier": "high",
       "title": "Kokoro (11 speakers)",
-      "demoUrl": "https://huggingface.co/spaces/hexgrad/Kokoro-TTS"
+      "demoUrl": "https://huggingface.co/spaces/hexgrad/Kokoro-TTS",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/kokoro-en-v0_19.mp3"
     },
     {
       "approxSizeMb": 349,
@@ -887,7 +895,8 @@
       ],
       "tier": "high",
       "title": "Kokoro (53 speakers)",
-      "demoUrl": "https://huggingface.co/spaces/hexgrad/Kokoro-TTS"
+      "demoUrl": "https://huggingface.co/spaces/hexgrad/Kokoro-TTS",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/kokoro-multi-lang-v1_0.mp3"
     },
     {
       "approxSizeMb": 365,
@@ -1524,7 +1533,8 @@
       ],
       "tier": "high",
       "title": "Kokoro (103 speakers)",
-      "demoUrl": "https://huggingface.co/spaces/hexgrad/Kokoro-TTS"
+      "demoUrl": "https://huggingface.co/spaces/hexgrad/Kokoro-TTS",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/kokoro-multi-lang-v1_1.mp3"
     },
     {
       "approxSizeMb": 77,
@@ -1551,7 +1561,8 @@
       "vocoderFileName": "vocos-22khz-univ.onnx",
       "vocoderSha256": "0574a135aa1db2de6e181050db2ec528496cacd4a4701fc5d7faf9f9804c0081",
       "vocoderUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/vocoder-models/vocos-22khz-univ.onnx",
-      "demoUrl": "https://huggingface.co/spaces/shivammehta25/Matcha-TTS"
+      "demoUrl": "https://huggingface.co/spaces/shivammehta25/Matcha-TTS",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/matcha-icefall-en_US-ljspeech.mp3"
     },
     {
       "approxSizeMb": 75,
@@ -1579,7 +1590,8 @@
       "vocoderFileName": "vocos-22khz-univ.onnx",
       "vocoderSha256": "0574a135aa1db2de6e181050db2ec528496cacd4a4701fc5d7faf9f9804c0081",
       "vocoderUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/vocoder-models/vocos-22khz-univ.onnx",
-      "demoUrl": "https://huggingface.co/spaces/shivammehta25/Matcha-TTS"
+      "demoUrl": "https://huggingface.co/spaces/shivammehta25/Matcha-TTS",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/matcha-icefall-zh-baker.mp3"
     },
     {
       "approxSizeMb": 79,
@@ -1608,7 +1620,8 @@
       "vocoderFileName": "vocos-16khz-univ.onnx",
       "vocoderSha256": "b599142a1fb8ff03de3e84ac35ff537c619e56f4267a6fe894851a42844acf9e",
       "vocoderUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/vocoder-models/vocos-16khz-univ.onnx",
-      "demoUrl": "https://huggingface.co/spaces/shivammehta25/Matcha-TTS"
+      "demoUrl": "https://huggingface.co/spaces/shivammehta25/Matcha-TTS",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/matcha-icefall-zh-en.mp3"
     },
     {
       "approxSizeMb": 129,
@@ -1716,7 +1729,8 @@
       ],
       "tier": "high",
       "title": "Supertonic (10 speakers)",
-      "demoUrl": "https://huggingface.co/Supertone/supertonic"
+      "demoUrl": "https://huggingface.co/Supertone/supertonic",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/sherpa-onnx-supertonic-3-tts-int8-2026-05-11.mp3"
     },
     {
       "approxSizeMb": 67,

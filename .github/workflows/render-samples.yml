@@ -2,19 +2,32 @@ name: Render voice samples
 
 # Rebuilds the per-voice MP3 sample library hosted on the
 # `samples-rolling` release. The Voice Detail screen's "Listen sample"
-# button streams whatever is at
-# https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/<voice_id>.mp3
+# button streams whatever lives at
+#   https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/<voice_id>.mp3
 # so refreshing this release is how new voices become auditionable.
 #
 # Runs on GitHub-hosted `ubuntu-latest`, NOT Blacksmith — the workload is
-# bandwidth-bound (a few GB of upstream model bundles) so paid runner
-# minutes would be wasted.
+# bandwidth-bound (a few GB of upstream model bundles), so paid runner
+# minutes would be wasted. Render time on the free tier is roughly:
+#   - first run, cold cache: 60–90 min (all 188 bundles downloaded)
+#   - incremental runs after catalog-refresh: 5–15 min (cache hits)
 
 on:
   workflow_dispatch:
+    inputs:
+      family:
+        description: 'Restrict to one family (piper / kokoro / kitten / matcha / supertonic / vits / zipvoice / pocket). Empty = all.'
+        required: false
+        type: string
+        default: ''
+      limit:
+        description: 'Stop after N voices (0 = unlimited). Useful for smoke testing.'
+        required: false
+        type: number
+        default: 0
   schedule:
-    # Weekly, two hours after catalog-refresh so any newly-added voices
-    # get their samples rendered the same day they enter the catalog.
+    # Mondays 10:00 UTC — two hours after catalog-refresh so any newly
+    # added voices get their samples rendered the same day.
     - cron: '0 10 * * 1'
 
 concurrency:
@@ -48,18 +61,22 @@ jobs:
       - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
+          # sherpa-onnx 1.13.2 matches the .aar vendored in app/libs/, so
+          # rendering uses the same per-family config shapes the app sees.
           pip install requests sherpa-onnx==1.13.2 numpy
 
-      - name: Restore sample cache
+      - name: Restore sample + bundle cache
         uses: actions/cache@v4
         with:
-          path: .sample_cache
-          # Cache key bound to the catalog content so a new catalog
-          # naturally invalidates only the rows that changed (downloads
-          # we already did still hit the disk cache).
-          key: render-samples-${{ hashFiles('catalog/v1/models.json') }}
+          # `.sample_cache` holds downloaded tar.bz2 bundles keyed by name.
+          # `samples` is the rendered MP3 output (idempotent: existing
+          # files are reused if already present).
+          path: |
+            .sample_cache
+            samples
+          key: render-samples-v2-${{ hashFiles('catalog/v1/models.json') }}
           restore-keys: |
-            render-samples-
+            render-samples-v2-
 
       - name: Render samples
         run: |
@@ -67,9 +84,26 @@ jobs:
             --catalog catalog/v1/models.json \
             --output samples \
             --cache .sample_cache \
-            --only-missing
+            --only-missing \
+            ${{ inputs.family && format('--family {0}', inputs.family) || '' }} \
+            ${{ inputs.limit && inputs.limit > 0 && format('--limit {0}', inputs.limit) || '' }}
+
+      - name: Summarise rendered samples
+        id: summary
+        run: |
+          count=$(ls -1 samples/*.mp3 2>/dev/null | wc -l || echo 0)
+          total=$(grep -o '"id":' catalog/v1/models.json | wc -l)
+          echo "rendered=$count" >> $GITHUB_OUTPUT
+          echo "total=$total" >> $GITHUB_OUTPUT
+          {
+            echo "Rendered: $count of $total"
+            echo
+            echo "Sample list (first 30):"
+            ls -1 samples/ | head -30 | sed 's/^/  - /'
+          } >> $GITHUB_STEP_SUMMARY || true
 
       - name: Upload sample MP3s to release
+        if: steps.summary.outputs.rendered != '0'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: samples-rolling
@@ -77,11 +111,23 @@ jobs:
           body: |
             Per-voice MP3 audition clips rendered from the upstream
             sherpa-onnx model bundles using the same runtime the app ships.
-            Streamed inline by HayaiTTS' Voice Detail "Listen sample"
+            Streamed inline by HayaiTTS' Voice Detail **Listen sample**
             button before the user downloads the model.
 
-            Generated automatically by
-            [`.github/workflows/render-samples.yml`](https://github.com/HayaiApp/HayaiTTS/blob/main/.github/workflows/render-samples.yml).
+            **Coverage**: ${{ steps.summary.outputs.rendered }} of ${{ steps.summary.outputs.total }} catalog voices.
+
+            **Source phrase**: per-locale pangram or short sentence in the
+            voice's primary language (English fallback).
+
+            **Encoding**: 96 kbps mono MP3 (libmp3lame). One clip per
+            voice, typically 60–120 KB.
+
+            **Update cadence**: weekly Monday 10:00 UTC via
+            [`render-samples.yml`](https://github.com/HayaiApp/HayaiTTS/blob/main/.github/workflows/render-samples.yml),
+            two hours after the upstream catalog refresh.
+
+            This release is overwritten in place each run; do not link to
+            specific commit SHAs.
           files: samples/*.mp3
           draft: false
           prerelease: true
@@ -99,7 +145,7 @@ jobs:
             git config user.email "actions@github.com"
             git config user.name "HayaiTTS samples bot"
             git add catalog/v1/models.json app/src/main/assets/catalog/v1/models.json
-            git commit -m "samples: refresh sampleAudioUrl for newly rendered voices"
+            git commit -m "samples: refresh sampleAudioUrl after render run"
             git push
           else
             echo "no catalog changes — nothing to commit"
