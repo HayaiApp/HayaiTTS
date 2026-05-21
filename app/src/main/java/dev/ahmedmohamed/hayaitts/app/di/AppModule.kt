@@ -119,6 +119,10 @@ val appModule = module {
     // Phase 4b: short-lived AudioTrack helper for Voice Detail previews.
     single { VoicePreviewPlayer(androidContext(), get()) }
 
+    // v2: streaming MediaPlayer for the hosted sample audio surfaced on
+    // Voice Detail before the user downloads the model.
+    single { dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer(get()) }
+
     // P5 Playground: per-voice DataStore-backed tuning prefs + Room-backed
     // sample-history repo. Both are app-singletons because the playground
     // screen and its sibling Voice Detail observe the same flows.

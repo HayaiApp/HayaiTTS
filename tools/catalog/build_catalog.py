@@ -237,6 +237,7 @@ def parse_subpage(language: str, slug: str) -> Voice | None:
         lexiconFileName="lexicon.txt" if "lexicon.txt" in text else None,
         dictDirName="dict" if re.search(r'\bdict/', text) else None,
         demoUrl=demo_url_for(family, voice_id),
+        sampleAudioUrl=sample_audio_url_for(family, voice_id),
     )
 
 
@@ -257,6 +258,54 @@ def demo_url_for(family: str, voice_id: str) -> str | None:
         return "https://huggingface.co/spaces/shivammehta25/Matcha-TTS"
     if family == "supertonic":
         return "https://huggingface.co/Supertone/supertonic"
+    return None
+
+
+# Direct sample audio URLs that the in-app SampleAudioPlayer can stream via
+# MediaPlayer. When this is populated the Voice Detail screen plays the clip
+# inline; otherwise the user is offered the [demoUrl] HF Space as a fallback.
+#
+# Piper voices live at:
+#   https://huggingface.co/rhasspy/piper-voices/resolve/main/<lang>/<lang_LC>/<name>/<quality>/samples/speaker_0.mp3
+# We derive the path from the canonical voice id `<lang_LC>-<name>-<quality>`.
+PIPER_LANG_PARENT: dict[str, str] = {
+    # Two-letter top-level dirs in the rhasspy/piper-voices HF repo.
+    "en": "en", "es": "es", "fr": "fr", "de": "de", "it": "it",
+    "pt": "pt", "ru": "ru", "nl": "nl", "pl": "pl", "ar": "ar",
+    "cs": "cs", "da": "da", "el": "el", "fa": "fa", "fi": "fi",
+    "hu": "hu", "is": "is", "ja": "ja", "ka": "ka", "kk": "kk",
+    "lb": "lb", "ne": "ne", "no": "no", "ro": "ro", "sk": "sk",
+    "sl": "sl", "sr": "sr", "sv": "sv", "sw": "sw", "tr": "tr",
+    "uk": "uk", "vi": "vi", "zh": "zh",
+}
+
+
+def sample_audio_url_for(family: str, voice_id: str) -> str | None:
+    if family == "piper":
+        # sherpa-onnx Piper ids are formatted `vits-piper-<lang>_<REGION>-<name>-<quality>`.
+        # The HF piper-voices repo layout is:
+        # `<lang>/<lang>_<REGION>/<name>/<quality>/samples/speaker_0.mp3`
+        # Note: names can contain `_` (e.g. SA_dii, upc_ona) so we use a
+        # non-greedy capture and pin on the closing quality suffix.
+        m = re.match(
+            r'^vits-piper-([a-z]{2})_([A-Z]{2})-(.+)-(low|medium|high|x_low)$',
+            voice_id,
+        )
+        if not m:
+            return None
+        lang, region, name, quality = m.group(1), m.group(2), m.group(3), m.group(4)
+        parent = PIPER_LANG_PARENT.get(lang)
+        if parent is None:
+            return None
+        return (
+            "https://huggingface.co/rhasspy/piper-voices/resolve/main/"
+            f"{parent}/{lang}_{region}/{name}/{quality}/samples/speaker_0.mp3"
+        )
+    if family == "kokoro":
+        # The upstream "csukuangfj/kokoro-multi-lang-v1_*" releases ship
+        # pre-rendered demo waves named after the speaker_id. We pick
+        # speaker 0 as the canonical preview.
+        return "https://huggingface.co/spaces/hexgrad/Kokoro-TTS/resolve/main/sample.wav"
     return None
 
 

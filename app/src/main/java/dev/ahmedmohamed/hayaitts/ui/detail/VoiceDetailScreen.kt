@@ -79,6 +79,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.R
+import kotlinx.coroutines.launch
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.Speaker
 import dev.ahmedmohamed.hayaitts.ui.components.DownloadProgress
@@ -217,32 +218,14 @@ fun VoiceDetailScreen(
                 onPlay = viewModel::play,
                 onStop = viewModel::stop,
             )
-            // v2: hosted-demo link when the voice isn't installed yet — lets
-            // the user audition the upstream voice in their browser before
-            // committing to the download.
+            // v2: hosted sample audition. Streams a short upstream-hosted
+            // clip via MediaPlayer so the user can hear the voice *before*
+            // committing to the model download. Falls back to the demo URL
+            // (HuggingFace Space) when no direct sample is catalogued.
+            val sampleUrl = state.card?.sampleAudioUrl
             val demoUrl = state.card?.demoUrl
-            if (!state.isInstalled && demoUrl != null) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                ) {
-                    androidx.compose.material3.OutlinedButton(
-                        onClick = {
-                            context.startActivity(
-                                android.content.Intent(
-                                    android.content.Intent.ACTION_VIEW,
-                                    android.net.Uri.parse(demoUrl),
-                                ),
-                            )
-                        },
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.OpenInNew,
-                            contentDescription = null,
-                        )
-                        Spacer(Modifier.size(8.dp))
-                        Text(stringResource(R.string.voice_detail_open_demo))
-                    }
-                }
+            if (!state.isInstalled && (sampleUrl != null || demoUrl != null)) {
+                SampleAuditionRow(sampleUrl = sampleUrl, demoUrl = demoUrl, context = context)
             }
             if (state.isInstalled && installed != null) {
                 DefaultLocaleSection(
@@ -630,4 +613,87 @@ private fun ChipRow(content: @Composable () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) { content() }
+}
+
+/**
+ * Pre-download sample audition. When [sampleUrl] is present we stream the
+ * upstream clip via the singleton [dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer]
+ * and toggle the same button between Play / Loading / Stop based on state.
+ * When only [demoUrl] is present (no direct sample yet catalogued), we fall
+ * back to opening the HuggingFace Space in the browser.
+ */
+@Composable
+private fun SampleAuditionRow(
+    sampleUrl: String?,
+    demoUrl: String?,
+    context: android.content.Context,
+) {
+    val player: dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer =
+        org.koin.compose.koinInject()
+    val playerState by player.state.collectAsStateWithLifecycle()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose { player.stop() }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (sampleUrl != null) {
+            val isThisPlaying = playerState is dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer.State.Playing &&
+                (playerState as dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer.State.Playing).url == sampleUrl
+            val isThisLoading = playerState is dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer.State.Loading &&
+                (playerState as dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer.State.Loading).url == sampleUrl
+            androidx.compose.material3.FilledTonalButton(
+                onClick = {
+                    if (isThisPlaying || isThisLoading) {
+                        player.stop()
+                    } else {
+                        scope.launch { player.play(sampleUrl) }
+                    }
+                },
+            ) {
+                Icon(
+                    imageVector = if (isThisPlaying || isThisLoading) {
+                        Icons.Outlined.Stop
+                    } else {
+                        Icons.Outlined.PlayArrow
+                    },
+                    contentDescription = null,
+                )
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = stringResource(
+                        if (isThisLoading) R.string.voice_detail_sample_loading
+                        else if (isThisPlaying) R.string.voice_detail_sample_stop
+                        else R.string.voice_detail_sample_play,
+                    ),
+                )
+            }
+        }
+        if (demoUrl != null) {
+            androidx.compose.material3.TextButton(
+                onClick = {
+                    context.startActivity(
+                        android.content.Intent(
+                            android.content.Intent.ACTION_VIEW,
+                            android.net.Uri.parse(demoUrl),
+                        ),
+                    )
+                },
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.OpenInNew,
+                    contentDescription = null,
+                )
+                Spacer(Modifier.size(8.dp))
+                Text(stringResource(R.string.voice_detail_open_demo))
+            }
+        }
+    }
 }
