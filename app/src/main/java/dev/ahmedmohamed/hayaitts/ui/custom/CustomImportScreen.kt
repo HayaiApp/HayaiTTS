@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -210,18 +211,18 @@ private fun ImportStepper(phase: CustomImportViewModel.Phase) {
 
 @Composable
 private fun AnalyzingBody() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    PhasePanel(
+        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(
+            topStart = 48.dp, topEnd = 32.dp, bottomEnd = 48.dp, bottomStart = 32.dp,
+        ),
     ) {
         ContainedLoadingIndicator()
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(20.dp))
         Text(
             text = stringResource(R.string.import_analyzing),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.titleMedium,
         )
     }
 }
@@ -472,12 +473,27 @@ private fun AddLanguageDialog(
 
 @Composable
 private fun ImportingBody(progress: CustomBundleInstaller.Progress) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val (containerColor, contentColor) = when (progress.step) {
+        CustomBundleInstaller.Step.Copying ->
+            MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+        CustomBundleInstaller.Step.Extracting ->
+            MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+        CustomBundleInstaller.Step.Validating ->
+            MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+    }
+    val shape = when (progress.step) {
+        CustomBundleInstaller.Step.Copying -> androidx.compose.foundation.shape.RoundedCornerShape(
+            topStart = 32.dp, topEnd = 56.dp, bottomEnd = 32.dp, bottomStart = 56.dp,
+        )
+        CustomBundleInstaller.Step.Extracting -> androidx.compose.foundation.shape.RoundedCornerShape(
+            topStart = 56.dp, topEnd = 32.dp, bottomEnd = 56.dp, bottomStart = 32.dp,
+        )
+        CustomBundleInstaller.Step.Validating -> androidx.compose.foundation.shape.RoundedCornerShape(48.dp)
+    }
+    PhasePanel(
+        containerColor = containerColor,
+        contentColor = contentColor,
+        shape = shape,
     ) {
         val label = when (progress.step) {
             CustomBundleInstaller.Step.Copying -> stringResource(R.string.import_progress_copying)
@@ -485,12 +501,41 @@ private fun ImportingBody(progress: CustomBundleInstaller.Progress) {
             CustomBundleInstaller.Step.Validating -> stringResource(R.string.import_progress_validating)
         }
         Text(label, style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(16.dp))
-        // Phase 7 motion consistency: every active-work indicator uses the
-        // wavy variant from M3 Expressive — matches DownloadProgress in Browse.
+        Spacer(Modifier.height(20.dp))
         LinearWavyProgressIndicator(
             progress = { progress.pct.coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+/**
+ * Tonal panel used by the long-running import phases. Each phase passes its
+ * own container/content colors plus an asymmetric shape so the user gets a
+ * visible "we moved to step N" cue alongside the progress bar.
+ */
+@Composable
+private fun PhasePanel(
+    containerColor: androidx.compose.ui.graphics.Color,
+    contentColor: androidx.compose.ui.graphics.Color,
+    shape: androidx.compose.foundation.shape.RoundedCornerShape,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    androidx.compose.material3.Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        color = containerColor,
+        contentColor = contentColor,
+        shape = shape,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(28.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            content = content,
         )
     }
 }

@@ -69,7 +69,7 @@ fun DownloadProgress(
                 )
             }
 
-            DownloadState.Extracting -> {
+            is DownloadState.Extracting -> {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,

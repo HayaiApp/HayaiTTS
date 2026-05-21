@@ -117,7 +117,7 @@ class DownloadsViewModel(
 
     private fun activeRank(state: DownloadState): Int = when (state) {
         is DownloadState.Running -> 3
-        DownloadState.Extracting -> 2
+        is DownloadState.Extracting -> 2
         DownloadState.Queued -> 1
         else -> 0
     }

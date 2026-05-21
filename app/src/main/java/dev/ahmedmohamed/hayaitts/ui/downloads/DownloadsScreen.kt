@@ -2,6 +2,10 @@
 
 package dev.ahmedmohamed.hayaitts.ui.downloads
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cancel
@@ -49,6 +55,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -63,7 +71,10 @@ import kotlin.math.roundToInt
 
 /**
  * Dedicated screen listing every download the user has touched, grouped into
- * Active / Failed / Recently completed. Flat M3 surfaces, no gradients.
+ * Active / Failed / Recently completed. Each card's container color animates
+ * to reflect state: tertiaryContainer while running/extracting,
+ * errorContainer on failure, surfaceContainer when done. Section headers
+ * carry a tonal leading dot for Expressive flair.
  */
 @Composable
 fun DownloadsScreen(
@@ -143,7 +154,12 @@ private fun DownloadsBody(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (state.active.isNotEmpty()) {
-            item("active_header") { SectionHeader(stringResource(R.string.downloads_section_active)) }
+            item("active_header") {
+                SectionHeader(
+                    text = stringResource(R.string.downloads_section_active),
+                    dotColor = MaterialTheme.colorScheme.tertiary,
+                )
+            }
             downloadRows(state.active) { row ->
                 DownloadRow(row = row, trailing = {
                     OutlinedButton(onClick = { onCancel(row.voiceId) }) {
@@ -155,7 +171,12 @@ private fun DownloadsBody(
             }
         }
         if (state.failed.isNotEmpty()) {
-            item("failed_header") { SectionHeader(stringResource(R.string.downloads_section_failed)) }
+            item("failed_header") {
+                SectionHeader(
+                    text = stringResource(R.string.downloads_section_failed),
+                    dotColor = MaterialTheme.colorScheme.error,
+                )
+            }
             downloadRows(state.failed) { row ->
                 DownloadRow(row = row, trailing = {
                     FilledTonalButton(onClick = { onRetry(row) }) {
@@ -167,7 +188,12 @@ private fun DownloadsBody(
             }
         }
         if (state.completed.isNotEmpty()) {
-            item("completed_header") { SectionHeader(stringResource(R.string.downloads_section_completed)) }
+            item("completed_header") {
+                SectionHeader(
+                    text = stringResource(R.string.downloads_section_completed),
+                    dotColor = MaterialTheme.colorScheme.primary,
+                )
+            }
             downloadRows(state.completed) { row ->
                 DownloadRow(row = row, trailing = {
                     OutlinedButton(onClick = { onRetry(row) }) {
@@ -182,13 +208,21 @@ private fun DownloadsBody(
 }
 
 @Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
-    )
+private fun SectionHeader(text: String, dotColor: Color) {
+    Row(
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Box(
+            modifier = Modifier.size(10.dp).clip(CircleShape).background(dotColor),
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
 }
 
 @Composable
@@ -198,31 +232,64 @@ private fun DownloadRow(
     onRemoveHistory: (() -> Unit)?,
 ) {
     val family = row.voiceCard?.modelFamily ?: ModelFamily.PIPER
+    val targetContainer = when (row.state) {
+        is DownloadState.Running, is DownloadState.Extracting -> MaterialTheme.colorScheme.tertiaryContainer
+        is DownloadState.Failed, DownloadState.Cancelled -> MaterialTheme.colorScheme.errorContainer
+        else -> MaterialTheme.colorScheme.surfaceContainer
+    }
+    val targetContent = when (row.state) {
+        is DownloadState.Running, is DownloadState.Extracting -> MaterialTheme.colorScheme.onTertiaryContainer
+        is DownloadState.Failed, DownloadState.Cancelled -> MaterialTheme.colorScheme.onErrorContainer
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    val containerColor by animateColorAsState(
+        targetValue = targetContainer,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "download-bg",
+    )
+    val contentColor by animateColorAsState(
+        targetValue = targetContent,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "download-fg",
+    )
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = containerColor,
+            contentColor = contentColor,
+        ),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 FamilyBadge(family = family, downloadState = row.state)
                 Spacer(Modifier.size(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = row.title, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                    Text(
+                        text = row.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = contentColor,
+                        maxLines = 1,
+                    )
                     Spacer(Modifier.height(2.dp))
-                    StatusLine(row)
+                    StatusLine(row, contentColor)
                 }
                 if (onRemoveHistory != null) OverflowMenu(onRemoveHistory = onRemoveHistory)
             }
-            val running = row.state
-            if (running is DownloadState.Running) {
-                Spacer(Modifier.height(12.dp))
+            val pct = when (val s = row.state) {
+                is DownloadState.Running -> s.pct
+                is DownloadState.Extracting -> s.pct
+                else -> null
+            }
+            if (pct != null) {
+                Spacer(Modifier.height(14.dp))
                 LinearWavyProgressIndicator(
-                    progress = { running.pct.coerceIn(0f, 1f) },
+                    progress = { pct.coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            Spacer(Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(Modifier.height(14.dp))
+            HorizontalDivider(color = contentColor.copy(alpha = 0.18f))
             Spacer(Modifier.height(12.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                 trailing()
@@ -232,8 +299,8 @@ private fun DownloadRow(
 }
 
 @Composable
-private fun StatusLine(row: DownloadsViewModel.Row) {
-    val color = MaterialTheme.colorScheme.onSurfaceVariant
+private fun StatusLine(row: DownloadsViewModel.Row, contentColor: Color) {
+    val color = contentColor.copy(alpha = 0.78f)
     val icon = when (row.state) {
         is DownloadState.Failed -> Icons.Outlined.ErrorOutline
         DownloadState.Cancelled -> Icons.Outlined.ErrorOutline
@@ -248,7 +315,10 @@ private fun StatusLine(row: DownloadsViewModel.Row) {
             formatSize(s.totalBytes),
             (s.pct * 100).roundToInt().coerceIn(0, 100),
         )
-        DownloadState.Extracting -> stringResource(R.string.downloads_status_extracting)
+        is DownloadState.Extracting -> {
+            val pct = (s.pct * 100).roundToInt().coerceIn(0, 100)
+            stringResource(R.string.downloads_status_extracting_pct, pct)
+        }
         is DownloadState.Failed -> stringResource(R.string.downloads_status_failed, s.reason)
         DownloadState.Cancelled -> stringResource(R.string.library_download_cancelled)
         DownloadState.Done -> {

@@ -317,6 +317,7 @@
     <string name="downloads_status_queued">Queued</string>
     <string name="downloads_status_running">%1$s / %2$s · %3$d%%</string>
     <string name="downloads_status_extracting">Extracting…</string>
+    <string name="downloads_status_extracting_pct">Extracting %1$d%%</string>
     <string name="downloads_status_failed">Failed: %1$s</string>
     <string name="downloads_status_completed">Completed</string>
     <string name="downloads_status_completed_ago">Completed %1$s ago</string>

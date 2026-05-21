@@ -8,7 +8,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -69,8 +73,10 @@ import dev.ahmedmohamed.hayaitts.ui.theme.HayaiTtsTheme
 
 /**
  * In-app help / FAQ screen reached from Settings → About → "Help". Scrollable
- * list of [ExpandableCard]s; each card collapses by default and expands with
- * an [AnimatedVisibility] reveal. Flat M3 — no gradients.
+ * list of expandable cards: collapsed cards sit on surfaceContainerHighest
+ * with a tight corner radius; expanding a card morphs both the container
+ * color (to primaryContainer) and the bottom corners (to an asymmetric
+ * cookie profile) for an Expressive feel.
  */
 class HelpActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -214,11 +220,51 @@ private fun ExpandableCard(
     var expanded by rememberSaveable(title) { mutableStateOf(false) }
     val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "chevron-rot")
 
+    val containerColor by animateColorAsState(
+        targetValue = if (expanded) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHighest,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "expand-bg",
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (expanded) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.onSurface,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "expand-fg",
+    )
+    val accentColor by animateColorAsState(
+        targetValue = if (expanded) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.primary,
+        animationSpec = spring(),
+        label = "expand-accent",
+    )
+    val cornerTop by animateDpAsState(
+        targetValue = if (expanded) 28.dp else 24.dp,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "expand-corner-top",
+    )
+    val cornerBottomEnd by animateDpAsState(
+        targetValue = if (expanded) 12.dp else 24.dp,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "expand-corner-be",
+    )
+    val cornerBottomStart by animateDpAsState(
+        targetValue = if (expanded) 36.dp else 24.dp,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "expand-corner-bs",
+    )
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(
+            topStart = cornerTop,
+            topEnd = cornerTop,
+            bottomEnd = cornerBottomEnd,
+            bottomStart = cornerBottomStart,
+        ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = containerColor,
+            contentColor = contentColor,
         ),
     ) {
         Column {
@@ -226,25 +272,25 @@ private fun ExpandableCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { expanded = !expanded }
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                    .padding(horizontal = 18.dp, vertical = 18.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = accentColor,
                 )
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = contentColor,
                     modifier = Modifier.weight(1f),
                 )
                 Icon(
                     imageVector = Icons.Outlined.ExpandMore,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = contentColor.copy(alpha = 0.7f),
                     modifier = Modifier.rotate(rotation),
                 )
             }
@@ -254,13 +300,13 @@ private fun ExpandableCard(
                 exit = fadeOut() + shrinkVertically(),
             ) {
                 Column(
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 18.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
                         text = body,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = contentColor.copy(alpha = 0.85f),
                     )
                     if (action != null) action()
                 }
