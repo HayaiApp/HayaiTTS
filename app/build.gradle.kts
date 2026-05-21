@@ -31,8 +31,8 @@ android {
         applicationId = "dev.ahmedmohamed.hayaitts"
         minSdk = 26
         targetSdk = 36
-        versionCode = 111
-        versionName = "1.1.1"
+        versionCode = 120
+        versionName = "1.2.0-b1"
 
         // Room schema export. KSP picks this up via the `room` argument and
         // writes JSON snapshots of each entity into app/schemas/. Schemas are
