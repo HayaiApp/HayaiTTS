@@ -2,8 +2,9 @@ package dev.ahmedmohamed.hayaitts.data.update
 
 import co.touchlab.kermit.Logger
 import dev.ahmedmohamed.hayaitts.BuildConfig
+import dev.ahmedmohamed.hayaitts.core.dispatchers.DispatcherProvider
+import dev.ahmedmohamed.hayaitts.domain.model.UpdateChannel
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -34,6 +35,7 @@ import okhttp3.Request
 class UpdateChecker(
     private val okHttp: OkHttpClient,
     private val settings: SettingsRepository,
+    private val dispatchers: DispatcherProvider,
 ) {
     private val log = Logger.withTag("UpdateChecker")
 
@@ -51,7 +53,7 @@ class UpdateChecker(
      * [Failed][UpdateStatus.Failed]. On success (either UpToDate or Available)
      * the timestamp is persisted via [SettingsRepository.setLastUpdateCheckMillis].
      */
-    suspend fun check(force: Boolean = false): UpdateStatus = withContext(Dispatchers.IO) {
+    suspend fun check(force: Boolean = false): UpdateStatus = withContext(dispatchers.io) {
         val channel = settings.updateChannel.first()
         if (!force) {
             val last = settings.lastUpdateCheckMillis.first()

@@ -57,7 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.ahmedmohamed.hayaitts.R
 import dev.ahmedmohamed.hayaitts.domain.model.Tier
-import dev.ahmedmohamed.hayaitts.domain.recommendation.recommendedTier
+import dev.ahmedmohamed.hayaitts.data.device.recommendedTier
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.launch
 

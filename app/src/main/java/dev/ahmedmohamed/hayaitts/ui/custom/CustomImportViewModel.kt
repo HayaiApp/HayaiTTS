@@ -4,10 +4,10 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.ahmedmohamed.hayaitts.core.dispatchers.DispatcherProvider
 import dev.ahmedmohamed.hayaitts.data.custom.CustomBundleAnalyzer
 import dev.ahmedmohamed.hayaitts.data.custom.CustomBundleInstaller
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +28,7 @@ class CustomImportViewModel(
     encodedUri: String,
     private val analyzer: CustomBundleAnalyzer,
     private val installer: CustomBundleInstaller,
+    private val dispatchers: DispatcherProvider,
 ) : ViewModel() {
 
     private val uri: Uri = URLDecoder.decode(encodedUri, "UTF-8").toUri()
@@ -36,8 +37,11 @@ class CustomImportViewModel(
         PIPER(ModelFamily.PIPER, true),
         VITS(ModelFamily.VITS, true),
         MATCHA(ModelFamily.MATCHA, true),
-        KOKORO(ModelFamily.KOKORO, false),
-        KITTEN(ModelFamily.KITTEN, false),
+        KOKORO(ModelFamily.KOKORO, true),
+        KITTEN(ModelFamily.KITTEN, true),
+        ZIPVOICE(ModelFamily.ZIPVOICE, true),
+        POCKET(ModelFamily.POCKET, true),
+        SUPERTONIC(ModelFamily.SUPERTONIC, true),
     }
 
     sealed class Phase {
@@ -63,7 +67,7 @@ class CustomImportViewModel(
 
     init {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { analyzer.analyze(uri) }
+            val result = withContext(dispatchers.io) { analyzer.analyze(uri) }
             result
                 .onSuccess { analysis ->
                     analysis.unsupportedFamily?.let { unsupported ->
@@ -135,7 +139,7 @@ class CustomImportViewModel(
                 languages = cur.languages,
                 speakers = analysis.speakers,
             )
-            val result = withContext(Dispatchers.IO) {
+            val result = withContext(dispatchers.io) {
                 installer.install(request, progressFlow)
             }
             result

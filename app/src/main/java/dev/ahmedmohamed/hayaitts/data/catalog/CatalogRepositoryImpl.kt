@@ -2,11 +2,11 @@ package dev.ahmedmohamed.hayaitts.data.catalog
 
 import android.content.Context
 import co.touchlab.kermit.Logger
+import dev.ahmedmohamed.hayaitts.core.dispatchers.DispatcherProvider
 import dev.ahmedmohamed.hayaitts.domain.model.CatalogManifest
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
 import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +30,7 @@ class CatalogRepositoryImpl(
     private val context: Context,
     private val okHttp: OkHttpClient,
     private val externalScope: CoroutineScope,
+    private val dispatchers: DispatcherProvider,
 ) : CatalogRepository {
 
     private val log = Logger.withTag("CatalogRepository")
@@ -51,7 +52,7 @@ class CatalogRepositoryImpl(
     }
 
     override suspend fun refresh() {
-        val remote = withContext(Dispatchers.IO) { fetchFromNetwork() }
+        val remote = withContext(dispatchers.io) { fetchFromNetwork() }
         if (remote.isNullOrEmpty()) {
             log.i { "Remote catalog empty/unreachable; keeping current ${_catalog.value.size} entries" }
             return

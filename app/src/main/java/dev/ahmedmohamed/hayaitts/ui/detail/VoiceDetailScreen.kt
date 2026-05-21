@@ -479,7 +479,10 @@ private fun WaveformBars(
     accent: Color,
     playing: Boolean,
 ) {
-    val bars = 20
+    // Matches the 32-bin RMS envelope published by VoicePreviewPlayer.amplitudes.
+    // Keeping the bar count equal to the source resolution skips the downsample
+    // step in WaveformBars and lets the UI render each bin 1:1.
+    val bars = 32
     Row(
         modifier = Modifier
             .fillMaxWidth()

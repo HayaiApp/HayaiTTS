@@ -3,11 +3,11 @@ package dev.ahmedmohamed.hayaitts.data.storage
 import android.content.Context
 import android.os.Environment
 import co.touchlab.kermit.Logger
+import dev.ahmedmohamed.hayaitts.core.dispatchers.DispatcherProvider
 import dev.ahmedmohamed.hayaitts.data.db.dao.InstalledVoiceDao
 import dev.ahmedmohamed.hayaitts.domain.model.MoveProgress
 import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -24,6 +24,7 @@ class StorageMigrator(
     private val context: Context,
     private val installedVoiceDao: InstalledVoiceDao,
     private val settings: SettingsRepository,
+    private val dispatchers: DispatcherProvider,
 ) {
     private val log = Logger.withTag("StorageMigrator")
 
@@ -121,7 +122,7 @@ class StorageMigrator(
         // future downloads keep going there.
         settings.setStorageLocation(target)
         emit(MoveProgress.Done(movedCount = moved))
-    }.flowOn(Dispatchers.IO)
+    }.flowOn(dispatchers.io)
 
     private fun copyDirectory(source: File, dest: File) {
         if (!dest.exists()) dest.mkdirs()

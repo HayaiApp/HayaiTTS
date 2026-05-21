@@ -1,7 +1,7 @@
 package dev.ahmedmohamed.hayaitts.domain.repo
 
-import dev.ahmedmohamed.hayaitts.data.update.UpdateChannel
 import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
+import dev.ahmedmohamed.hayaitts.domain.model.UpdateChannel
 import kotlinx.coroutines.flow.Flow
 
 /**

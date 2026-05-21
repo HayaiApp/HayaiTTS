@@ -10,6 +10,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import co.touchlab.kermit.Logger
+import dev.ahmedmohamed.hayaitts.core.dispatchers.DispatcherProvider
 import dev.ahmedmohamed.hayaitts.data.catalog.catalogJson
 import dev.ahmedmohamed.hayaitts.data.db.dao.DownloadStateDao
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
@@ -17,7 +18,6 @@ import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
 import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -41,6 +41,7 @@ class DownloadRepositoryImpl(
     private val downloadStateDao: DownloadStateDao,
     private val settings: SettingsRepository,
     private val appScope: CoroutineScope,
+    private val dispatchers: DispatcherProvider,
 ) : DownloadRepository {
 
     private val log = Logger.withTag("DownloadRepository")
@@ -78,7 +79,7 @@ class DownloadRepositoryImpl(
         // Resolve the wifi-only constraint synchronously off the DataStore.
         // It's a single key read, and the alternative — kicking off the
         // enqueue from a coroutine — bleeds async lifecycle into UI callers.
-        val wifiOnly = runBlocking(Dispatchers.IO) { settings.wifiOnly.first() }
+        val wifiOnly = runBlocking(dispatchers.io) { settings.wifiOnly.first() }
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(if (wifiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED)
             .build()
@@ -107,7 +108,7 @@ class DownloadRepositoryImpl(
 
         // Optimistically write a "queued" row so the UI can react before the
         // worker actually picks up.
-        appScope.launch(Dispatchers.IO) {
+        appScope.launch(dispatchers.io) {
             downloadStateDao.upsert(
                 dev.ahmedmohamed.hayaitts.data.db.entities.DownloadStateEntity(
                     voiceId = voiceCard.id,
@@ -130,7 +131,7 @@ class DownloadRepositoryImpl(
 
     override fun cancel(voiceId: String) {
         WorkManager.getInstance(context).cancelUniqueWork(VoiceDownloadWorker.uniqueName(voiceId))
-        appScope.launch(Dispatchers.IO) {
+        appScope.launch(dispatchers.io) {
             downloadStateDao.upsert(
                 dev.ahmedmohamed.hayaitts.data.db.entities.DownloadStateEntity(
                     voiceId = voiceId,
@@ -145,11 +146,11 @@ class DownloadRepositoryImpl(
     }
 
     override suspend fun clearOne(voiceId: String) {
-        withContext(Dispatchers.IO) { downloadStateDao.deleteById(voiceId) }
+        withContext(dispatchers.io) { downloadStateDao.deleteById(voiceId) }
     }
 
     override suspend fun clearCompleted() {
-        withContext(Dispatchers.IO) {
+        withContext(dispatchers.io) {
             val terminalStatuses = setOf(
                 DownloadState.STATUS_DONE,
                 DownloadState.STATUS_FAILED,

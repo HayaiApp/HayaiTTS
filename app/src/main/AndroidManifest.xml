@@ -69,6 +69,21 @@
             android:name=".ui.speaker.SpeakerPickerActivity"
             android:exported="false" />
 
+        <!-- v2 Phase 7f: "Speak with HayaiTTS" entry in text-selection menus.
+             Android delivers the selected text via Intent.EXTRA_PROCESS_TEXT;
+             the activity finishes itself after synthesizing + playing. -->
+        <activity
+            android:name=".ui.speakselection.SpeakSelectionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:label="@string/speak_selection_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <service
             android:name=".tts.HayaiTtsService"
             android:label="@string/app_name"

@@ -15,7 +15,7 @@ plugins {
 kotlin {
     jvmToolchain(21)
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         freeCompilerArgs.addAll(
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi",
@@ -31,8 +31,8 @@ android {
         applicationId = "dev.ahmedmohamed.hayaitts"
         minSdk = 26
         targetSdk = 36
-        versionCode = 120
-        versionName = "1.2.0-b1"
+        versionCode = 200
+        versionName = "2.0.0-b1"
 
         // Room schema export. KSP picks this up via the `room` argument and
         // writes JSON snapshots of each entity into app/schemas/. Schemas are
@@ -109,8 +109,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     // Note: kotlinOptions DSL was deprecated in Kotlin 2.2 — switched to the
@@ -207,6 +207,7 @@ dependencies {
     testImplementation(libs.junit4)
     testImplementation(libs.coroutines.test)
     testImplementation(libs.androidx.test.core)
+    testImplementation(libs.konsist)
 
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)

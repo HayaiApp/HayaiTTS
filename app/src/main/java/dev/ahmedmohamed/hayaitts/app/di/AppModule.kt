@@ -1,5 +1,7 @@
 package dev.ahmedmohamed.hayaitts.app.di
 
+import dev.ahmedmohamed.hayaitts.core.dispatchers.DefaultDispatcherProvider
+import dev.ahmedmohamed.hayaitts.core.dispatchers.DispatcherProvider
 import dev.ahmedmohamed.hayaitts.data.catalog.CatalogRepositoryImpl
 import dev.ahmedmohamed.hayaitts.data.custom.CustomBundleAnalyzer
 import dev.ahmedmohamed.hayaitts.data.custom.CustomBundleInstaller
@@ -15,11 +17,19 @@ import dev.ahmedmohamed.hayaitts.data.storage.StorageMigrator
 import dev.ahmedmohamed.hayaitts.data.update.UpdateChecker
 import dev.ahmedmohamed.hayaitts.data.update.UpdateInstaller
 import dev.ahmedmohamed.hayaitts.data.voices.VoiceRepositoryImpl
+import dev.ahmedmohamed.hayaitts.data.telemetry.SynthesisTelemetryRepository
+import dev.ahmedmohamed.hayaitts.data.tts.SherpaSynthesisGateway
+import dev.ahmedmohamed.hayaitts.ui.activity.ActivityViewModel
 import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DefaultsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
+import dev.ahmedmohamed.hayaitts.domain.usecase.InstallVoiceUseCase
+import dev.ahmedmohamed.hayaitts.domain.usecase.RecommendTierUseCase
+import dev.ahmedmohamed.hayaitts.domain.usecase.RefreshCatalogUseCase
+import dev.ahmedmohamed.hayaitts.domain.usecase.SynthesisGateway
+import dev.ahmedmohamed.hayaitts.domain.usecase.SynthesizeUseCase
 import dev.ahmedmohamed.hayaitts.ui.browse.BrowseViewModel
 import dev.ahmedmohamed.hayaitts.ui.custom.CustomImportViewModel
 import dev.ahmedmohamed.hayaitts.ui.detail.VoiceDetailViewModel
@@ -32,7 +42,6 @@ import dev.ahmedmohamed.hayaitts.ui.quickswitch.QuickSwitchViewModel
 import dev.ahmedmohamed.hayaitts.ui.settings.SettingsViewModel
 import dev.ahmedmohamed.hayaitts.ui.update.UpdateViewModel
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
@@ -46,11 +55,17 @@ import java.util.concurrent.TimeUnit
  */
 val appModule = module {
 
+    // Centralized dispatcher provider. Production code must depend on
+    // [DispatcherProvider] rather than `Dispatchers.*` directly so the Konsist
+    // architecture suite can enforce the rule and tests can substitute a
+    // TestDispatcher.
+    single<DispatcherProvider> { DefaultDispatcherProvider() }
+
     // Long-lived application scope used by repositories that need to launch
     // their own coroutines (catalog refresh, download state writes, etc.).
     // SupervisorJob so one failure does not cancel the rest.
     single(named("appScope")) {
-        CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        CoroutineScope(SupervisorJob() + get<DispatcherProvider>().default)
     }
 
     // OkHttp shared by the catalog refresh + voice downloader.
@@ -70,6 +85,12 @@ val appModule = module {
     single { get<HayaiTtsDatabase>().downloadStateDao() }
     single { get<HayaiTtsDatabase>().defaultVoiceDao() }
     single { get<HayaiTtsDatabase>().playgroundSampleDao() }
+    single { get<HayaiTtsDatabase>().voiceProfileDao() }
+    single { get<HayaiTtsDatabase>().pronunciationDao() }
+    single { get<HayaiTtsDatabase>().appRouteDao() }
+
+    // Phase 7c: SSML preprocessor singleton — purely functional, no Android deps.
+    single { dev.ahmedmohamed.hayaitts.data.ssml.SsmlPreprocessor() }
 
     // Repositories. Bind both the interface and the impl class so callers can
     // pick either (the TTS service grabs the impl for the snapshot helper).
@@ -81,6 +102,7 @@ val appModule = module {
             context = androidContext(),
             okHttp = get(),
             externalScope = get(named("appScope")),
+            dispatchers = get(),
         )
     }
     single<DownloadRepository> {
@@ -89,12 +111,13 @@ val appModule = module {
             downloadStateDao = get(),
             settings = get(),
             appScope = get(named("appScope")),
+            dispatchers = get(),
         )
     }
     single<DefaultsRepository> { DefaultsRepositoryImpl(get()) }
 
     // Phase 4b: short-lived AudioTrack helper for Voice Detail previews.
-    single { VoicePreviewPlayer(androidContext()) }
+    single { VoicePreviewPlayer(androidContext(), get()) }
 
     // P5 Playground: per-voice DataStore-backed tuning prefs + Room-backed
     // sample-history repo. Both are app-singletons because the playground
@@ -109,6 +132,7 @@ val appModule = module {
             context = androidContext(),
             installedVoiceDao = get(),
             settings = get(),
+            dispatchers = get(),
         )
     }
 
@@ -129,8 +153,18 @@ val appModule = module {
 
     // Auto-updater. Uses the shared OkHttp + SettingsRepository so the channel
     // preference + 6h cooldown live in the existing hayai_settings DataStore.
-    single { UpdateChecker(okHttp = get(), settings = get()) }
-    single { UpdateInstaller(context = androidContext(), okHttp = get()) }
+    single { UpdateChecker(okHttp = get(), settings = get(), dispatchers = get()) }
+    single { UpdateInstaller(context = androidContext(), okHttp = get(), dispatchers = get()) }
+
+    // Phase 11b: SynthesisGateway adapter + the four use-cases. Domain
+    // consumers (use cases) depend on the gateway interface, never on the
+    // sherpa runtime directly.
+    single { SynthesisTelemetryRepository() }
+    single<SynthesisGateway> { SherpaSynthesisGateway(androidContext(), get()) }
+    factory { InstallVoiceUseCase(catalog = get(), downloads = get()) }
+    factory { RefreshCatalogUseCase(catalog = get()) }
+    factory { RecommendTierUseCase() }
+    factory { SynthesizeUseCase(gateway = get()) }
 
     viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
     viewModel { BrowseViewModel(androidContext(), get(), get(), get()) }
@@ -160,6 +194,7 @@ val appModule = module {
             encodedUri = encodedUri,
             analyzer = get(),
             installer = get(),
+            dispatchers = get(),
         )
     }
     viewModel {
@@ -169,6 +204,7 @@ val appModule = module {
             voices = get(),
             defaults = get(),
             migrator = get(),
+            dispatchers = get(),
         )
     }
     viewModel {
@@ -184,6 +220,14 @@ val appModule = module {
             catalogRepository = get(),
             voiceRepository = get(),
             history = get(),
+        )
+    }
+    viewModel {
+        ActivityViewModel(
+            downloads = get(),
+            voices = get(),
+            catalog = get(),
+            telemetry = get(),
         )
     }
 }

@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import dev.ahmedmohamed.hayaitts.R
 import dev.ahmedmohamed.hayaitts.data.update.DownloadProgress
-import dev.ahmedmohamed.hayaitts.data.update.UpdateChannel
+import dev.ahmedmohamed.hayaitts.domain.model.UpdateChannel
 import dev.ahmedmohamed.hayaitts.data.update.UpdateStatus
 
 /**

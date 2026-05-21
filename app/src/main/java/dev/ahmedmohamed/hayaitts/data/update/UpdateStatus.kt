@@ -1,5 +1,7 @@
 package dev.ahmedmohamed.hayaitts.data.update
 
+import dev.ahmedmohamed.hayaitts.domain.model.UpdateChannel
+
 /**
  * Terminal outcome of an [UpdateChecker.check] call. Held in the UpdateViewModel
  * as a [kotlinx.coroutines.flow.StateFlow] so the launch-time auto-check and the

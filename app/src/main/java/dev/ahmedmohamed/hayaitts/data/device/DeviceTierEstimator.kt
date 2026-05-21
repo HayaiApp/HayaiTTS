@@ -1,4 +1,4 @@
-package dev.ahmedmohamed.hayaitts.domain.recommendation
+package dev.ahmedmohamed.hayaitts.data.device
 
 import android.app.ActivityManager
 import android.content.Context
@@ -8,8 +8,11 @@ import dev.ahmedmohamed.hayaitts.domain.model.Tier
 
 /**
  * Cheap heuristic that maps the host device into one of the [Tier] buckets.
- * The Browse screen uses it to sort recommended voices first and to render a
- * "Recommended for your device" pill.
+ * Lives in `data/` because it depends on Android SDK types — the domain layer
+ * stays Android-free per the architecture contract.
+ *
+ * Browse uses it to sort recommended voices first and to render a "Recommended
+ * for your device" pill.
  *
  * Strategy:
  *   1. If [Build.SOC_MODEL] (API 31+) matches a known flagship SoC, return HIGH.
@@ -17,11 +20,6 @@ import dev.ahmedmohamed.hayaitts.domain.model.Tier
  *        - >= 7.5 GB on API 33+ => HIGH (covers Tensor G2+, SD8G2+, etc.)
  *        - >= 3.5 GB           => MID
  *        - < 3.5 GB            => LOW
- *
- * The RAM thresholds intentionally bracket a generation late so even a
- * conservative reading still steers Pixel 6 / Galaxy S21 class hardware to
- * HIGH. The SoC allowlist is kept small — it costs maintenance and the RAM
- * fallback catches everything that isn't on the list.
  */
 fun recommendedTier(context: Context): Tier {
     val am = context.getSystemService<ActivityManager>() ?: return Tier.MID

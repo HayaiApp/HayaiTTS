@@ -3,10 +3,10 @@ package dev.ahmedmohamed.hayaitts.ui.update
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.ahmedmohamed.hayaitts.data.update.DownloadProgress
-import dev.ahmedmohamed.hayaitts.data.update.UpdateChannel
 import dev.ahmedmohamed.hayaitts.data.update.UpdateChecker
 import dev.ahmedmohamed.hayaitts.data.update.UpdateInstaller
 import dev.ahmedmohamed.hayaitts.data.update.UpdateStatus
+import dev.ahmedmohamed.hayaitts.domain.model.UpdateChannel
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow

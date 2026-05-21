@@ -8,7 +8,7 @@ import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.Tier
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
-import dev.ahmedmohamed.hayaitts.domain.recommendation.recommendedTier
+import dev.ahmedmohamed.hayaitts.data.device.recommendedTier
 import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository

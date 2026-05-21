@@ -194,13 +194,16 @@ def parse_subpage(language: str, slug: str) -> Voice | None:
 
     named = parse_named_speakers(text)
     if named:
-        speakers = [{"id": sid, "name": name, "gender": gender_for(name)}
-                    for sid, name in sorted(named.items())]
+        speakers = []
+        for sid, name in sorted(named.items()):
+            g, conf = infer_gender(voice_id, name, family)
+            speakers.append({"id": sid, "name": name, "gender": g, "genderConfidence": conf})
     elif num_speakers == 1:
-        speakers = [{"id": 0, "name": derive_single_speaker_name(voice_id),
-                     "gender": "U"}]
+        single_name = derive_single_speaker_name(voice_id)
+        g, conf = infer_gender(voice_id, single_name, family)
+        speakers = [{"id": 0, "name": single_name, "gender": g, "genderConfidence": conf}]
     else:
-        speakers = [{"id": i, "name": f"speaker_{i}", "gender": "U"}
+        speakers = [{"id": i, "name": f"speaker_{i}", "gender": "U", "genderConfidence": "unknown"}
                     for i in range(num_speakers)]
 
     vocoder_url = vocoder_file = None
@@ -321,6 +324,119 @@ def gender_for(speaker_name: str) -> str:
     if n.startswith(("af", "bf", "cf")) or n.endswith(("-f", "_f")): return "F"
     if n.startswith(("am", "bm", "cm")) or n.endswith(("-m", "_m")): return "M"
     return "U"
+
+
+# Hand-curated gender map for Piper single-speaker voices. The upstream Piper
+# release model cards usually identify the gender in prose; we transcribe the
+# known set here so the Browse "Female / Male" filter has data to work with.
+#
+# Voices NOT in this map fall through to "U" (Unknown) and the catalog tags
+# them `genderConfidence: "unknown"` so the UI can render them distinctly.
+# Add new entries here as upstream ships new voices.
+#
+# Keys are the voice's derived speaker name (per `derive_single_speaker_name`),
+# normalized lowercase.
+PIPER_VOICE_GENDERS: dict[str, str] = {
+    # en_US
+    "amy": "F", "kathleen": "F", "lessac": "F", "ljspeech": "F",
+    "libritts": "U", "libritts_r": "U",  # multi-speaker — handled per-name elsewhere
+    "joe": "M", "ryan": "M", "kusal": "M", "danny": "M", "norman": "M",
+    "hfc_female": "F", "hfc_male": "M",
+    "glados": "F", "arctic": "M", "l2arctic": "U",
+    # en_GB
+    "alan": "M", "alba": "F", "aru": "F", "cori": "F",
+    "jenny_dioco": "F", "jenny": "F", "semaine": "U",
+    "southern_english_female": "F", "northern_english_male": "M",
+    "vctk": "U",  # multi-speaker
+    # es_ES / es_MX
+    "davefx": "M", "sharvard": "U", "claude": "M", "ald": "F",
+    "carlfm": "M",
+    # de_DE
+    "thorsten": "M", "thorsten_emotional": "M",
+    "eva_k": "F", "karlsson": "M", "kerstin": "F",
+    "pavoque": "M", "ramona": "F",
+    # fr_FR
+    "gilles": "M", "siwis": "F", "tom": "M", "upmc": "U",
+    # it_IT
+    "paola": "F", "riccardo": "M",
+    # pl_PL
+    "darkman": "M", "gosia": "F",
+    # pt_BR / pt_PT
+    "faber": "M", "edresson": "M", "tugão": "M", "tugao": "M",
+    # ru_RU
+    "denis": "M", "dmitri": "M", "irina": "F", "ruslan": "M",
+    # uk_UA
+    "lada": "F", "ukrainian_tts": "U",
+    # vi_VN
+    "vais1000": "M", "25hours_single": "U",
+    # zh_CN
+    "huayan": "F",
+    # ar_JO
+    "kareem": "M",
+    # cs_CZ
+    "jirka": "M",
+    # da_DK
+    "talesyntese": "U",
+    # el_GR
+    "rapunzelina": "F",
+    # fa_IR
+    "amir": "M", "ganji": "M", "gyro": "M",
+    "haaniye": "F",
+    # fi_FI
+    "harri": "M",
+    # hu_HU
+    "anna": "F", "berta": "F", "imre": "M",
+    # is_IS
+    "bui": "M", "salka": "F", "steinn": "M", "ugla": "F",
+    # ka_GE
+    "natia": "F",
+    # kk_KZ
+    "iseke": "F", "issai": "M", "raya": "F",
+    # lb_LU
+    "marylux": "F",
+    # ne_NP
+    "google": "U", "chitwanian": "M",
+    # nl_BE / nl_NL
+    "nathalie": "F", "rdh": "M",
+    "mls": "U",  # multi-speaker libri/MLS
+    # no_NO
+    "talesyntese_no": "U",
+    # ro_RO
+    "mihai": "M",
+    # sk_SK
+    "lili": "F",
+    # sl_SI
+    "artur": "M",
+    # sr_RS
+    "serbski_institut": "U",
+    # sv_SE
+    "nst": "U", "lisa": "F",
+    # sw_KE
+    "sw_lanfrica": "U",
+    # tr_TR
+    "dfki": "M", "fahrettin": "M", "fettah": "M",
+}
+
+
+def infer_gender(voice_id: str, speaker_name: str, family: str) -> tuple[str, str]:
+    """Return (gender, confidence) where:
+      - confidence = "declared" when the upstream metadata explicitly carries gender
+        (Kokoro/Kitten naming patterns).
+      - confidence = "inferred" when we mapped a voice name through the Piper table.
+      - confidence = "unknown" otherwise.
+    The UI uses confidence to surface a "Has gender data" filter that excludes
+    the unknowns so users can find labelled voices.
+    """
+    # Kokoro/Kitten declare gender via name prefix/suffix.
+    pattern_gender = gender_for(speaker_name)
+    if pattern_gender != "U":
+        return pattern_gender, "declared"
+    # Piper single-speaker voices — lookup the canonical name.
+    if family in ("piper", "vits"):
+        mapped = PIPER_VOICE_GENDERS.get(speaker_name.lower())
+        if mapped is not None and mapped != "U":
+            return mapped, "inferred"
+    return "U", "unknown"
 
 
 def head_size_mb(url: str) -> int:

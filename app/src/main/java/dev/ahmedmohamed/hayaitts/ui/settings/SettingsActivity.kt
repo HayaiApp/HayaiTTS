@@ -69,8 +69,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.BuildConfig
 import dev.ahmedmohamed.hayaitts.R
-import dev.ahmedmohamed.hayaitts.data.update.UpdateChannel
 import dev.ahmedmohamed.hayaitts.data.update.UpdateStatus
+import dev.ahmedmohamed.hayaitts.domain.model.UpdateChannel
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
 import dev.ahmedmohamed.hayaitts.ui.help.HelpActivity
@@ -101,7 +101,7 @@ class SettingsActivity : ComponentActivity() {
 }
 
 @Composable
-private fun SettingsScreen(
+fun SettingsScreen(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
     updateViewModel: UpdateViewModel = koinViewModel(),

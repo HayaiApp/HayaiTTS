@@ -7,16 +7,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -29,7 +26,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -45,6 +41,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
@@ -56,12 +53,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -224,6 +221,15 @@ fun LibraryScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
+        floatingActionButton = {
+            LibraryFloatingActions(
+                onBrowse = onBrowse,
+                onQuickSwitch = onOpenQuickSwitch,
+                onImport = { pickFile.launch(IMPORT_MIME_TYPES) },
+                visible = !reorderMode,
+            )
+        },
+        floatingActionButtonPosition = FabPosition.Center,
     ) { innerPadding ->
         AnimatedContent(
             targetState = state.installed.isEmpty(),
@@ -266,13 +272,6 @@ fun LibraryScreen(
             }
         }
     }
-
-    LibraryFloatingActions(
-        onBrowse = onBrowse,
-        onQuickSwitch = onOpenQuickSwitch,
-        onImport = { pickFile.launch(IMPORT_MIME_TYPES) },
-        visible = !reorderMode,
-    )
 
     val target = pendingUninstall
     if (target != null) {
@@ -343,16 +342,12 @@ private fun LibraryBody(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                 ) {
                     items(featured, key = { "feat_" + it.voiceId }) { voice ->
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(spring()) + scaleIn(spring(stiffness = 320f)),
-                        ) {
-                            FeaturedVoiceCard(
-                                voice = voice,
-                                onClick = { onClickVoice(voice) },
-                                onPlayPreview = { onPlayPreview(voice) },
-                            )
-                        }
+                        FeaturedVoiceCard(
+                            voice = voice,
+                            onClick = { onClickVoice(voice) },
+                            onPlayPreview = { onPlayPreview(voice) },
+                            modifier = Modifier.animateItem(),
+                        )
                     }
                 }
             }
@@ -425,22 +420,30 @@ private fun ReorderableVoiceCard(
     onMoveDown: (() -> Unit)?,
 ) {
     val haptics = LocalHapticFeedback.current
+    // Accumulate drag delta so a single sustained gesture only fires one swap
+    // per row-height worth of travel. Without this, every frame's delta is
+    // checked against the threshold independently, which collapses the list
+    // on any drag larger than 24px per frame.
+    var dragAccum by remember(voice.voiceId, reorderMode) { mutableFloatStateOf(0f) }
     val reorderModifier = if (reorderMode) {
         Modifier.pointerInput(voice.voiceId) {
             detectDragGesturesAfterLongPress(
                 onDragStart = {
+                    dragAccum = 0f
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
                 onDrag = { _, drag ->
-                    // Threshold-based reorder: any drag > 24px in a direction
-                    // triggers a swap with the neighbour. Simpler than ringing
-                    // up a real reorderable LazyColumn library and matches the
-                    // spec ("use Modifier.draggable since there's no first-
-                    // party reorder helper").
-                    if (drag.y > 24f) onMoveDown?.invoke()
-                    else if (drag.y < -24f) onMoveUp?.invoke()
+                    dragAccum += drag.y
+                    if (dragAccum > REORDER_THRESHOLD_PX) {
+                        onMoveDown?.invoke()
+                        dragAccum = 0f
+                    } else if (dragAccum < -REORDER_THRESHOLD_PX) {
+                        onMoveUp?.invoke()
+                        dragAccum = 0f
+                    }
                 },
                 onDragEnd = {
+                    dragAccum = 0f
                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 },
             )
@@ -500,7 +503,8 @@ private fun ReorderRow(
 
 /**
  * Bottom-anchored M3 Expressive [HorizontalFloatingToolbar]. Hidden during
- * reorder so it doesn't compete with the on-card move buttons.
+ * reorder so it doesn't compete with the on-card move buttons. Hosted in the
+ * Scaffold's `floatingActionButton` slot so it doesn't intercept list taps.
  */
 @Composable
 private fun LibraryFloatingActions(
@@ -514,41 +518,33 @@ private fun LibraryFloatingActions(
         enter = fadeIn() + expandVertically(),
         exit = fadeOut() + shrinkVertically(),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 24.dp),
-            contentAlignment = Alignment.BottomCenter,
-        ) {
-            HorizontalFloatingToolbar(expanded = true) {
-                IconButton(onClick = onBrowse) {
-                    Icon(
-                        Icons.Outlined.Search,
-                        contentDescription = stringResource(R.string.library_browse_action),
-                    )
-                }
-                IconButton(onClick = onImport) {
-                    Icon(
-                        Icons.Outlined.UploadFile,
-                        contentDescription = stringResource(R.string.library_import_action),
-                    )
-                }
-                IconButton(onClick = onQuickSwitch) {
-                    Icon(
-                        Icons.Outlined.SwapHoriz,
-                        contentDescription = stringResource(R.string.quick_switch_title),
-                    )
-                }
-                IconButton(onClick = onBrowse) {
-                    Icon(
-                        Icons.Outlined.Add,
-                        contentDescription = stringResource(R.string.library_browse_action),
-                    )
-                }
+        HorizontalFloatingToolbar(expanded = true) {
+            IconButton(onClick = onBrowse) {
+                Icon(
+                    Icons.Outlined.Search,
+                    contentDescription = stringResource(R.string.library_browse_action),
+                )
+            }
+            IconButton(onClick = onImport) {
+                Icon(
+                    Icons.Outlined.UploadFile,
+                    contentDescription = stringResource(R.string.library_import_action),
+                )
+            }
+            IconButton(onClick = onQuickSwitch) {
+                Icon(
+                    Icons.Outlined.SwapHoriz,
+                    contentDescription = stringResource(R.string.quick_switch_title),
+                )
             }
         }
     }
 }
+
+// Roughly one card-row of vertical travel. Higher than 24px so a single
+// frame of inertia never accidentally swaps; low enough that intentional
+// drags feel responsive.
+private const val REORDER_THRESHOLD_PX = 72f
 
 private val IMPORT_MIME_TYPES = arrayOf(
     "application/x-tar",

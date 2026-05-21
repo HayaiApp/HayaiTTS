@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.ahmedmohamed.hayaitts.core.dispatchers.DispatcherProvider
 import dev.ahmedmohamed.hayaitts.data.storage.StorageMigrator
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.MoveProgress
@@ -11,7 +12,6 @@ import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
 import dev.ahmedmohamed.hayaitts.domain.repo.DefaultsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,6 +40,7 @@ class SettingsViewModel(
     private val voices: VoiceRepository,
     private val defaults: DefaultsRepository,
     private val migrator: StorageMigrator,
+    private val dispatchers: DispatcherProvider,
 ) : ViewModel() {
 
     data class SettingsUiState(
@@ -158,7 +159,7 @@ class SettingsViewModel(
      * so we don't pay the cost on every settings open.
      */
     fun refreshInstalledSize() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatchers.io) {
             val voicesRoot = File(context.filesDir, "voices")
             val total = if (voicesRoot.isDirectory) {
                 voicesRoot.walkBottomUp().filter { it.isFile }.sumOf { it.length() }
@@ -174,7 +175,7 @@ class SettingsViewModel(
      */
     fun clearDownloadCache() {
         viewModelScope.launch {
-            val freed = withContext(Dispatchers.IO) {
+            val freed = withContext(dispatchers.io) {
                 val dir = File(context.cacheDir, "downloads")
                 if (!dir.isDirectory) return@withContext 0L
                 val bytes = dir.walkBottomUp().filter { it.isFile }.sumOf { it.length() }

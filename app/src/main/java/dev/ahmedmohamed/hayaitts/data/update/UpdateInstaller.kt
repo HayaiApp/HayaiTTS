@@ -6,7 +6,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.core.content.FileProvider
 import co.touchlab.kermit.Logger
-import kotlinx.coroutines.Dispatchers
+import dev.ahmedmohamed.hayaitts.core.dispatchers.DispatcherProvider
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -34,6 +34,7 @@ import java.io.FileOutputStream
 class UpdateInstaller(
     private val context: Context,
     private val okHttp: OkHttpClient,
+    private val dispatchers: DispatcherProvider,
 ) {
     private val log = Logger.withTag("UpdateInstaller")
 
@@ -106,7 +107,7 @@ class UpdateInstaller(
         awaitClose {
             call.cancel()
         }
-    }.flowOn(Dispatchers.IO)
+    }.flowOn(dispatchers.io)
 
     /**
      * Hand the downloaded APK to the system package installer.

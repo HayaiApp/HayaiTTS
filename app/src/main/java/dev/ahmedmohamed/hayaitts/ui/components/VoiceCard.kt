@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -91,8 +92,15 @@ fun InstalledVoiceCard(
     onChooseSpeaker: (() -> Unit)? = null,
 ) {
     val family = voice.effectiveFamily ?: voice.family
+    val identity = family.identityOrDefault()
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = identity.accent.copy(alpha = 0.28f),
+                shape = RoundedCornerShape(12.dp),
+            ),
         onClick = onClick,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,

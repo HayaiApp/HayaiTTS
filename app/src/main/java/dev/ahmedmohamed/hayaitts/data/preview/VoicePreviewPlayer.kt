@@ -6,9 +6,9 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import co.touchlab.kermit.Logger
+import dev.ahmedmohamed.hayaitts.core.dispatchers.DispatcherProvider
 import dev.ahmedmohamed.hayaitts.data.playground.VoiceTuning
 import dev.ahmedmohamed.hayaitts.tts.SherpaTtsRuntime
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +23,10 @@ import kotlin.math.sqrt
  * sampled in ~60 ms windows during playback. The Playground screen subscribes
  * to the same flow — every code path that ends up in [playSamples] feeds it.
  */
-class VoicePreviewPlayer(private val context: Context) {
+class VoicePreviewPlayer(
+    private val context: Context,
+    private val dispatchers: DispatcherProvider,
+) {
 
     private val log = Logger.withTag("VoicePreview")
     private val runtime: SherpaTtsRuntime get() = SherpaTtsRuntime.get(context)
@@ -35,7 +38,7 @@ class VoicePreviewPlayer(private val context: Context) {
     val amplitudes: StateFlow<FloatArray> = _amplitudes.asStateFlow()
 
     /** Voice Detail entry point — synth + play, untuned. */
-    suspend fun play(voiceId: String, text: String, sid: Int = 0) = withContext(Dispatchers.Default) {
+    suspend fun play(voiceId: String, text: String, sid: Int = 0) = withContext(dispatchers.default) {
         stop()
         val output = runCatching { runtime.synthesize(voiceId, text, sid = sid) }
             .onFailure { log.w(it) { "Preview synth failed for $voiceId" } }
@@ -49,7 +52,7 @@ class VoicePreviewPlayer(private val context: Context) {
         text: String,
         sid: Int,
         tuning: VoiceTuning,
-    ): SherpaTtsRuntime.SynthesisOutput? = withContext(Dispatchers.Default) {
+    ): SherpaTtsRuntime.SynthesisOutput? = withContext(dispatchers.default) {
         runCatching {
             runtime.synthesize(
                 voiceId = voiceId, text = text, sid = sid,
@@ -60,7 +63,7 @@ class VoicePreviewPlayer(private val context: Context) {
     }
 
     /** Pure playback for raw FloatArray. Used by playground generate + replay paths. */
-    suspend fun playSamples(samples: FloatArray, sampleRate: Int) = withContext(Dispatchers.Default) {
+    suspend fun playSamples(samples: FloatArray, sampleRate: Int) = withContext(dispatchers.default) {
         stop()
         if (samples.isEmpty() || sampleRate <= 0) return@withContext
         val pcm = floatToPcm16(samples)

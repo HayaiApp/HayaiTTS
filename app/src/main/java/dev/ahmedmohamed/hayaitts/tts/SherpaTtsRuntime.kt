@@ -73,6 +73,63 @@ class SherpaTtsRuntime private constructor(
         return SynthesisOutput(sampleRate = audio.sampleRate, samples = shifted)
     }
 
+    /**
+     * Phase 9b: Kokoro 1.1 multi-speaker blending. Synthesizes once per
+     * (sid, weight) pair, then mixes the float buffers linearly weighted by
+     * `weight` (caller is responsible for weights summing to ~1.0). When
+     * lengths differ we zero-pad to the longest buffer so reverb tails are
+     * preserved.
+     *
+     * Per-voice limits: all sids must belong to the same [voiceId]. The
+     * function returns the sample rate of the first synthesis — kokoro
+     * always uses one rate per voice so the assumption holds in practice.
+     */
+    fun synthesizeBlend(
+        voiceId: String,
+        text: String,
+        weights: List<Pair<Int, Float>>,
+        speed: Float = 1.0f,
+        pitch: Float = 1.0f,
+        lengthScale: Float = 1.0f,
+        noiseScale: Float = 0.667f,
+        noiseScaleW: Float = 0.8f,
+    ): SynthesisOutput {
+        require(weights.isNotEmpty()) { "Blend requires at least one (sid, weight) pair" }
+        if (weights.size == 1) {
+            return synthesize(
+                voiceId, text, weights[0].first, speed, pitch,
+                lengthScale, noiseScale, noiseScaleW,
+            )
+        }
+        val outputs = weights.map { (sid, weight) ->
+            val o = synthesize(
+                voiceId, text, sid, speed, pitch,
+                lengthScale, noiseScale, noiseScaleW,
+            )
+            o to weight
+        }
+        val rate = outputs.first().first.sampleRate
+        val maxLen = outputs.maxOf { it.first.samples.size }
+        val mixed = FloatArray(maxLen)
+        for ((out, weight) in outputs) {
+            val samples = out.samples
+            for (i in samples.indices) {
+                mixed[i] += samples[i] * weight
+            }
+        }
+        // Light limiter so the mix doesn't clip on weighting > 1.0.
+        var peak = 0f
+        for (v in mixed) {
+            val a = kotlin.math.abs(v)
+            if (a > peak) peak = a
+        }
+        if (peak > 1f) {
+            val scale = 0.99f / peak
+            for (i in mixed.indices) mixed[i] *= scale
+        }
+        return SynthesisOutput(sampleRate = rate, samples = mixed)
+    }
+
     fun listAvailableVoices(): List<InstalledVoice> {
         val repo = runCatching { GlobalContext.get().get<VoiceRepositoryImpl>() }.getOrNull()
             ?: return emptyList()

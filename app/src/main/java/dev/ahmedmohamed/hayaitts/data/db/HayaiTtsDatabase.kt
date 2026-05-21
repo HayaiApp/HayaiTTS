@@ -6,14 +6,20 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import dev.ahmedmohamed.hayaitts.data.db.dao.AppRouteDao
 import dev.ahmedmohamed.hayaitts.data.db.dao.DefaultVoiceDao
 import dev.ahmedmohamed.hayaitts.data.db.dao.DownloadStateDao
 import dev.ahmedmohamed.hayaitts.data.db.dao.InstalledVoiceDao
 import dev.ahmedmohamed.hayaitts.data.db.dao.PlaygroundSampleDao
+import dev.ahmedmohamed.hayaitts.data.db.dao.PronunciationDao
+import dev.ahmedmohamed.hayaitts.data.db.dao.VoiceProfileDao
+import dev.ahmedmohamed.hayaitts.data.db.entities.AppRouteEntity
 import dev.ahmedmohamed.hayaitts.data.db.entities.DefaultVoiceEntity
 import dev.ahmedmohamed.hayaitts.data.db.entities.DownloadStateEntity
 import dev.ahmedmohamed.hayaitts.data.db.entities.InstalledVoiceEntity
 import dev.ahmedmohamed.hayaitts.data.db.entities.PlaygroundSampleEntity
+import dev.ahmedmohamed.hayaitts.data.db.entities.PronunciationEntity
+import dev.ahmedmohamed.hayaitts.data.db.entities.VoiceProfileEntity
 
 @Database(
     entities = [
@@ -21,8 +27,11 @@ import dev.ahmedmohamed.hayaitts.data.db.entities.PlaygroundSampleEntity
         DownloadStateEntity::class,
         DefaultVoiceEntity::class,
         PlaygroundSampleEntity::class,
+        VoiceProfileEntity::class,
+        PronunciationEntity::class,
+        AppRouteEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class HayaiTtsDatabase : RoomDatabase() {
@@ -30,6 +39,9 @@ abstract class HayaiTtsDatabase : RoomDatabase() {
     abstract fun downloadStateDao(): DownloadStateDao
     abstract fun defaultVoiceDao(): DefaultVoiceDao
     abstract fun playgroundSampleDao(): PlaygroundSampleDao
+    abstract fun voiceProfileDao(): VoiceProfileDao
+    abstract fun pronunciationDao(): PronunciationDao
+    abstract fun appRouteDao(): AppRouteDao
 
     companion object {
         private const val DB_NAME = "hayai_tts.db"
@@ -66,9 +78,53 @@ abstract class HayaiTtsDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * v3 -> v4 (Phase 7 + Phase 4): three new tables — saved voice
+         * profiles, pronunciation overrides, per-app voice routes. Empty on
+         * first run so nothing migrates.
+         */
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `voice_profiles` (" +
+                        "`id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                        "`voiceId` TEXT NOT NULL, " +
+                        "`name` TEXT NOT NULL, " +
+                        "`sid` INTEGER NOT NULL, " +
+                        "`speed` REAL NOT NULL, " +
+                        "`pitch` REAL NOT NULL, " +
+                        "`lengthScale` REAL NOT NULL, " +
+                        "`noiseScale` REAL NOT NULL, " +
+                        "`noiseScaleW` REAL NOT NULL, " +
+                        "`ssmlEnabled` INTEGER NOT NULL, " +
+                        "`isDefaultForVoice` INTEGER NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL" +
+                        ")",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `pronunciations` (" +
+                        "`locale` TEXT NOT NULL, " +
+                        "`word` TEXT NOT NULL, " +
+                        "`replacement` TEXT NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL, " +
+                        "PRIMARY KEY(`locale`, `word`)" +
+                        ")",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `app_routes` (" +
+                        "`callerPackage` TEXT NOT NULL, " +
+                        "`locale` TEXT NOT NULL, " +
+                        "`voiceId` TEXT NOT NULL, " +
+                        "`sid` INTEGER NOT NULL, " +
+                        "PRIMARY KEY(`callerPackage`, `locale`)" +
+                        ")",
+                )
+            }
+        }
+
         fun build(context: Context): HayaiTtsDatabase = Room
             .databaseBuilder(context.applicationContext, HayaiTtsDatabase::class.java, DB_NAME)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
     }
 }
