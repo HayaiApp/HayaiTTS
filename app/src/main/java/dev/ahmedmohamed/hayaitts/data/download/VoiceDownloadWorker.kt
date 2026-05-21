@@ -66,11 +66,13 @@ class VoiceDownloadWorker(
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         val title = inputData.getString(KEY_TITLE) ?: "HayaiTTS"
+        val voiceId = inputData.getString(KEY_VOICE_ID) ?: ""
         val notification = DownloadNotifications.buildProgressNotification(
             applicationContext,
+            voiceId = voiceId,
             title = title,
-            progressPct = 0,
-            indeterminate = true,
+            progressBytes = 0L,
+            totalBytes = 0L,
         )
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ForegroundInfo(
@@ -90,7 +92,7 @@ class VoiceDownloadWorker(
             .getOrElse { return@withContext failed("Bad voiceCard JSON: ${it.message}") }
 
         DownloadNotifications.ensureChannel(applicationContext)
-        setForegroundSafely(voice.title, pct = 0, indeterminate = true)
+        setForegroundSafely(voice.id, voice.title, progressBytes = 0L, totalBytes = 0L)
         upsertState(voice.id, DownloadState.STATUS_RUNNING, 0L, 0L, null)
 
         val downloadsDir = File(applicationContext.cacheDir, "downloads").apply { mkdirs() }
@@ -165,13 +167,19 @@ class VoiceDownloadWorker(
             }
 
             // 3. Extract.
-            upsertState(voice.id, DownloadState.STATUS_EXTRACTING, totalBytes, totalBytes, null)
-            setForegroundSafely(voice.title, pct = 100, indeterminate = true)
+            upsertState(voice.id, DownloadState.STATUS_EXTRACTING, 0L, totalBytes, null)
+            setForegroundSafely(
+                voiceId = voice.id,
+                title = voice.title,
+                progressBytes = 0L,
+                totalBytes = totalBytes,
+                status = DownloadState.STATUS_EXTRACTING,
+            )
 
             val extractResult = runCatching {
                 if (voiceDir.exists()) voiceDir.deleteRecursively()
                 voiceDir.mkdirs()
-                extractTarBz2(finalFile, voiceDir)
+                extractTarBz2(voice, finalFile, voiceDir)
             }
             if (extractResult.isFailure) {
                 return@withContext failPersisted(
@@ -315,9 +323,10 @@ class VoiceDownloadWorker(
                             null,
                         )
                         setForegroundSafely(
-                            voice.title,
-                            pct = pct.coerceAtLeast(0),
-                            indeterminate = totalBytes <= 0,
+                            voiceId = voice.id,
+                            title = voice.title,
+                            progressBytes = downloaded,
+                            totalBytes = totalBytes.coerceAtLeast(0L),
                         )
                     }
                 }
@@ -436,18 +445,24 @@ class VoiceDownloadWorker(
         return missing
     }
 
-    private fun extractTarBz2(archive: File, destRoot: File) {
-        BufferedInputStream(FileInputStream(archive)).use { fileIn ->
-            BZip2CompressorInputStream(fileIn).use { bz2In ->
+    private fun extractTarBz2(voice: VoiceCard, archive: File, destRoot: File) {
+        val totalBytes = archive.length()
+        var lastReportedPct = -1
+        var lastReportTime = 0L
+
+        FileInputStream(archive).use { fileIn ->
+            val countingIn = CountingInputStream(BufferedInputStream(fileIn))
+            BZip2CompressorInputStream(countingIn).use { bz2In ->
                 TarArchiveInputStream(bz2In).use { tarIn ->
                     var entry = tarIn.nextEntry
                     while (entry != null) {
+                        if (isStopped) {
+                            throw InterruptedException("Cancelled by WorkManager")
+                        }
                         if (!tarIn.canReadEntryData(entry)) {
                             entry = tarIn.nextEntry
                             continue
                         }
-                        // Strip the leading "<voiceId>/" component if it
-                        // exists — sherpa-onnx bundles ship that wrapper.
                         val rawName = entry.name
                         val stripped = stripLeadingDir(rawName)
                         if (stripped.isEmpty()) {
@@ -459,7 +474,43 @@ class VoiceDownloadWorker(
                             outFile.mkdirs()
                         } else {
                             outFile.parentFile?.mkdirs()
-                            FileOutputStream(outFile).use { out -> tarIn.copyTo(out) }
+                            FileOutputStream(outFile).use { out ->
+                                val buf = ByteArray(64 * 1024)
+                                while (true) {
+                                    if (isStopped) {
+                                        throw InterruptedException("Cancelled by WorkManager")
+                                    }
+                                    val read = tarIn.read(buf)
+                                    if (read <= 0) break
+                                    out.write(buf, 0, read)
+
+                                    val now = System.currentTimeMillis()
+                                    val currentBytes = countingIn.bytesRead
+                                    val pct = if (totalBytes > 0) ((currentBytes * 100) / totalBytes).toInt() else -1
+                                    val pctChanged = pct >= 0 && pct - lastReportedPct >= PROGRESS_PCT_STEP
+                                    val timeElapsed = now - lastReportTime >= PROGRESS_TIME_STEP_MS
+                                    if (pctChanged || timeElapsed) {
+                                        lastReportedPct = pct
+                                        lastReportTime = now
+                                        runBlocking {
+                                            upsertState(
+                                                voice.id,
+                                                DownloadState.STATUS_EXTRACTING,
+                                                currentBytes,
+                                                totalBytes.coerceAtLeast(1L),
+                                                null,
+                                            )
+                                            setForegroundSafely(
+                                                voiceId = voice.id,
+                                                title = voice.title,
+                                                progressBytes = currentBytes,
+                                                totalBytes = totalBytes.coerceAtLeast(1L),
+                                                status = DownloadState.STATUS_EXTRACTING,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                         entry = tarIn.nextEntry
                     }
@@ -506,13 +557,21 @@ class VoiceDownloadWorker(
         )
     }
 
-    private suspend fun setForegroundSafely(title: String, pct: Int, indeterminate: Boolean) {
+    private suspend fun setForegroundSafely(
+        voiceId: String,
+        title: String,
+        progressBytes: Long,
+        totalBytes: Long,
+        status: String = DownloadState.STATUS_RUNNING
+    ) {
         runCatching {
             val notification = DownloadNotifications.buildProgressNotification(
                 applicationContext,
+                voiceId = voiceId,
                 title = title,
-                progressPct = pct,
-                indeterminate = indeterminate,
+                progressBytes = progressBytes,
+                totalBytes = totalBytes,
+                status = status,
             )
             val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ForegroundInfo(
@@ -570,5 +629,28 @@ class VoiceDownloadWorker(
         private val HTTP_5XX_RE = Regex("HTTP 5\\d{2}")
 
         fun uniqueName(voiceId: String): String = "download:$voiceId"
+    }
+}
+
+/**
+ * FilterInputStream that tallies the compressed bytes pulled from the
+ * underlying source. `FilterInputStream.read(b)` already delegates to
+ * `read(b, 0, b.length)`, so overriding both would double-count — we only
+ * override the offset/len variant + the single-byte read.
+ */
+private class CountingInputStream(inputStream: java.io.InputStream) : java.io.FilterInputStream(inputStream) {
+    var bytesRead: Long = 0L
+        private set
+
+    override fun read(): Int {
+        val b = super.read()
+        if (b != -1) bytesRead++
+        return b
+    }
+
+    override fun read(b: ByteArray?, off: Int, len: Int): Int {
+        val read = super.read(b, off, len)
+        if (read > 0) bytesRead += read
+        return read
     }
 }

@@ -13,7 +13,7 @@ sealed class DownloadState {
         val downloadedBytes: Long,
         val totalBytes: Long,
     ) : DownloadState()
-    data object Extracting : DownloadState()
+    data class Extracting(val pct: Float) : DownloadState()
     data object Done : DownloadState()
     data class Failed(val reason: String) : DownloadState()
     data object Cancelled : DownloadState()

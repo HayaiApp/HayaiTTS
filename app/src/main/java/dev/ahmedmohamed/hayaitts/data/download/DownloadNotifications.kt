@@ -85,6 +85,7 @@ object DownloadNotifications {
         title: String,
         progressBytes: Long,
         totalBytes: Long,
+        status: String = DownloadState.STATUS_RUNNING,
     ): android.app.Notification {
         val determinate = totalBytes > 0
         val pct = if (determinate) ((progressBytes * 100f) / totalBytes).roundToInt().coerceIn(0, 100) else 0
@@ -93,10 +94,15 @@ object DownloadNotifications {
         } else {
             context.getString(R.string.download_notification_big_text_indeterminate)
         }
+        val contentText = if (status == DownloadState.STATUS_EXTRACTING) {
+            context.getString(R.string.download_extracting)
+        } else {
+            context.getString(R.string.download_in_progress)
+        }
         val cancelIntent = pendingBroadcast(context, voiceId, DownloadActionReceiver.ACTION_CANCEL, voiceId.hashCode())
         return NotificationCompat.Builder(context, CHANNEL_ACTIVE)
             .setContentTitle(title)
-            .setContentText(context.getString(R.string.download_in_progress))
+            .setContentText(contentText)
             .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
             .setSmallIcon(R.drawable.ic_hayai_monochrome_launcher)
             .setProgress(100, pct, !determinate)

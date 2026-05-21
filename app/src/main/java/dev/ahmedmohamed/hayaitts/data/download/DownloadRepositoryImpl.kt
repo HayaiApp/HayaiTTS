@@ -60,7 +60,12 @@ class DownloadRepositoryImpl(
                             totalBytes = row.totalBytes,
                         )
                     }
-                    DownloadState.STATUS_EXTRACTING -> DownloadState.Extracting
+                    DownloadState.STATUS_EXTRACTING -> {
+                        val pct = if (row.totalBytes > 0) {
+                            row.progressBytes.toFloat() / row.totalBytes.toFloat()
+                        } else 0f
+                        DownloadState.Extracting(pct = pct.coerceIn(0f, 1f))
+                    }
                     DownloadState.STATUS_DONE -> DownloadState.Done
                     DownloadState.STATUS_FAILED -> DownloadState.Failed(row.errorMessage ?: "Unknown error")
                     DownloadState.STATUS_CANCELLED -> DownloadState.Cancelled
