@@ -11,7 +11,7 @@ composeBom = "2025.10.01"
 # 1.5.0-alpha18 is the version where these were promoted to public Kotlin API
 # (with `LoadingIndicator` / `MaterialShapes` getting re-marked
 # `@ExperimentalMaterial3ExpressiveApi` in later alphas).
-material3 = "1.5.0-alpha20"
+material3 = "1.5.0-alpha18"
 
 androidxCore = "1.15.0"
 googleMaterial = "1.12.0"

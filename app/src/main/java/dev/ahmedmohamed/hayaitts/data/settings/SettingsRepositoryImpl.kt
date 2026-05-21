@@ -13,7 +13,11 @@ import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+
+private val speakerMapSerializer = MapSerializer(String.serializer(), Int.serializer())
 
 private val Context.settingsDataStore by preferencesDataStore(name = "hayai_settings")
 
@@ -79,21 +83,22 @@ class SettingsRepositoryImpl(
 
     override suspend fun setDefaultSpeaker(voiceId: String, speakerId: Int) {
         store.edit { prefs ->
-            val current = prefs[KEY_DEFAULT_SPEAKERS]
+            val current: Map<String, Int> = prefs[KEY_DEFAULT_SPEAKERS]
                 ?.let { runCatching { Json.decodeFromString<Map<String, Int>>(it) }.getOrNull() }
                 ?: emptyMap()
-            prefs[KEY_DEFAULT_SPEAKERS] = Json.encodeToString(current + (voiceId to speakerId))
+            val next: Map<String, Int> = current + (voiceId to speakerId)
+            prefs[KEY_DEFAULT_SPEAKERS] = Json.encodeToString(speakerMapSerializer, next)
         }
     }
 
     override suspend fun clearDefaultSpeaker(voiceId: String) {
         store.edit { prefs ->
-            val current = prefs[KEY_DEFAULT_SPEAKERS]
+            val current: Map<String, Int> = prefs[KEY_DEFAULT_SPEAKERS]
                 ?.let { runCatching { Json.decodeFromString<Map<String, Int>>(it) }.getOrNull() }
                 ?: return@edit
-            val next = current - voiceId
+            val next: Map<String, Int> = current - voiceId
             if (next.isEmpty()) prefs.remove(KEY_DEFAULT_SPEAKERS)
-            else prefs[KEY_DEFAULT_SPEAKERS] = Json.encodeToString(next)
+            else prefs[KEY_DEFAULT_SPEAKERS] = Json.encodeToString(speakerMapSerializer, next)
         }
     }
 

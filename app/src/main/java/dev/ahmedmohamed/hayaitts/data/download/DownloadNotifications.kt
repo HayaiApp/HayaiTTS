@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import dev.ahmedmohamed.hayaitts.R
+import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import kotlin.math.roundToInt
 
 /**
