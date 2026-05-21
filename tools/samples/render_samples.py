@@ -155,7 +155,10 @@ def extract_tar_bz2(archive: Path, into: Path) -> Path:
             target = (into / m.name).resolve()
             if not str(target).startswith(root):
                 raise RuntimeError(f"unsafe path in archive: {m.name}")
-        tar.extractall(into)
+        # filter='data' silences Python 3.14's deprecation warning and is
+        # the safe choice — strips device files, blocks paths outside the
+        # extraction root, ignores ownership/permissions metadata.
+        tar.extractall(into, filter="data")
     # Bundles usually contain a single top-level directory; some are flat.
     children = [c for c in into.iterdir() if c.is_dir()]
     return children[0] if len(children) == 1 else into
@@ -245,25 +248,49 @@ def tts_matcha(voice_dir: Path):
     )
 
 
-def tts_kokoro(voice_dir: Path):
+def tts_kokoro(voice_dir: Path, lang_hint: str = ""):
     import sherpa_onnx  # type: ignore
     model = resolve_model_file(voice_dir, KOKORO_MODEL_CANDIDATES)
     voices_bin = voice_dir / KOKORO_VOICES_FILE
     if not voices_bin.is_file():
         raise RuntimeError(f"Kokoro voice at {voice_dir} is missing {KOKORO_VOICES_FILE}")
     tokens = str(voice_dir / TOKENS_FILE)
+
+    # Multi-lang Kokoro (v1.0, v1.1, …) ships multiple lexicon-<locale>.txt
+    # files instead of a single lexicon.txt. sherpa-onnx native code calls
+    # exit() when neither `lang` nor a multi-lang lexicon is provided, so
+    # we have to detect this layout and pass the comma-joined list.
+    single_lex = voice_dir / LEXICON_FILE
+    lexicon_paths: list[str] = []
+    if single_lex.is_file():
+        lexicon_paths.append(str(single_lex))
+    multi_lexes = sorted(voice_dir.glob("lexicon-*.txt"))
+    for lx in multi_lexes:
+        lexicon_paths.append(str(lx))
+    lexicon = ",".join(lexicon_paths)
+
+    # Kokoro multi-lang also needs a `lang` selector for tokenisation; pick
+    # the requested language if we recognise it, fall back to "en" for the
+    # English multilang lexicon. Monolingual v0.19 ignores this field.
+    is_multi = bool(multi_lexes) or "multi-lang" in voice_dir.name or "v1_" in voice_dir.name
+    kokoro_kwargs: dict[str, Any] = dict(
+        model=model,
+        voices=str(voices_bin),
+        tokens=tokens,
+        lexicon=lexicon,
+        data_dir=optional_path(voice_dir / ESPEAK_DIR),
+        dict_dir=optional_path(voice_dir / DICT_DIR),
+        length_scale=1.0,
+    )
+    if is_multi:
+        # Sherpa-onnx exposes `lang` on the Kokoro config; passing it
+        # selects which lexicon file drives tokenisation.
+        kokoro_kwargs["lang"] = lang_hint or "en"
+
     return sherpa_onnx.OfflineTts(
         sherpa_onnx.OfflineTtsConfig(
             model=sherpa_onnx.OfflineTtsModelConfig(
-                kokoro=sherpa_onnx.OfflineTtsKokoroModelConfig(
-                    model=model,
-                    voices=str(voices_bin),
-                    tokens=tokens,
-                    lexicon=optional_path(voice_dir / LEXICON_FILE),
-                    data_dir=optional_path(voice_dir / ESPEAK_DIR),
-                    dict_dir=optional_path(voice_dir / DICT_DIR),
-                    length_scale=1.0,
-                ),
+                kokoro=sherpa_onnx.OfflineTtsKokoroModelConfig(**kokoro_kwargs),
                 num_threads=2,
                 debug=False,
                 provider="cpu",
@@ -427,52 +454,112 @@ def encode_mp3(in_wav: Path, out_mp3: Path) -> None:
     )
 
 
+def _render_inline(voice: dict[str, Any], out_mp3: Path, work_dir: Path, cache_dir: Path | None) -> bool:
+    """Runs in the worker subprocess. Native `exit(-1)` here only kills the
+    worker, not the parent. espeak-ng's global singleton state lives and
+    dies inside the worker, so each voice gets a fresh data_dir."""
+    family = (voice.get("family") or "").lower()
+    builder = FAMILY_BUILDERS.get(family)
+    if builder is None:
+        log(f"skip {voice['id']}: unsupported family '{family}'")
+        return False
+    bundle_url = voice["bundleUrl"]
+    text = phrase_for(voice.get("languages") or ["en"])
+
+    with tempfile.TemporaryDirectory(dir=str(work_dir)) as tmp:
+        tmp_path = Path(tmp)
+        archive = tmp_path / Path(bundle_url).name
+        download(bundle_url, archive, cache_dir=cache_dir)
+        extract_root = extract_tar_bz2(archive, tmp_path / "unpacked")
+
+        # Matcha bundles ship the vocoder as a sibling URL, not bundled.
+        if family == "matcha" and not (extract_root / MATCHA_VOCODER_FILE).is_file():
+            vocoder_url = voice.get("vocoderUrl")
+            if vocoder_url:
+                download(vocoder_url, extract_root / MATCHA_VOCODER_FILE, cache_dir=cache_dir)
+
+        primary_lang = ""
+        langs = voice.get("languages") or []
+        if langs:
+            primary_lang = langs[0].split("-")[0].lower()
+        if family == "kokoro":
+            tts = builder(extract_root, lang_hint=primary_lang)
+        else:
+            tts = builder(extract_root)
+        audio = tts.generate(text, sid=0, speed=1.0)
+        wav_out = tmp_path / "sample.wav"
+        write_wav(audio.samples, audio.sample_rate, wav_out)
+        encode_mp3(wav_out, out_mp3)
+        log(f"  ✓ {out_mp3.name} ({out_mp3.stat().st_size // 1024} KB @ {audio.sample_rate} Hz)")
+        return True
+
+
 def render_one(
     voice: dict[str, Any],
     *,
     out_dir: Path,
     cache_dir: Path | None,
     work_dir: Path,
+    in_subprocess: bool = True,
+    per_voice_timeout: float = 240.0,
 ) -> bool:
+    """Render one voice. By default spawns a fresh Python subprocess so:
+      (a) sherpa-onnx's process-global espeak-ng state can't leak between
+          voices (the first voice's data_dir would otherwise be reused
+          for every subsequent voice in the same family);
+      (b) a native `exit(-1)` from the sherpa-onnx C++ layer only kills
+          the worker, leaving the parent loop alive to continue.
+    """
     voice_id = voice["id"]
     family = (voice.get("family") or "").lower()
     out_mp3 = out_dir / f"{voice_id}.mp3"
     if out_mp3.exists() and out_mp3.stat().st_size > 0:
         return True
-    builder = FAMILY_BUILDERS.get(family)
-    if builder is None:
+    if family not in FAMILY_BUILDERS:
         log(f"skip {voice_id}: unsupported family '{family}'")
         return False
-    bundle_url = voice["bundleUrl"]
     text = phrase_for(voice.get("languages") or ["en"])
     log(f"render {voice_id} [{family}] '{text[:50]}…'")
 
-    with tempfile.TemporaryDirectory(dir=str(work_dir)) as tmp:
-        tmp_path = Path(tmp)
-        archive = tmp_path / Path(bundle_url).name
+    if not in_subprocess:
         try:
-            download(bundle_url, archive, cache_dir=cache_dir)
-            extract_root = extract_tar_bz2(archive, tmp_path / "unpacked")
-
-            # Matcha bundles ship the vocoder as a sibling URL, not bundled.
-            # The Kotlin side downloads it separately when missing; we
-            # mirror that here.
-            if family == "matcha" and not (extract_root / MATCHA_VOCODER_FILE).is_file():
-                vocoder_url = voice.get("vocoderUrl")
-                if vocoder_url:
-                    voc_archive = extract_root / MATCHA_VOCODER_FILE
-                    download(vocoder_url, voc_archive, cache_dir=cache_dir)
-
-            tts = builder(extract_root)
-            audio = tts.generate(text, sid=0, speed=1.0)
-            wav_out = tmp_path / "sample.wav"
-            write_wav(audio.samples, audio.sample_rate, wav_out)
-            encode_mp3(wav_out, out_mp3)
-            log(f"  ✓ {out_mp3.name} ({out_mp3.stat().st_size // 1024} KB @ {audio.sample_rate} Hz)")
-            return True
+            return _render_inline(voice, out_mp3, work_dir, cache_dir)
         except Exception as e:
             log(f"  ✗ {voice_id}: {type(e).__name__}: {e}")
             return False
+
+    # Child invocation: same script, --render-one mode. Cleanest isolation —
+    # native exit() in the child can't reach us, and there's no shared
+    # Python interpreter state.
+    cmd = [
+        sys.executable,
+        str(Path(__file__).resolve()),
+        "--render-one",
+        json.dumps(voice, ensure_ascii=False),
+        "--output", str(out_dir),
+        "--cache", str(cache_dir or ""),
+    ]
+    try:
+        proc = subprocess.run(
+            cmd,
+            timeout=per_voice_timeout,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except subprocess.TimeoutExpired:
+        log(f"  ✗ {voice_id}: TimeoutExpired (>{per_voice_timeout:.0f}s)")
+        return False
+    # Mirror child stdout/stderr so the workflow log shows progress.
+    if proc.stdout:
+        sys.stdout.write(proc.stdout)
+    if proc.stderr:
+        sys.stderr.write(proc.stderr)
+    if proc.returncode != 0:
+        log(f"  ✗ {voice_id}: subprocess exit {proc.returncode}")
+        return False
+    return out_mp3.exists() and out_mp3.stat().st_size > 0
 
 
 def main() -> int:
@@ -496,7 +583,39 @@ def main() -> int:
         action="append",
         help="Restrict to one or more families (repeatable)",
     )
+    ap.add_argument(
+        "--render-one",
+        metavar="VOICE_JSON",
+        help="Single-voice worker mode: render the given catalog row "
+             "(passed as a JSON-encoded string) and exit. Used internally "
+             "by the subprocess isolation layer; humans should not call "
+             "this directly.",
+    )
+    ap.add_argument(
+        "--no-subprocess",
+        action="store_true",
+        help="Render inline in the current process (faster startup, but a "
+             "native exit() from sherpa-onnx kills the whole run). Default "
+             "is to isolate each voice in a fresh subprocess.",
+    )
     args = ap.parse_args()
+
+    # Worker mode: one voice, no orchestration. Called by the parent when
+    # rendering with subprocess isolation. We intentionally let exceptions
+    # propagate so the parent sees a non-zero exit code.
+    if args.render_one is not None:
+        voice = json.loads(args.render_one)
+        out_dir = Path(args.output)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        cache_dir = Path(args.cache) if args.cache else None
+        work_dir = Path(tempfile.gettempdir())
+        out_mp3 = out_dir / f"{voice['id']}.mp3"
+        try:
+            ok = _render_inline(voice, out_mp3, work_dir, cache_dir)
+        except Exception as e:
+            log(f"  ✗ {voice['id']}: {type(e).__name__}: {e}")
+            return 1
+        return 0 if ok else 1
 
     catalog_path = Path(args.catalog)
     out_dir = Path(args.output)
@@ -526,7 +645,13 @@ def main() -> int:
             v["sampleAudioUrl"] = family_url(v["id"])
             skipped += 1
             continue
-        ok = render_one(v, out_dir=out_dir, cache_dir=cache_dir, work_dir=work_dir)
+        ok = render_one(
+            v,
+            out_dir=out_dir,
+            cache_dir=cache_dir,
+            work_dir=work_dir,
+            in_subprocess=not args.no_subprocess,
+        )
         if ok:
             v["sampleAudioUrl"] = family_url(v["id"])
             produced += 1
