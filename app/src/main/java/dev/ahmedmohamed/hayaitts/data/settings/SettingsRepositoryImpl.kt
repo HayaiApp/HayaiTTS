@@ -13,6 +13,7 @@ import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 
 private val Context.settingsDataStore by preferencesDataStore(name = "hayai_settings")
 
@@ -71,6 +72,31 @@ class SettingsRepositoryImpl(
         store.edit { it[KEY_MAX_NUM_SENTENCES] = value }
     }
 
+    override val defaultSpeakerByVoice: Flow<Map<String, Int>> = store.data.map { prefs ->
+        val raw = prefs[KEY_DEFAULT_SPEAKERS] ?: return@map emptyMap()
+        runCatching { Json.decodeFromString<Map<String, Int>>(raw) }.getOrDefault(emptyMap())
+    }
+
+    override suspend fun setDefaultSpeaker(voiceId: String, speakerId: Int) {
+        store.edit { prefs ->
+            val current = prefs[KEY_DEFAULT_SPEAKERS]
+                ?.let { runCatching { Json.decodeFromString<Map<String, Int>>(it) }.getOrNull() }
+                ?: emptyMap()
+            prefs[KEY_DEFAULT_SPEAKERS] = Json.encodeToString(current + (voiceId to speakerId))
+        }
+    }
+
+    override suspend fun clearDefaultSpeaker(voiceId: String) {
+        store.edit { prefs ->
+            val current = prefs[KEY_DEFAULT_SPEAKERS]
+                ?.let { runCatching { Json.decodeFromString<Map<String, Int>>(it) }.getOrNull() }
+                ?: return@edit
+            val next = current - voiceId
+            if (next.isEmpty()) prefs.remove(KEY_DEFAULT_SPEAKERS)
+            else prefs[KEY_DEFAULT_SPEAKERS] = Json.encodeToString(next)
+        }
+    }
+
     private companion object {
         // wifi-only defaults to true so first-time users on metered cell never
         // burn 85 MB without an explicit opt-in.
@@ -82,5 +108,6 @@ class SettingsRepositoryImpl(
         val KEY_USE_NNAPI = booleanPreferencesKey("use_nnapi")
         val KEY_SYNTHESIS_THREADS = intPreferencesKey("synthesis_threads")
         val KEY_MAX_NUM_SENTENCES = intPreferencesKey("max_num_sentences")
+        val KEY_DEFAULT_SPEAKERS = stringPreferencesKey("default_speakers_json")
     }
 }

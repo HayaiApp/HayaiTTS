@@ -87,6 +87,7 @@ fun InstalledVoiceCard(
     onToggleDefault: (locale: String) -> Unit,
     onToggleFavorite: () -> Unit,
     onUninstall: () -> Unit,
+    onChooseSpeaker: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val family = voice.effectiveFamily ?: voice.family
@@ -110,7 +111,12 @@ fun InstalledVoiceCard(
                     )
                 }
                 FavoriteToggle(isFavorite = isFavorite, onToggle = onToggleFavorite)
-                MoreMenu(canUninstall = !voice.bundled, onUninstall = onUninstall)
+                MoreMenu(
+                    canUninstall = !voice.bundled,
+                    canChooseSpeaker = voice.speakers.size > 1 && onChooseSpeaker != null,
+                    onUninstall = onUninstall,
+                    onChooseSpeaker = onChooseSpeaker ?: {},
+                )
             }
             Spacer(Modifier.height(8.dp))
             ChipStrip {
@@ -416,7 +422,9 @@ private fun FavoriteToggle(isFavorite: Boolean, onToggle: () -> Unit) {
 @Composable
 private fun MoreMenu(
     canUninstall: Boolean,
+    canChooseSpeaker: Boolean,
     onUninstall: () -> Unit,
+    onChooseSpeaker: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
@@ -430,6 +438,15 @@ private fun MoreMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
+            if (canChooseSpeaker) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.voice_choose_default_speaker)) },
+                    onClick = {
+                        expanded = false
+                        onChooseSpeaker()
+                    },
+                )
+            }
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.action_uninstall)) },
                 enabled = canUninstall,

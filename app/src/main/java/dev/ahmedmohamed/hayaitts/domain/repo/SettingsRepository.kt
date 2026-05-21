@@ -34,4 +34,14 @@ interface SettingsRepository {
 
     val maxNumSentences: Flow<Int>
     suspend fun setMaxNumSentences(value: Int)
+
+    /**
+     * Per-voice default speaker id. Multi-speaker voices use this when the
+     * framework calls onSynthesizeText without an explicit speaker, and the
+     * Playground / VoiceDetail screens read it to highlight the current pick.
+     * Keys are voice ids, values are sherpa-onnx speaker indices.
+     */
+    val defaultSpeakerByVoice: Flow<Map<String, Int>>
+    suspend fun setDefaultSpeaker(voiceId: String, speakerId: Int)
+    suspend fun clearDefaultSpeaker(voiceId: String)
 }

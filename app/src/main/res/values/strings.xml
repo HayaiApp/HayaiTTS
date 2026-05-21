@@ -52,6 +52,11 @@
     <string name="voice_default_label">Default for %1$s</string>
     <string name="voice_set_default">Set as default for %1$s</string>
     <string name="voice_clear_default">Clear default</string>
+    <string name="voice_choose_default_speaker">Choose default speaker…</string>
+    <string name="speaker_picker_title">Default speaker</string>
+    <string name="speaker_picker_reset">Use voice default</string>
+    <string name="speaker_picker_reset_subtitle">Fall back to the first speaker in this voice.</string>
+    <string name="speaker_picker_subtitle">id %1$d · %2$s</string>
     <string name="voice_detail_speakers">Speakers</string>
     <string name="voice_detail_preview">Preview</string>
     <string name="voice_detail_preview_text">The quick brown fox jumps over the lazy dog.</string>

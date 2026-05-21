@@ -59,6 +59,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -71,6 +72,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -84,6 +86,7 @@ import dev.ahmedmohamed.hayaitts.ui.components.HayaiRichTooltipBox
 import dev.ahmedmohamed.hayaitts.ui.components.LanguageChip
 import dev.ahmedmohamed.hayaitts.ui.components.TierChip
 import dev.ahmedmohamed.hayaitts.ui.components.identityOrDefault
+import dev.ahmedmohamed.hayaitts.ui.speaker.SpeakerPickerActivity
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -120,6 +123,7 @@ fun VoiceDetailScreen(
     DisposableEffect(Unit) { onDispose { viewModel.stop() } }
 
     val accent = MaterialTheme.colorScheme.primary
+    val context = LocalContext.current
     val installed = state.installed
     val card = state.card
     var overflowOpen by remember { mutableStateOf(false) }
@@ -203,6 +207,9 @@ fun VoiceDetailScreen(
                 speakers = state.installed?.speakers ?: state.card?.speakers.orEmpty(),
                 selectedSid = state.selectedSid,
                 onPickSpeaker = viewModel::setSpeaker,
+                onChooseDefault = if (state.isInstalled && (state.installed?.speakers?.size ?: 0) > 1) {
+                    { context.startActivity(SpeakerPickerActivity.intent(context, voiceId)) }
+                } else null,
                 accent = accent,
             )
             PreviewSection(
@@ -313,6 +320,7 @@ private fun SpeakersSection(
     speakers: List<Speaker>,
     selectedSid: Int,
     onPickSpeaker: (Int) -> Unit,
+    onChooseDefault: (() -> Unit)?,
     accent: Color,
 ) {
     if (speakers.isEmpty()) return
@@ -320,10 +328,18 @@ private fun SpeakersSection(
         modifier = Modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = stringResource(R.string.voice_detail_speakers),
-            style = MaterialTheme.typography.titleMedium,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.voice_detail_speakers),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f),
+            )
+            if (onChooseDefault != null) {
+                TextButton(onClick = onChooseDefault) {
+                    Text(stringResource(R.string.voice_choose_default_speaker))
+                }
+            }
+        }
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {

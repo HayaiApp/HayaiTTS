@@ -11,6 +11,7 @@ import dev.ahmedmohamed.hayaitts.data.playground.VoiceTuning
 import dev.ahmedmohamed.hayaitts.data.playground.VoiceTuningRepository
 import dev.ahmedmohamed.hayaitts.data.voices.parseLocale
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
+import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.GlobalContext
@@ -166,8 +167,14 @@ class HayaiTtsService : TextToSpeechService() {
         val requestSpeed = (request.speechRate.toFloat() / 100f).coerceIn(0.5f, 2.0f)
         val speed = (requestSpeed * tuning.speed).coerceIn(0.5f, 2.0f)
 
+        val settingsRepo = runCatching { GlobalContext.get().get<SettingsRepository>() }.getOrNull()
+        val defaultSpeaker = settingsRepo?.let { repo ->
+            runCatching { runBlocking { repo.defaultSpeakerByVoice.first()[voice.voiceId] } }.getOrNull()
+        }
+
         val sid = selectedSpeakerId
             ?: request.params?.getString("speakerId")?.toIntOrNull()
+            ?: defaultSpeaker
             ?: voice.speakers.firstOrNull()?.id
             ?: 0
 

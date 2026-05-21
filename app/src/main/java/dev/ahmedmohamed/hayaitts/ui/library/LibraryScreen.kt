@@ -80,6 +80,7 @@ import dev.ahmedmohamed.hayaitts.ui.components.FeaturedVoiceCard
 import dev.ahmedmohamed.hayaitts.ui.components.HayaiRichTooltipBox
 import dev.ahmedmohamed.hayaitts.ui.components.InstalledVoiceCard
 import dev.ahmedmohamed.hayaitts.ui.settings.SettingsActivity
+import dev.ahmedmohamed.hayaitts.ui.speaker.SpeakerPickerActivity
 import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -255,6 +256,9 @@ fun LibraryScreen(
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     },
                     onUninstall = { pendingUninstall = it },
+                    onChooseSpeaker = { voice ->
+                        context.startActivity(SpeakerPickerActivity.intent(context, voice.voiceId))
+                    },
                     onClickVoice = { onVoiceClick(it.voiceId) },
                     onPlayPreview = { onVoiceClick(it.voiceId) },
                     contentPadding = innerPadding,
@@ -300,6 +304,7 @@ private fun LibraryBody(
     onToggleDefault: (InstalledVoice, String) -> Unit,
     onToggleFavorite: (InstalledVoice) -> Unit,
     onUninstall: (InstalledVoice) -> Unit,
+    onChooseSpeaker: (InstalledVoice) -> Unit,
     onClickVoice: (InstalledVoice) -> Unit,
     onPlayPreview: (InstalledVoice) -> Unit,
     contentPadding: PaddingValues,
@@ -371,6 +376,7 @@ private fun LibraryBody(
                 onToggleDefault = { locale -> onToggleDefault(voice, locale) },
                 onToggleFavorite = { onToggleFavorite(voice) },
                 onUninstall = { onUninstall(voice) },
+                onChooseSpeaker = { onChooseSpeaker(voice) },
                 onMoveUp = if (index > 0) {
                     {
                         voices.swap(index, index - 1)
@@ -414,6 +420,7 @@ private fun ReorderableVoiceCard(
     onToggleDefault: (locale: String) -> Unit,
     onToggleFavorite: () -> Unit,
     onUninstall: () -> Unit,
+    onChooseSpeaker: () -> Unit,
     onMoveUp: (() -> Unit)?,
     onMoveDown: (() -> Unit)?,
 ) {
@@ -452,6 +459,7 @@ private fun ReorderableVoiceCard(
             onToggleDefault = onToggleDefault,
             onToggleFavorite = onToggleFavorite,
             onUninstall = onUninstall,
+            onChooseSpeaker = onChooseSpeaker.takeIf { voice.speakers.size > 1 },
         )
         AnimatedVisibility(
             visible = reorderMode,
