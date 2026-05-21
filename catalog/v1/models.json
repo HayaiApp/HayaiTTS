@@ -1742,7 +1742,7 @@
       "tier": "high",
       "title": "SA_dii",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ar/ar_JO/SA_dii/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ar_JO-SA_dii-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -1768,7 +1768,7 @@
       "tier": "high",
       "title": "SA_miro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ar/ar_JO/SA_miro/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ar_JO-SA_miro-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -1794,7 +1794,7 @@
       "tier": "high",
       "title": "SA_miro_V2",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ar/ar_JO/SA_miro_V2/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ar_JO-SA_miro_V2-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -1820,7 +1820,7 @@
       "tier": "low",
       "title": "Kareem",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ar/ar_JO/kareem/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ar_JO-kareem-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -1846,7 +1846,7 @@
       "tier": "mid",
       "title": "Kareem",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ar/ar_JO/kareem/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ar_JO-kareem-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -1872,7 +1872,7 @@
       "tier": "mid",
       "title": "Upc_ona",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/upc_ona/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ca_ES-upc_ona-medium.mp3"
     },
     {
       "approxSizeMb": 27,
@@ -1898,7 +1898,7 @@
       "tier": "low",
       "title": "Upc_ona",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/upc_ona/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ca_ES-upc_ona-x_low.mp3"
     },
     {
       "approxSizeMb": 27,
@@ -1924,7 +1924,7 @@
       "tier": "low",
       "title": "Upc_pau",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ca/ca_ES/upc_pau/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ca_ES-upc_pau-x_low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -1950,7 +1950,7 @@
       "tier": "low",
       "title": "Jirka",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/cs/cs_CZ/jirka/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-cs_CZ-jirka-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -1976,7 +1976,7 @@
       "tier": "mid",
       "title": "Jirka",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/cs/cs_CZ/jirka/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-cs_CZ-jirka-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -2038,7 +2038,7 @@
       "tier": "mid",
       "title": "Piper (7 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/cy/cy_GB/bu_tts/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-cy_GB-bu_tts-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2064,7 +2064,7 @@
       "tier": "mid",
       "title": "Gwryw_gogleddol",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/cy/cy_GB/gwryw_gogleddol/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-cy_GB-gwryw_gogleddol-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2090,7 +2090,7 @@
       "tier": "mid",
       "title": "Talesyntese",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/da/da_DK/talesyntese/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-da_DK-talesyntese-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2116,7 +2116,7 @@
       "tier": "high",
       "title": "Dii",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/dii/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-dii-high.mp3"
     },
     {
       "approxSizeMb": 27,
@@ -2142,7 +2142,7 @@
       "tier": "low",
       "title": "Eva_k",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/eva_k/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-eva_k-x_low.mp3"
     },
     {
       "approxSizeMb": 116,
@@ -2168,7 +2168,7 @@
       "tier": "high",
       "title": "Glados",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/glados/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-glados-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2194,7 +2194,7 @@
       "tier": "low",
       "title": "Glados",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/glados/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-glados-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2220,7 +2220,7 @@
       "tier": "mid",
       "title": "Glados",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/glados/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-glados-medium.mp3"
     },
     {
       "approxSizeMb": 116,
@@ -2246,7 +2246,7 @@
       "tier": "high",
       "title": "Glados_turret",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/glados_turret/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-glados_turret-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2272,7 +2272,7 @@
       "tier": "low",
       "title": "Glados_turret",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/glados_turret/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-glados_turret-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2298,7 +2298,7 @@
       "tier": "mid",
       "title": "Glados_turret",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/glados_turret/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-glados_turret-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2324,7 +2324,7 @@
       "tier": "low",
       "title": "Karlsson",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/karlsson/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-karlsson-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2350,7 +2350,7 @@
       "tier": "low",
       "title": "Kerstin",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/kerstin/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-kerstin-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2376,7 +2376,7 @@
       "tier": "high",
       "title": "Miro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/miro/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-miro-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2402,7 +2402,7 @@
       "tier": "low",
       "title": "Pavoque",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/pavoque/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-pavoque-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2428,7 +2428,7 @@
       "tier": "low",
       "title": "Ramona",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/ramona/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-ramona-low.mp3"
     },
     {
       "approxSizeMb": 116,
@@ -2454,7 +2454,7 @@
       "tier": "high",
       "title": "Thorsten",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-thorsten-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2480,7 +2480,7 @@
       "tier": "low",
       "title": "Thorsten",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-thorsten-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2506,7 +2506,7 @@
       "tier": "mid",
       "title": "Thorsten",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-thorsten-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -2574,7 +2574,7 @@
       "tier": "mid",
       "title": "Piper (8 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten_emotional/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-de_DE-thorsten_emotional-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2600,7 +2600,7 @@
       "tier": "low",
       "title": "Rapunzelina",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/el/el_GR/rapunzelina/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-el_GR-rapunzelina-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2626,7 +2626,7 @@
       "tier": "low",
       "title": "Alan",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/alan/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-alan-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2652,7 +2652,7 @@
       "tier": "mid",
       "title": "Alan",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/alan/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-alan-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2678,7 +2678,7 @@
       "tier": "mid",
       "title": "Alba",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/alba/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-alba-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -2770,7 +2770,7 @@
       "tier": "mid",
       "title": "Piper (12 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/aru/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-aru-medium.mp3"
     },
     {
       "approxSizeMb": 116,
@@ -2796,7 +2796,7 @@
       "tier": "high",
       "title": "Cori",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/cori/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-cori-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2822,7 +2822,7 @@
       "tier": "mid",
       "title": "Cori",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/cori/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-cori-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2848,7 +2848,7 @@
       "tier": "high",
       "title": "Dii",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/dii/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-dii-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2874,7 +2874,7 @@
       "tier": "mid",
       "title": "Jenny_dioco",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/jenny_dioco/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-jenny_dioco-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2900,7 +2900,7 @@
       "tier": "high",
       "title": "Miro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/miro/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-miro-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2926,7 +2926,7 @@
       "tier": "mid",
       "title": "Northern_english_male",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/northern_english_male/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-northern_english_male-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -2970,7 +2970,7 @@
       "tier": "mid",
       "title": "Piper (4 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/semaine/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-semaine-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -2996,7 +2996,7 @@
       "tier": "low",
       "title": "Southern_english_female",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/southern_english_female/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-southern_english_female-low.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -3052,7 +3052,7 @@
       "tier": "mid",
       "title": "Piper (6 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/southern_english_female/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-southern_english_female-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -3120,7 +3120,7 @@
       "tier": "mid",
       "title": "Piper (8 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/southern_english_male/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-southern_english_male-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -3794,7 +3794,7 @@
       "tier": "mid",
       "title": "Piper (109 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/vctk/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_GB-vctk-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -3820,7 +3820,7 @@
       "tier": "low",
       "title": "Amy",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-amy-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -3846,7 +3846,7 @@
       "tier": "mid",
       "title": "Amy",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-amy-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -3974,7 +3974,7 @@
       "tier": "mid",
       "title": "Piper (18 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/arctic/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-arctic-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4000,7 +4000,7 @@
       "tier": "mid",
       "title": "Bryce",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/bryce/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-bryce-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4026,7 +4026,7 @@
       "tier": "low",
       "title": "Danny",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/danny/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-danny-low.mp3"
     },
     {
       "approxSizeMb": 116,
@@ -4052,7 +4052,7 @@
       "tier": "high",
       "title": "Glados",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/glados/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-glados-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4078,7 +4078,7 @@
       "tier": "mid",
       "title": "Hfc_female",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/hfc_female/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-hfc_female-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4104,7 +4104,7 @@
       "tier": "mid",
       "title": "Hfc_male",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/hfc_male/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-hfc_male-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4130,7 +4130,7 @@
       "tier": "mid",
       "title": "Joe",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/joe/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-joe-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4156,7 +4156,7 @@
       "tier": "mid",
       "title": "John",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/john/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-john-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4182,7 +4182,7 @@
       "tier": "low",
       "title": "Kathleen",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/kathleen/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-kathleen-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4208,7 +4208,7 @@
       "tier": "mid",
       "title": "Kristin",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/kristin/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-kristin-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4234,7 +4234,7 @@
       "tier": "mid",
       "title": "Kusal",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/kusal/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-kusal-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -4398,7 +4398,7 @@
       "tier": "mid",
       "title": "Piper (24 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/l2arctic/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-l2arctic-medium.mp3"
     },
     {
       "approxSizeMb": 116,
@@ -4424,7 +4424,7 @@
       "tier": "high",
       "title": "Lessac",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-lessac-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4450,7 +4450,7 @@
       "tier": "low",
       "title": "Lessac",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-lessac-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -4476,7 +4476,7 @@
       "tier": "mid",
       "title": "Lessac",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-lessac-medium.mp3"
     },
     {
       "approxSizeMb": 131,
@@ -9920,7 +9920,7 @@
       "tier": "high",
       "title": "Piper (904 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-libritts-high.mp3"
     },
     {
       "approxSizeMb": 82,
@@ -15364,7 +15364,7 @@
       "tier": "mid",
       "title": "Piper (904 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts_r/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-libritts_r-medium.mp3"
     },
     {
       "approxSizeMb": 116,
@@ -15390,7 +15390,7 @@
       "tier": "high",
       "title": "Ljspeech",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ljspeech/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-ljspeech-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15416,7 +15416,7 @@
       "tier": "mid",
       "title": "Ljspeech",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ljspeech/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-ljspeech-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15442,7 +15442,7 @@
       "tier": "high",
       "title": "Miro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/miro/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-miro-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15468,7 +15468,7 @@
       "tier": "mid",
       "title": "Norman",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/norman/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-norman-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15494,7 +15494,7 @@
       "tier": "mid",
       "title": "Reza_ibrahim",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/reza_ibrahim/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-reza_ibrahim-medium.mp3"
     },
     {
       "approxSizeMb": 116,
@@ -15520,7 +15520,7 @@
       "tier": "high",
       "title": "Ryan",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-ryan-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15546,7 +15546,7 @@
       "tier": "low",
       "title": "Ryan",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-ryan-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15572,7 +15572,7 @@
       "tier": "mid",
       "title": "Ryan",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-ryan-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15598,7 +15598,7 @@
       "tier": "mid",
       "title": "Sam",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/sam/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-en_US-sam-medium.mp3"
     },
     {
       "approxSizeMb": 116,
@@ -15624,7 +15624,7 @@
       "tier": "high",
       "title": "Daniela",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_AR/daniela/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-es_AR-daniela-high.mp3"
     },
     {
       "approxSizeMb": 27,
@@ -15650,7 +15650,7 @@
       "tier": "low",
       "title": "Carlfm",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/carlfm/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-es_ES-carlfm-x_low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15676,7 +15676,7 @@
       "tier": "mid",
       "title": "Davefx",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/davefx/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-es_ES-davefx-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15702,7 +15702,7 @@
       "tier": "mid",
       "title": "Glados",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/glados/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-es_ES-glados-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15728,7 +15728,7 @@
       "tier": "high",
       "title": "Miro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/miro/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-es_ES-miro-high.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -15760,7 +15760,7 @@
       "tier": "mid",
       "title": "Piper (2 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/sharvard/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-es_ES-sharvard-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15786,7 +15786,7 @@
       "tier": "mid",
       "title": "Ald",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/ald/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-es_MX-ald-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15812,7 +15812,7 @@
       "tier": "high",
       "title": "Claude",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/claude/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-es_MX-claude-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15837,7 +15837,8 @@
       ],
       "tier": "mid",
       "title": "Antton",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech"
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-eu_ES-antton-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15862,7 +15863,8 @@
       ],
       "tier": "mid",
       "title": "Maider",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech"
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-eu_ES-maider-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15888,7 +15890,7 @@
       "tier": "mid",
       "title": "Amir",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fa/fa_IR/amir/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fa_IR-amir-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15914,7 +15916,7 @@
       "tier": "mid",
       "title": "Ganji",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fa/fa_IR/ganji/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fa_IR-ganji-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15940,7 +15942,7 @@
       "tier": "mid",
       "title": "Ganji_adabi",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fa/fa_IR/ganji_adabi/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fa_IR-ganji_adabi-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15966,7 +15968,7 @@
       "tier": "mid",
       "title": "Gyro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fa/fa_IR/gyro/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fa_IR-gyro-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -15992,7 +15994,7 @@
       "tier": "mid",
       "title": "Reza_ibrahim",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fa/fa_IR/reza_ibrahim/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fa_IR-reza_ibrahim-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16018,7 +16020,7 @@
       "tier": "low",
       "title": "Harri",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fi/fi_FI/harri/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fi_FI-harri-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16044,7 +16046,7 @@
       "tier": "mid",
       "title": "Harri",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fi/fi_FI/harri/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fi_FI-harri-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16070,7 +16072,7 @@
       "tier": "low",
       "title": "Gilles",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/gilles/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fr_FR-gilles-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16096,7 +16098,7 @@
       "tier": "high",
       "title": "Miro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/miro/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fr_FR-miro-high.mp3"
     },
     {
       "approxSizeMb": 27,
@@ -16122,7 +16124,7 @@
       "tier": "low",
       "title": "Siwis",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/siwis/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fr_FR-siwis-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16148,7 +16150,7 @@
       "tier": "mid",
       "title": "Siwis",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/siwis/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fr_FR-siwis-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16173,7 +16175,8 @@
       ],
       "tier": "mid",
       "title": "Tjiho",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech"
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fr_FR-tjiho-model1.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16198,7 +16201,8 @@
       ],
       "tier": "mid",
       "title": "Tjiho",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech"
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fr_FR-tjiho-model2.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16223,7 +16227,8 @@
       ],
       "tier": "mid",
       "title": "Tjiho",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech"
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fr_FR-tjiho-model3.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16249,7 +16254,7 @@
       "tier": "mid",
       "title": "Tom",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/tom/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fr_FR-tom-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -16281,7 +16286,7 @@
       "tier": "mid",
       "title": "Piper (2 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/upmc/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-fr_FR-upmc-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16307,7 +16312,7 @@
       "tier": "mid",
       "title": "Pratham",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/hi/hi_IN/pratham/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-hi_IN-pratham-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16333,7 +16338,7 @@
       "tier": "mid",
       "title": "Priyamvada",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/hi/hi_IN/priyamvada/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-hi_IN-priyamvada-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16359,7 +16364,7 @@
       "tier": "mid",
       "title": "Rohan",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/hi/hi_IN/rohan/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-hi_IN-rohan-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16385,7 +16390,7 @@
       "tier": "mid",
       "title": "Anna",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/hu/hu_HU/anna/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-hu_HU-anna-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16411,7 +16416,7 @@
       "tier": "mid",
       "title": "Berta",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/hu/hu_HU/berta/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-hu_HU-berta-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16437,7 +16442,7 @@
       "tier": "mid",
       "title": "Imre",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/hu/hu_HU/imre/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-hu_HU-imre-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16462,7 +16467,8 @@
       ],
       "tier": "mid",
       "title": "News_tts",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech"
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-id_ID-news_tts-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16488,7 +16494,7 @@
       "tier": "mid",
       "title": "Bui",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/is/is_IS/bui/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-is_IS-bui-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16514,7 +16520,7 @@
       "tier": "mid",
       "title": "Salka",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/is/is_IS/salka/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-is_IS-salka-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16540,7 +16546,7 @@
       "tier": "mid",
       "title": "Steinn",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/is/is_IS/steinn/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-is_IS-steinn-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16566,7 +16572,7 @@
       "tier": "mid",
       "title": "Ugla",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/is/is_IS/ugla/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-is_IS-ugla-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16592,7 +16598,7 @@
       "tier": "high",
       "title": "Dii",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/it/it_IT/dii/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-it_IT-dii-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16618,7 +16624,7 @@
       "tier": "high",
       "title": "Miro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/it/it_IT/miro/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-it_IT-miro-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16644,7 +16650,7 @@
       "tier": "mid",
       "title": "Paola",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/it/it_IT/paola/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-it_IT-paola-medium.mp3"
     },
     {
       "approxSizeMb": 26,
@@ -16670,7 +16676,7 @@
       "tier": "low",
       "title": "Riccardo",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/it/it_IT/riccardo/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-it_IT-riccardo-x_low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16696,7 +16702,7 @@
       "tier": "mid",
       "title": "Natia",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ka/ka_GE/natia/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ka_GE-natia-medium.mp3"
     },
     {
       "approxSizeMb": 27,
@@ -16722,7 +16728,7 @@
       "tier": "low",
       "title": "Iseke",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/kk/kk_KZ/iseke/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-kk_KZ-iseke-x_low.mp3"
     },
     {
       "approxSizeMb": 129,
@@ -16778,7 +16784,7 @@
       "tier": "high",
       "title": "Piper (6 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/kk/kk_KZ/issai/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-kk_KZ-issai-high.mp3"
     },
     {
       "approxSizeMb": 26,
@@ -16804,7 +16810,7 @@
       "tier": "low",
       "title": "Raya",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/kk/kk_KZ/raya/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-kk_KZ-raya-x_low.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -16829,7 +16835,8 @@
       ],
       "tier": "mid",
       "title": "Berfin_renas",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech"
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ku_TR-berfin_renas-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16855,7 +16862,7 @@
       "tier": "mid",
       "title": "Marylux",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/lb/lb_LU/marylux/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-lb_LU-marylux-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16881,7 +16888,7 @@
       "tier": "mid",
       "title": "Aivars",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/lv/lv_LV/aivars/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-lv_LV-aivars-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16907,7 +16914,7 @@
       "tier": "mid",
       "title": "Arjun",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ml/ml_IN/arjun/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ml_IN-arjun-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16933,7 +16940,7 @@
       "tier": "mid",
       "title": "Meera",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ml/ml_IN/meera/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ml_IN-meera-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -16959,7 +16966,7 @@
       "tier": "mid",
       "title": "Chitwan",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ne/ne_NP/chitwan/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ne_NP-chitwan-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -17087,7 +17094,7 @@
       "tier": "mid",
       "title": "Piper (18 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ne/ne_NP/google/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ne_NP-google-medium.mp3"
     },
     {
       "approxSizeMb": 33,
@@ -17215,7 +17222,7 @@
       "tier": "low",
       "title": "Piper (18 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ne/ne_NP/google/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ne_NP-google-x_low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17241,7 +17248,7 @@
       "tier": "mid",
       "title": "Nathalie",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/nl/nl_BE/nathalie/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-nl_BE-nathalie-medium.mp3"
     },
     {
       "approxSizeMb": 27,
@@ -17267,7 +17274,7 @@
       "tier": "low",
       "title": "Nathalie",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/nl/nl_BE/nathalie/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-nl_BE-nathalie-x_low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17293,7 +17300,7 @@
       "tier": "mid",
       "title": "Alex",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/nl/nl_NL/alex/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-nl_NL-alex-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17319,7 +17326,7 @@
       "tier": "high",
       "title": "Dii",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/nl/nl_NL/dii/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-nl_NL-dii-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17345,7 +17352,7 @@
       "tier": "high",
       "title": "Miro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/nl/nl_NL/miro/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-nl_NL-miro-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17371,7 +17378,7 @@
       "tier": "mid",
       "title": "Pim",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/nl/nl_NL/pim/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-nl_NL-pim-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17397,7 +17404,7 @@
       "tier": "mid",
       "title": "Ronnie",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/nl/nl_NL/ronnie/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-nl_NL-ronnie-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17423,7 +17430,7 @@
       "tier": "mid",
       "title": "Talesyntese",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/no/no_NO/talesyntese/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-no_NO-talesyntese-medium.mp3"
     },
     {
       "approxSizeMb": 116,
@@ -17449,7 +17456,7 @@
       "tier": "high",
       "title": "Bass",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/bass/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pl_PL-bass-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17475,7 +17482,7 @@
       "tier": "mid",
       "title": "Darkman",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/darkman/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pl_PL-darkman-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17501,7 +17508,7 @@
       "tier": "mid",
       "title": "Gosia",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/gosia/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pl_PL-gosia-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17527,7 +17534,7 @@
       "tier": "mid",
       "title": "Jarvis_wg_glos",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/jarvis_wg_glos/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pl_PL-jarvis_wg_glos-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17553,7 +17560,7 @@
       "tier": "mid",
       "title": "Justyna_wg_glos",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/justyna_wg_glos/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pl_PL-justyna_wg_glos-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17579,7 +17586,7 @@
       "tier": "mid",
       "title": "Mc_speech",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/mc_speech/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pl_PL-mc_speech-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17605,7 +17612,7 @@
       "tier": "mid",
       "title": "Meski_wg_glos",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/meski_wg_glos/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pl_PL-meski_wg_glos-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17631,7 +17638,7 @@
       "tier": "mid",
       "title": "Zenski_wg_glos",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pl/pl_PL/zenski_wg_glos/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pl_PL-zenski_wg_glos-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17657,7 +17664,7 @@
       "tier": "mid",
       "title": "Cadu",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_BR/cadu/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pt_BR-cadu-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17683,7 +17690,7 @@
       "tier": "high",
       "title": "Dii",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_BR/dii/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pt_BR-dii-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17709,7 +17716,7 @@
       "tier": "low",
       "title": "Edresson",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_BR/edresson/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pt_BR-edresson-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17735,7 +17742,7 @@
       "tier": "mid",
       "title": "Faber",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_BR/faber/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pt_BR-faber-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17761,7 +17768,7 @@
       "tier": "mid",
       "title": "Jeff",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_BR/jeff/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pt_BR-jeff-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17787,7 +17794,7 @@
       "tier": "high",
       "title": "Miro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_BR/miro/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pt_BR-miro-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17813,7 +17820,7 @@
       "tier": "high",
       "title": "Dii",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_PT/dii/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pt_PT-dii-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17839,7 +17846,7 @@
       "tier": "high",
       "title": "Miro",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_PT/miro/high/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pt_PT-miro-high.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17865,7 +17872,7 @@
       "tier": "mid",
       "title": "Tugao",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_PT/tugao/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-pt_PT-tugao-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17891,7 +17898,7 @@
       "tier": "mid",
       "title": "Mihai",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ro/ro_RO/mihai/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ro_RO-mihai-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17917,7 +17924,7 @@
       "tier": "mid",
       "title": "Denis",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ru/ru_RU/denis/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ru_RU-denis-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17943,7 +17950,7 @@
       "tier": "mid",
       "title": "Dmitri",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ru/ru_RU/dmitri/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ru_RU-dmitri-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17969,7 +17976,7 @@
       "tier": "mid",
       "title": "Irina",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ru/ru_RU/irina/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ru_RU-irina-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -17995,7 +18002,7 @@
       "tier": "mid",
       "title": "Ruslan",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/ru/ru_RU/ruslan/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ru_RU-ruslan-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18021,7 +18028,7 @@
       "tier": "mid",
       "title": "Lili",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/sk/sk_SK/lili/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-sk_SK-lili-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18047,7 +18054,7 @@
       "tier": "mid",
       "title": "Artur",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/sl/sl_SI/artur/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-sl_SI-artur-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18072,7 +18079,8 @@
       ],
       "tier": "mid",
       "title": "Edon",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech"
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-sq_AL-edon-medium.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -18104,7 +18112,7 @@
       "tier": "mid",
       "title": "Piper (2 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/sr/sr_RS/serbski_institut/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-sr_RS-serbski_institut-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18130,7 +18138,7 @@
       "tier": "mid",
       "title": "Alma",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/sv/sv_SE/alma/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-sv_SE-alma-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18156,7 +18164,7 @@
       "tier": "mid",
       "title": "Lisa",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/sv/sv_SE/lisa/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-sv_SE-lisa-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18182,7 +18190,7 @@
       "tier": "mid",
       "title": "Nst",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/sv/sv_SE/nst/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-sv_SE-nst-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18208,7 +18216,7 @@
       "tier": "mid",
       "title": "Lanfrica",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/sw/sw_CD/lanfrica/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-sw_CD-lanfrica-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18234,7 +18242,7 @@
       "tier": "mid",
       "title": "Dfki",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/tr/tr_TR/dfki/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-tr_TR-dfki-medium.mp3"
     },
     {
       "approxSizeMb": 27,
@@ -18260,7 +18268,7 @@
       "tier": "low",
       "title": "Lada",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/uk/uk_UA/lada/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-uk_UA-lada-x_low.mp3"
     },
     {
       "approxSizeMb": 80,
@@ -18298,7 +18306,7 @@
       "tier": "mid",
       "title": "Piper (3 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/uk/uk_UA/ukrainian_tts/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-uk_UA-ukrainian_tts-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18323,7 +18331,8 @@
       ],
       "tier": "mid",
       "title": "Fasih",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech"
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-ur_PK-fasih-medium.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18349,7 +18358,7 @@
       "tier": "low",
       "title": "25hours_single",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/vi/vi_VN/25hours_single/low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-vi_VN-25hours_single-low.mp3"
     },
     {
       "approxSizeMb": 67,
@@ -18375,7 +18384,7 @@
       "tier": "mid",
       "title": "Vais1000",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/vi/vi_VN/vais1000/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-vi_VN-vais1000-medium.mp3"
     },
     {
       "approxSizeMb": 33,
@@ -18785,7 +18794,7 @@
       "tier": "low",
       "title": "Piper (65 speakers)",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/vi/vi_VN/vivos/x_low/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-vi_VN-vivos-x_low.mp3"
     },
     {
       "approxSizeMb": 60,
@@ -18812,7 +18821,7 @@
       "tier": "mid",
       "title": "Chaowen",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/zh/zh_CN/chaowen/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-zh_CN-chaowen-medium.mp3"
     },
     {
       "approxSizeMb": 60,
@@ -18839,7 +18848,7 @@
       "tier": "mid",
       "title": "Xiao_ya",
       "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "sampleAudioUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/main/zh/zh_CN/xiao_ya/medium/samples/speaker_0.mp3"
+      "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/vits-piper-zh_CN-xiao_ya-medium.mp3"
     }
   ]
 }

@@ -1,0 +1,106 @@
+name: Render voice samples
+
+# Rebuilds the per-voice MP3 sample library hosted on the
+# `samples-rolling` release. The Voice Detail screen's "Listen sample"
+# button streams whatever is at
+# https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/<voice_id>.mp3
+# so refreshing this release is how new voices become auditionable.
+#
+# Runs on GitHub-hosted `ubuntu-latest`, NOT Blacksmith — the workload is
+# bandwidth-bound (a few GB of upstream model bundles) so paid runner
+# minutes would be wasted.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly, two hours after catalog-refresh so any newly-added voices
+    # get their samples rendered the same day they enter the catalog.
+    - cron: '0 10 * * 1'
+
+concurrency:
+  group: render-samples
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install OS deps (ffmpeg + espeak-ng-data)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg espeak-ng-data
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests sherpa-onnx==1.13.2 numpy
+
+      - name: Restore sample cache
+        uses: actions/cache@v4
+        with:
+          path: .sample_cache
+          # Cache key bound to the catalog content so a new catalog
+          # naturally invalidates only the rows that changed (downloads
+          # we already did still hit the disk cache).
+          key: render-samples-${{ hashFiles('catalog/v1/models.json') }}
+          restore-keys: |
+            render-samples-
+
+      - name: Render samples
+        run: |
+          python tools/samples/render_samples.py \
+            --catalog catalog/v1/models.json \
+            --output samples \
+            --cache .sample_cache \
+            --only-missing
+
+      - name: Upload sample MP3s to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: samples-rolling
+          name: Voice samples (rolling)
+          body: |
+            Per-voice MP3 audition clips rendered from the upstream
+            sherpa-onnx model bundles using the same runtime the app ships.
+            Streamed inline by HayaiTTS' Voice Detail "Listen sample"
+            button before the user downloads the model.
+
+            Generated automatically by
+            [`.github/workflows/render-samples.yml`](https://github.com/HayaiApp/HayaiTTS/blob/main/.github/workflows/render-samples.yml).
+          files: samples/*.mp3
+          draft: false
+          prerelease: true
+          make_latest: false
+          fail_on_unmatched_files: false
+
+      - name: Sync catalog to bundled asset
+        run: |
+          mkdir -p app/src/main/assets/catalog/v1
+          cp catalog/v1/models.json app/src/main/assets/catalog/v1/models.json
+
+      - name: Commit updated catalog
+        run: |
+          if [ -n "$(git status --porcelain catalog/v1/models.json app/src/main/assets/catalog/v1/models.json)" ]; then
+            git config user.email "actions@github.com"
+            git config user.name "HayaiTTS samples bot"
+            git add catalog/v1/models.json app/src/main/assets/catalog/v1/models.json
+            git commit -m "samples: refresh sampleAudioUrl for newly rendered voices"
+            git push
+          else
+            echo "no catalog changes — nothing to commit"
+          fi
