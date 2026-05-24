@@ -257,44 +257,79 @@ jobs:
             ls -1 samples/ | head -30 | sed 's/^/  - /'
           } >> "$GITHUB_STEP_SUMMARY" || true
 
-      - name: Upload sample MP3s to release
+      - name: Ensure samples-rolling release exists
         if: steps.summary.outputs.rendered != '0'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: samples-rolling
-          name: Voice samples (rolling)
-          body: |
-            Per-(speaker, language) MP3 audition clips rendered from the
-            upstream sherpa-onnx model bundles using the same runtime the
-            app ships. Streamed inline by HayaiTTS' Browse and Voice Detail
-            audition buttons before the user downloads the model.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # softprops/action-gh-release@v2 created this release in earlier
+          # runs; if it's gone (manual cleanup), recreate it before any
+          # upload step. `gh release view` exits non-zero on miss.
+          if ! gh release view samples-rolling >/dev/null 2>&1; then
+            gh release create samples-rolling \
+              --title "Voice samples (rolling)" \
+              --prerelease \
+              --notes "Per-(speaker, language) MP3 audition clips rendered from sherpa-onnx. Overwritten in place each run; do not link to specific commit SHAs."
+          fi
 
-            **Coverage**: ${{ steps.summary.outputs.rendered }} clips across
-            the ${{ steps.summary.outputs.total }} catalog voices.
+      - name: Upload sample MP3s to release (batched)
+        if: steps.summary.outputs.rendered != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # softprops/action-gh-release@v2 uploads every asset sequentially
+        # and trips GitHub's secondary rate limit at ~3k files (request
+        # ID 325F:350FCF:0720:359FB:6A1353C3 in run 26365081440). The fix
+        # is to batch: 80 files per `gh release upload` call, 20 s sleep
+        # between batches. `--clobber` makes each call idempotent so reruns
+        # (and the cache+only-missing combo) are safe.
+        run: |
+          set -euo pipefail
+          mapfile -t FILES < <(ls samples/*.mp3 2>/dev/null || true)
+          total=${#FILES[@]}
+          echo "Uploading $total MP3s to samples-rolling in batches of 80..."
+          batch=80
+          i=0
+          while [ $i -lt $total ]; do
+            chunk=("${FILES[@]:i:batch}")
+            attempt=0
+            until gh release upload samples-rolling "${chunk[@]}" --clobber; do
+              attempt=$((attempt+1))
+              if [ $attempt -ge 5 ]; then
+                echo "::error::upload batch starting at $i failed after 5 attempts"
+                exit 1
+              fi
+              backoff=$((attempt * 60))
+              echo "batch $i failed; sleeping ${backoff}s before retry $attempt..."
+              sleep "$backoff"
+            done
+            i=$((i + batch))
+            if [ $i -lt $total ]; then
+              sleep 20
+            fi
+          done
+          echo "Uploaded $total MP3s."
 
-            **Naming**:
-              - Per-combo: `<voice_id>__sid<N>__<lang>.mp3`
-              - Canonical (legacy `sampleAudioUrl`): `<voice_id>.mp3` (= sid=0
-                in the voice's primary language)
+      - name: Update release notes
+        if: steps.summary.outputs.rendered != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit samples-rolling \
+            --title "Voice samples (rolling)" \
+            --notes "Per-(speaker, language) MP3 audition clips rendered from sherpa-onnx using the same runtime HayaiTTS ships. Streamed inline by Browse and Voice Detail audition buttons before the user downloads the model.
 
-            **Source phrase**: per-locale pangram or short sentence in the
-            target render language (English fallback when the language has
-            no PHRASES entry).
+          **Coverage**: ${{ steps.summary.outputs.rendered }} clips across the ${{ steps.summary.outputs.total }} catalog voices.
 
-            **Encoding**: 96 kbps mono MP3 (libmp3lame). Each clip is
-            typically 60–120 KB.
+          **Naming**:
+          - Per-combo: \`<voice_id>__sid<N>__<lang>.mp3\`
+          - Canonical (legacy \`sampleAudioUrl\`): \`<voice_id>.mp3\` (= sid=0 in the voice's primary language)
 
-            **Update cadence**: weekly Monday 10:00 UTC via
-            [`render-samples.yml`](https://github.com/HayaiApp/HayaiTTS/blob/main/.github/workflows/render-samples.yml),
-            two hours after the upstream catalog refresh.
+          **Encoding**: 96 kbps mono MP3 (libmp3lame). Each clip is typically 60–120 KB.
 
-            This release is overwritten in place each run; do not link to
-            specific commit SHAs.
-          files: samples/*.mp3
-          draft: false
-          prerelease: true
-          make_latest: false
-          fail_on_unmatched_files: false
+          **Update cadence**: weekly Monday 10:00 UTC via [\`render-samples.yml\`](https://github.com/HayaiApp/HayaiTTS/blob/main/.github/workflows/render-samples.yml), two hours after the catalog refresh.
+
+          This release is overwritten in place each run; do not link to specific commit SHAs."
 
       - name: Sync catalog to bundled asset
         run: |
