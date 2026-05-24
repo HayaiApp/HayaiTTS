@@ -37,7 +37,10 @@ import wave
 from pathlib import Path
 from typing import Any
 
-import requests
+# `requests` is the only third-party import; it's only needed by `download()`.
+# Imported lazily inside that function so siblings (e.g. `plan_shards.py`)
+# can import this module on hosts that haven't installed the render-time
+# Python deps yet.
 
 SAMPLES_RELEASE_TAG = "samples-rolling"
 SAMPLES_DOWNLOAD_BASE = (
@@ -163,6 +166,7 @@ def log(msg: str) -> None:
 
 
 def download(url: str, dest: Path, *, cache_dir: Path | None = None) -> None:
+    import requests  # lazy — see module-level comment
     if cache_dir is not None:
         cache_file = cache_dir / dest.name
         if cache_file.exists() and cache_file.stat().st_size > 0:
