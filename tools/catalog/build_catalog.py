@@ -85,9 +85,12 @@ class Voice:
     dictDirName: str | None = None
     demoUrl: str | None = None
     sampleAudioUrl: str | None = None
+    # Per-(speaker, language) audition clips. Populated by the offline
+    # `tools/samples/render_samples.py` pipeline, preserved here on
+    # catalog refresh so the field doesn't disappear between renders.
+    speakerSamples: list[dict] | None = None
 
     def to_json(self) -> dict:
-        # Required fields; optional ones only when set so the JSON stays compact.
         d: dict = {
             "id": self.id, "family": self.family, "title": self.title,
             "languages": self.languages, "speakers": self.speakers,
@@ -98,7 +101,7 @@ class Voice:
         }
         for k in ("vocoderUrl", "vocoderFileName", "vocoderSha256",
                   "modelFileName", "lexiconFileName", "dictDirName",
-                  "demoUrl", "sampleAudioUrl"):
+                  "demoUrl", "sampleAudioUrl", "speakerSamples"):
             v = getattr(self, k)
             if v is not None:
                 d[k] = v
@@ -639,11 +642,43 @@ def build_voices(pages: list[tuple[str, str]], *, limit: int | None,
 
 def write_catalog(voices: list[Voice], output_path: str) -> None:
     """Canonical deterministic JSON: voices sorted by id, field keys sorted
-    alphabetically, 2-space indent, ``\\n`` line endings, trailing newline."""
-    payload = {
-        "version": 1,
-        "voices": [v.to_json() for v in sorted(voices, key=lambda v: v.id)],
-    }
+    alphabetically, 2-space indent, ``\\n`` line endings, trailing newline.
+
+    Preserves ``sampleAudioUrl`` and ``speakerSamples`` fields from any
+    pre-existing catalog at ``output_path``. The catalog-refresh workflow
+    runs **before** the sample-render workflow, so without this preservation
+    every refresh would wipe out the rendered-sample URLs that
+    render_samples.py wrote on the previous Monday.
+    """
+    preserved: dict[str, dict] = {}
+    if os.path.exists(output_path):
+        try:
+            with open(output_path, "r", encoding="utf-8") as fh:
+                existing = json.load(fh)
+            for v in existing.get("voices", []):
+                vid = v.get("id")
+                if not vid:
+                    continue
+                keep: dict = {}
+                if v.get("sampleAudioUrl"):
+                    keep["sampleAudioUrl"] = v["sampleAudioUrl"]
+                if v.get("speakerSamples"):
+                    keep["speakerSamples"] = v["speakerSamples"]
+                if keep:
+                    preserved[vid] = keep
+        except Exception:
+            # Bad/missing existing catalog → nothing to preserve, refresh proceeds.
+            preserved = {}
+
+    rows: list[dict] = []
+    for v in sorted(voices, key=lambda v: v.id):
+        row = v.to_json()
+        carried = preserved.get(v.id)
+        if carried:
+            row.update(carried)
+        rows.append(row)
+
+    payload = {"version": 1, "voices": rows}
     rendered = json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True)
     out_dir = os.path.dirname(output_path)
     if out_dir:

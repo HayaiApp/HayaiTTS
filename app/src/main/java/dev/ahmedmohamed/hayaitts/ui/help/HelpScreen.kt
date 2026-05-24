@@ -47,7 +47,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -69,6 +68,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.ahmedmohamed.hayaitts.R
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar
 import dev.ahmedmohamed.hayaitts.ui.theme.HayaiTtsTheme
 
 /**
@@ -100,8 +100,8 @@ fun HelpScreen(onBack: () -> Unit) {
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            androidx.compose.material3.TopAppBar(
-                title = { Text(stringResource(R.string.help_title)) },
+            HayaiTopBar(
+                title = stringResource(R.string.help_title),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

@@ -69,8 +69,9 @@ import kotlinx.coroutines.launch
  *  3. Pick voices for your device — recommended tier from [recommendedTier].
  *  4. Ready — primary CTA marks onboarding complete and routes to Library.
  *
- * Each page owns a distinct container color (primary / tertiary / secondary
- * containers, rotating) plus a hero shape whose corner radii morph between an
+ * Every page uses the same neutral container surface — the monochrome design
+ * contract does not permit per-page accent rotation. Visual variety on each
+ * page comes from the hero shape whose corner radii morph between an
  * asymmetric cookie and a softer round on every page change. The page
  * indicator and pager animate together; off-screen pages parallax slightly
  * via `graphicsLayer`.

@@ -65,6 +65,7 @@ import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.Tier
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
+import dev.ahmedmohamed.hayaitts.ui.theme.Spacing
 
 /**
  * Library + Browse cards. Flat M3 surfaces — every color comes from
@@ -96,7 +97,7 @@ fun InstalledVoiceCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .padding(vertical = Spacing.cardInsetVertical),
     ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 FamilyBadge(family = family, downloadState = DownloadState.Done)
@@ -166,7 +167,7 @@ fun InstalledVoiceCard(
     )
 }
 
-/** Browse variant: a catalog entry with state-driven action button. */
+/** Browse variant: a catalog entry with inline audition + state-driven action button. */
 @Composable
 fun CatalogVoiceCard(
     card: VoiceCard,
@@ -176,105 +177,135 @@ fun CatalogVoiceCard(
     onInstall: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
-    /**
-     * If non-null and equal to `card.tierEnum`, the card renders a primary
-     * "Recommended for your device" chip.
-     */
     recommendedTier: Tier? = null,
 ) {
+    var selectedSid by remember(card.id) {
+        mutableStateOf(card.speakers.firstOrNull()?.id ?: 0)
+    }
+    var selectedLang by remember(card.id) {
+        mutableStateOf(card.languages.firstOrNull() ?: "")
+    }
+    val sampleUrl = card.sampleFor(selectedSid, selectedLang.ifBlank { null })
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onOpen)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .padding(vertical = Spacing.cardInsetVertical),
     ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                FamilyBadge(family = card.modelFamily, downloadState = downloadState)
-                Spacer(Modifier.size(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(card.title, style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = card.subtitle(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            FamilyBadge(family = card.modelFamily, downloadState = downloadState)
+            Spacer(Modifier.size(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(card.title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = card.subtitle(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
-            Spacer(Modifier.height(8.dp))
-            ChipStrip {
-                card.languages.forEach { LanguageChip(it) }
-                FamilyChip(card.modelFamily)
-                TierChip(tier = card.tierEnum, sizeMb = card.approxSizeMb)
-                val showRecommended = recommendedTier != null &&
-                    card.tierEnum == recommendedTier &&
-                    !isInstalled &&
-                    card.available
-                if (showRecommended) {
-                    SuggestionChip(
-                        onClick = {},
-                        label = { Text(stringResource(R.string.voice_chip_recommended)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Recommend,
-                                contentDescription = null,
-                            )
-                        },
-                    )
-                }
-                if (!card.available) {
-                    AssistChip(
-                        onClick = {},
-                        enabled = false,
-                        label = { Text(stringResource(R.string.voice_chip_coming_soon)) },
-                    )
-                }
+            // Inline play button — auditions the currently-selected (sid, lang)
+            // sample without leaving the list.
+            HayaiSampleAuditionButton(
+                url = sampleUrl,
+                style = AuditionStyle.IconOnly,
+            )
+        }
+        Spacer(Modifier.height(Spacing.chipSpacing))
+        ChipStrip {
+            card.languages.forEach { LanguageChip(it) }
+            FamilyChip(card.modelFamily)
+            TierChip(tier = card.tierEnum, sizeMb = card.approxSizeMb)
+            val showRecommended = recommendedTier != null &&
+                card.tierEnum == recommendedTier &&
+                !isInstalled &&
+                card.available
+            if (showRecommended) {
+                SuggestionChip(
+                    onClick = {},
+                    label = { Text(stringResource(R.string.voice_chip_recommended)) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Recommend,
+                            contentDescription = null,
+                        )
+                    },
+                )
             }
-            Spacer(Modifier.height(12.dp))
+            if (!card.available) {
+                AssistChip(
+                    onClick = {},
+                    enabled = false,
+                    label = { Text(stringResource(R.string.voice_chip_coming_soon)) },
+                )
+            }
+        }
+        // Per-(sid, lang) pickers only appear when the voice ships variants —
+        // single-speaker, single-language voices render zero rows here.
+        if (card.speakers.size > 1 || card.languages.size > 1) {
+            Spacer(Modifier.height(Spacing.chipSpacing))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(Spacing.chipSpacing),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                HayaiSpeakerPickerInline(
+                    speakers = card.speakers,
+                    selectedSid = selectedSid,
+                    onPick = { selectedSid = it },
+                )
+                HayaiLanguagePickerInline(
+                    languages = card.languages,
+                    selected = selectedLang,
+                    onPick = { selectedLang = it },
+                )
+            }
+        }
+        Spacer(Modifier.height(12.dp))
 
-            val running = downloadState is DownloadState.Running ||
-                downloadState is DownloadState.Extracting ||
-                downloadState is DownloadState.Queued
-            AnimatedContent(
-                targetState = when {
-                    !card.available -> ActionState.Unavailable
-                    isInstalled -> ActionState.Installed
-                    running -> ActionState.Running
-                    else -> ActionState.Idle
-                },
-                transitionSpec = {
-                    (fadeIn(spring()) togetherWith fadeOut(tween(200)))
-                },
-                label = "catalog-action",
-            ) { actionState ->
-                when (actionState) {
-                    ActionState.Unavailable -> OutlinedButton(
-                        onClick = {},
-                        enabled = false,
-                    ) { Text(stringResource(R.string.voice_chip_coming_soon)) }
+        val running = downloadState is DownloadState.Running ||
+            downloadState is DownloadState.Extracting ||
+            downloadState is DownloadState.Queued
+        AnimatedContent(
+            targetState = when {
+                !card.available -> ActionState.Unavailable
+                isInstalled -> ActionState.Installed
+                running -> ActionState.Running
+                else -> ActionState.Idle
+            },
+            transitionSpec = {
+                (fadeIn(spring()) togetherWith fadeOut(tween(200)))
+            },
+            label = "catalog-action",
+        ) { actionState ->
+            when (actionState) {
+                ActionState.Unavailable -> OutlinedButton(
+                    onClick = {},
+                    enabled = false,
+                ) { Text(stringResource(R.string.voice_chip_coming_soon)) }
 
-                    ActionState.Installed -> OutlinedButton(onClick = onOpen) {
-                        Icon(Icons.Outlined.CheckCircle, contentDescription = null)
+                ActionState.Installed -> OutlinedButton(onClick = onOpen) {
+                    Icon(Icons.Outlined.CheckCircle, contentDescription = null)
+                    Spacer(Modifier.size(8.dp))
+                    Text(stringResource(R.string.action_installed))
+                }
+
+                ActionState.Running -> Column {
+                    DownloadProgress(state = downloadState)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(onClick = onCancel) {
+                        Icon(Icons.Outlined.Cancel, contentDescription = null)
                         Spacer(Modifier.size(8.dp))
-                        Text(stringResource(R.string.action_installed))
-                    }
-
-                    ActionState.Running -> Column {
-                        DownloadProgress(state = downloadState)
-                        Spacer(Modifier.height(8.dp))
-                        OutlinedButton(onClick = onCancel) {
-                            Icon(Icons.Outlined.Cancel, contentDescription = null)
-                            Spacer(Modifier.size(8.dp))
-                            Text(stringResource(R.string.action_cancel))
-                        }
-                    }
-
-                    ActionState.Idle -> FilledTonalButton(onClick = onInstall) {
-                        Icon(Icons.Outlined.CloudDownload, contentDescription = null)
-                        Spacer(Modifier.size(8.dp))
-                        Text(stringResource(R.string.action_install))
+                        Text(stringResource(R.string.action_cancel))
                     }
                 }
+
+                ActionState.Idle -> FilledTonalButton(onClick = onInstall) {
+                    Icon(Icons.Outlined.CloudDownload, contentDescription = null)
+                    Spacer(Modifier.size(8.dp))
+                    Text(stringResource(R.string.action_install))
+                }
             }
+        }
     }
     androidx.compose.material3.HorizontalDivider(
         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),

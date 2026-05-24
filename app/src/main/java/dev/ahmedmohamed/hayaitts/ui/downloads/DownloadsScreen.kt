@@ -41,7 +41,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -64,15 +63,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.R
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
-import dev.ahmedmohamed.hayaitts.ui.components.EmptyState
 import dev.ahmedmohamed.hayaitts.ui.components.FamilyBadge
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiEmpty
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiEmptyMode
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
 
 /**
  * Dedicated screen listing every download the user has touched, grouped into
  * Active / Failed / Recently completed. Each card's container color animates
- * to reflect state: tertiaryContainer while running/extracting,
+ * to reflect state: surfaceContainerHigh while running/extracting,
  * errorContainer on failure, surfaceContainer when done. Section headers
  * carry a tonal leading dot for Expressive flair.
  */
@@ -87,8 +88,8 @@ fun DownloadsScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            androidx.compose.material3.TopAppBar(
-                title = { Text(stringResource(R.string.downloads_title)) },
+            HayaiTopBar(
+                title = stringResource(R.string.downloads_title),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.action_back))
@@ -107,11 +108,13 @@ fun DownloadsScreen(
         },
     ) { innerPadding ->
         if (state.isEmpty) {
-            EmptyState(
+            HayaiEmpty(
+                mode = HayaiEmptyMode.Empty(
+                    icon = Icons.Outlined.Inbox,
+                    title = stringResource(R.string.downloads_empty_title),
+                    subtitle = stringResource(R.string.downloads_empty_subtitle),
+                ),
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
-                icon = Icons.Outlined.Inbox,
-                title = stringResource(R.string.downloads_empty_title),
-                subtitle = stringResource(R.string.downloads_empty_subtitle),
             )
         } else {
             DownloadsBody(
@@ -150,7 +153,7 @@ private fun DownloadsBody(
             item("active_header") {
                 SectionHeader(
                     text = stringResource(R.string.downloads_section_active),
-                    dotColor = MaterialTheme.colorScheme.tertiary,
+                    dotColor = MaterialTheme.colorScheme.primary,
                 )
             }
             downloadRows(state.active) { row ->

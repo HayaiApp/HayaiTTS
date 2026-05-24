@@ -4,6 +4,7 @@ package dev.ahmedmohamed.hayaitts.ui.detail
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -60,8 +61,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -133,10 +134,19 @@ fun VoiceDetailScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = installed?.title ?: card?.title ?: voiceId)
-                },
+            val subtitle = buildString {
+                val firstLang = (installed?.languages ?: card?.languages.orEmpty()).firstOrNull()
+                val fam = card?.modelFamily?.name?.lowercase()?.replaceFirstChar { it.uppercase() }
+                    ?: installed?.family?.name?.lowercase()?.replaceFirstChar { it.uppercase() }
+                if (firstLang != null) append(firstLang)
+                if (fam != null) {
+                    if (isNotEmpty()) append("  ·  ")
+                    append(fam)
+                }
+            }.ifBlank { null }
+            HayaiTopBar(
+                title = installed?.title ?: card?.title ?: voiceId,
+                subtitle = subtitle,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -197,19 +207,29 @@ fun VoiceDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .padding(horizontal = dev.ahmedmohamed.hayaitts.ui.theme.Spacing.screenHorizontal)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(dev.ahmedmohamed.hayaitts.ui.theme.Spacing.itemSpacing),
         ) {
             HeroBlock(state = state)
-            SpeakersSection(
-                speakers = state.installed?.speakers ?: state.card?.speakers.orEmpty(),
-                selectedSid = state.selectedSid,
-                onPickSpeaker = viewModel::setSpeaker,
-                onChooseDefault = if (state.isInstalled && (state.installed?.speakers?.size ?: 0) > 1) {
-                    { context.startActivity(SpeakerPickerActivity.intent(context, voiceId)) }
-                } else null,
-                accent = accent,
-            )
+            // Audition block: streams the upstream-rendered MP3 sample so the
+            // user can hear the voice *before* downloading the model. When the
+            // voice has multiple speakers or languages, the pickers let the
+            // user choose which variant they hear.
+            if (!state.isInstalled) {
+                AuditionBlock(state = state, context = context)
+            }
+            if (state.isInstalled) {
+                Text(
+                    text = stringResource(R.string.voice_detail_speakers),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                dev.ahmedmohamed.hayaitts.ui.components.HayaiSpeakerPickerAvatars(
+                    speakers = state.installed?.speakers ?: state.card?.speakers.orEmpty(),
+                    selectedSid = state.selectedSid,
+                    onPick = viewModel::setSpeaker,
+                )
+            }
             PreviewSection(
                 enabled = state.isInstalled,
                 playing = state.previewing,
@@ -218,15 +238,6 @@ fun VoiceDetailScreen(
                 onPlay = viewModel::play,
                 onStop = viewModel::stop,
             )
-            // v2: hosted sample audition. Streams a short upstream-hosted
-            // clip via MediaPlayer so the user can hear the voice *before*
-            // committing to the model download. Falls back to the demo URL
-            // (HuggingFace Space) when no direct sample is catalogued.
-            val sampleUrl = state.card?.sampleAudioUrl
-            val demoUrl = state.card?.demoUrl
-            if (!state.isInstalled && (sampleUrl != null || demoUrl != null)) {
-                SampleAuditionRow(sampleUrl = sampleUrl, demoUrl = demoUrl, context = context)
-            }
             if (state.isInstalled && installed != null) {
                 DefaultLocaleSection(
                     locales = installed.languages,
@@ -245,6 +256,83 @@ fun VoiceDetailScreen(
 }
 
 @Composable
+private fun AuditionBlock(
+    state: VoiceDetailViewModel.UiState,
+    context: android.content.Context,
+) {
+    val card = state.card
+    val speakers = card?.speakers.orEmpty()
+    val languages = card?.languages.orEmpty()
+    var selectedSid by remember(card?.id) {
+        mutableStateOf(speakers.firstOrNull()?.id ?: 0)
+    }
+    var selectedLang by remember(card?.id) {
+        mutableStateOf(languages.firstOrNull() ?: "")
+    }
+    val sampleUrl = card?.sampleFor(selectedSid, selectedLang.ifBlank { null })
+    val demoUrl = card?.demoUrl
+    if (sampleUrl == null && demoUrl == null) return
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(dev.ahmedmohamed.hayaitts.ui.theme.Spacing.chipSpacing),
+    ) {
+        Text(
+            text = stringResource(R.string.voice_detail_preview),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        if (speakers.size > 1 || languages.size > 1) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(
+                    dev.ahmedmohamed.hayaitts.ui.theme.Spacing.chipSpacing,
+                ),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                dev.ahmedmohamed.hayaitts.ui.components.HayaiSpeakerPickerInline(
+                    speakers = speakers,
+                    selectedSid = selectedSid,
+                    onPick = { selectedSid = it },
+                )
+                dev.ahmedmohamed.hayaitts.ui.components.HayaiLanguagePickerInline(
+                    languages = languages,
+                    selected = selectedLang,
+                    onPick = { selectedLang = it },
+                )
+            }
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (sampleUrl != null) {
+                dev.ahmedmohamed.hayaitts.ui.components.HayaiSampleAuditionButton(
+                    url = sampleUrl,
+                    style = dev.ahmedmohamed.hayaitts.ui.components.AuditionStyle.Filled,
+                )
+            }
+            if (demoUrl != null) {
+                TextButton(
+                    onClick = {
+                        context.startActivity(
+                            android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse(demoUrl),
+                            ),
+                        )
+                    },
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.OpenInNew,
+                        contentDescription = null,
+                    )
+                    Spacer(Modifier.size(8.dp))
+                    Text(stringResource(R.string.voice_detail_open_demo))
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun HeroBlock(state: VoiceDetailViewModel.UiState) {
     val card = state.card
     val installed = state.installed
@@ -255,17 +343,16 @@ private fun HeroBlock(state: VoiceDetailViewModel.UiState) {
     val size = card?.approxSizeMb
     val sampleRate = card?.sampleRateHz ?: installed?.sampleRateHz
     val speakers = installed?.speakers?.size ?: card?.speakers?.size ?: 1
+    val familyForBadge = family ?: dev.ahmedmohamed.hayaitts.domain.model.ModelFamily.PIPER
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = installed?.title ?: card?.title ?: "—",
-            style = MaterialTheme.typography.displaySmall,
-        )
-        Spacer(Modifier.height(4.dp))
+        // Hero shape — replaces the duplicate title that used to live here.
+        // Title is now in the HayaiTopBar; the body opens with a strong
+        // visual badge instead of a competing display-size text.
+        HeroShape(family = familyForBadge)
         val subtitleLine = buildString {
             append(stringResource(R.string.voice_detail_speakers_count, speakers))
             if (sampleRate != null) {
@@ -278,14 +365,12 @@ private fun HeroBlock(state: VoiceDetailViewModel.UiState) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.height(16.dp))
         ChipRow {
             languages.forEach { LanguageChip(it) }
             family?.let { FamilyChip(it) }
             tier?.let { TierChip(tier = it, sizeMb = size) }
         }
         if (license != null) {
-            Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.voice_detail_license, license),
                 style = MaterialTheme.typography.labelSmall,
@@ -296,94 +381,37 @@ private fun HeroBlock(state: VoiceDetailViewModel.UiState) {
 }
 
 @Composable
-private fun SpeakersSection(
-    speakers: List<Speaker>,
-    selectedSid: Int,
-    onPickSpeaker: (Int) -> Unit,
-    onChooseDefault: (() -> Unit)?,
-    accent: Color,
+private fun HeroShape(
+    family: dev.ahmedmohamed.hayaitts.domain.model.ModelFamily,
 ) {
-    if (speakers.isEmpty()) return
-    Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.voice_detail_speakers),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f),
-            )
-            if (onChooseDefault != null) {
-                TextButton(onClick = onChooseDefault) {
-                    Text(stringResource(R.string.voice_choose_default_speaker))
-                }
-            }
-        }
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(items = speakers, key = { it.id }) { sp ->
-                SpeakerAvatar(
-                    speaker = sp,
-                    selected = sp.id == selectedSid,
-                    onPick = { onPickSpeaker(sp.id) },
-                    accent = accent,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SpeakerAvatar(
-    speaker: Speaker,
-    selected: Boolean,
-    onPick: () -> Unit,
-    accent: Color,
-) {
-    val ringDp: Dp by animateDpAsState(
-        targetValue = if (selected) 4.dp else 0.dp,
-        animationSpec = spring(stiffness = 320f),
-        label = "speaker-ring",
+    val identity = family.identityOrDefault()
+    val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "hero-morph")
+    val corner by transition.animateFloat(
+        initialValue = 32f,
+        targetValue = 50f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            animation = androidx.compose.animation.core.tween(durationMillis = 7_000),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse,
+        ),
+        label = "hero-morph-corner",
     )
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .then(
-                    if (ringDp > 0.dp) {
-                        Modifier.border(
-                            width = ringDp,
-                            color = accent,
-                            shape = CircleShape,
-                        )
-                    } else Modifier,
-                )
-                .clickable(onClick = onPick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = when (speaker.gender.lowercase()) {
-                    "f" -> Icons.Outlined.Female
-                    "m" -> Icons.Outlined.Person
-                    else -> Icons.Outlined.RecordVoiceOver
-                },
-                contentDescription = null,
-                tint = if (selected) accent else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(36.dp),
-            )
-        }
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = speaker.name,
-            style = MaterialTheme.typography.labelMedium,
-            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(140.dp)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(corner))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = identity.icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(56.dp),
         )
     }
 }
+
 
 @Composable
 private fun PreviewSection(
@@ -398,7 +426,6 @@ private fun PreviewSection(
     var text by remember { mutableStateOf(defaultText) }
 
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
@@ -505,7 +532,6 @@ private fun DefaultLocaleSection(
 ) {
     if (locales.isEmpty()) return
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
@@ -560,7 +586,6 @@ private fun PrimaryAction(
     val ds = state.downloadState
     val running = ds is DownloadState.Running || ds is DownloadState.Extracting || ds is DownloadState.Queued
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         when {
@@ -615,85 +640,3 @@ private fun ChipRow(content: @Composable () -> Unit) {
     ) { content() }
 }
 
-/**
- * Pre-download sample audition. When [sampleUrl] is present we stream the
- * upstream clip via the singleton [dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer]
- * and toggle the same button between Play / Loading / Stop based on state.
- * When only [demoUrl] is present (no direct sample yet catalogued), we fall
- * back to opening the HuggingFace Space in the browser.
- */
-@Composable
-private fun SampleAuditionRow(
-    sampleUrl: String?,
-    demoUrl: String?,
-    context: android.content.Context,
-) {
-    val player: dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer =
-        org.koin.compose.koinInject()
-    val playerState by player.state.collectAsStateWithLifecycle()
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-
-    androidx.compose.runtime.DisposableEffect(Unit) {
-        onDispose { player.stop() }
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (sampleUrl != null) {
-            val isThisPlaying = playerState is dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer.State.Playing &&
-                (playerState as dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer.State.Playing).url == sampleUrl
-            val isThisLoading = playerState is dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer.State.Loading &&
-                (playerState as dev.ahmedmohamed.hayaitts.data.preview.SampleAudioPlayer.State.Loading).url == sampleUrl
-            androidx.compose.material3.FilledTonalButton(
-                onClick = {
-                    if (isThisPlaying || isThisLoading) {
-                        player.stop()
-                    } else {
-                        scope.launch { player.play(sampleUrl) }
-                    }
-                },
-            ) {
-                Icon(
-                    imageVector = if (isThisPlaying || isThisLoading) {
-                        Icons.Outlined.Stop
-                    } else {
-                        Icons.Outlined.PlayArrow
-                    },
-                    contentDescription = null,
-                )
-                Spacer(Modifier.size(8.dp))
-                Text(
-                    text = stringResource(
-                        if (isThisLoading) R.string.voice_detail_sample_loading
-                        else if (isThisPlaying) R.string.voice_detail_sample_stop
-                        else R.string.voice_detail_sample_play,
-                    ),
-                )
-            }
-        }
-        if (demoUrl != null) {
-            androidx.compose.material3.TextButton(
-                onClick = {
-                    context.startActivity(
-                        android.content.Intent(
-                            android.content.Intent.ACTION_VIEW,
-                            android.net.Uri.parse(demoUrl),
-                        ),
-                    )
-                },
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.OpenInNew,
-                    contentDescription = null,
-                )
-                Spacer(Modifier.size(8.dp))
-                Text(stringResource(R.string.voice_detail_open_demo))
-            }
-        }
-    }
-}

@@ -73,15 +73,38 @@ data class VoiceCard(
      */
     val demoUrl: String? = null,
     /**
-     * Optional direct URL to a short sample audio clip (WAV/MP3) for in-app
-     * preview. When present, Voice Detail's Listen button streams this clip
-     * instead of synthesising locally, so the user can audition a voice
-     * before committing to the download.
+     * Canonical sample URL (sid=0, primary language). Preserved for
+     * back-compat with older catalog rows that predate [speakerSamples].
+     * When [speakerSamples] is non-empty this typically points at the same
+     * file as `speakerSamples[0]`.
      */
     val sampleAudioUrl: String? = null,
+    /**
+     * Per-(speaker, language) audition clips. One entry per combination the
+     * offline renderer produced — multi-speaker voices ship one per speaker,
+     * multi-lang voices ship one per language, multi-speaker × multi-lang
+     * voices (Kokoro multi-lang) ship the cartesian product.
+     */
+    @SerialName("speakerSamples")
+    val speakerSamples: List<VoiceSample> = emptyList(),
 ) {
     val modelFamily: ModelFamily get() = ModelFamily.fromCatalog(family)
     val tierEnum: Tier get() = Tier.fromCatalog(tier)
+
+    /**
+     * Best-match sample URL for the given (speaker, language). Resolution
+     * order: exact match → speaker-only match → language-only match → first
+     * available [speakerSamples] entry → [sampleAudioUrl] fallback.
+     */
+    fun sampleFor(sid: Int, language: String?): String? {
+        if (speakerSamples.isEmpty()) return sampleAudioUrl
+        speakerSamples.firstOrNull { it.speakerId == sid && it.language == language }?.let { return it.url }
+        speakerSamples.firstOrNull { it.speakerId == sid }?.let { return it.url }
+        if (language != null) {
+            speakerSamples.firstOrNull { it.language == language }?.let { return it.url }
+        }
+        return speakerSamples.firstOrNull()?.url ?: sampleAudioUrl
+    }
 }
 
 /**

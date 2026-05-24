@@ -35,9 +35,9 @@ import dev.ahmedmohamed.hayaitts.data.update.UpdateStatus
  * auto-check or the Settings "Check now" button.
  *
  * Visual rules (per the Hayai design memo): flat M3 surfaces only, no
- * gradients, no per-channel seed colors. The channel chip is the only colored
- * element and picks deterministically from `primaryContainer` /
- * `secondaryContainer` / `tertiaryContainer`.
+ * gradients, no per-channel seed colors. Channel chips pick deterministically
+ * from `primaryContainer` / `secondaryContainer` / `surfaceContainerHigh` —
+ * all neutral steps in the monochrome ramp, just at different tones.
  *
  * Body rendering: GitHub Release `body` is markdown but we deliberately do NOT
  * add a markdown renderer. Plain text in a monospace [Text] preserves all the
@@ -153,8 +153,8 @@ private fun ChannelChip(channel: UpdateChannel) {
         )
         UpdateChannel.NIGHTLY -> Triple(
             stringResource(R.string.update_channel_nightly),
-            MaterialTheme.colorScheme.tertiaryContainer,
-            MaterialTheme.colorScheme.onTertiaryContainer,
+            MaterialTheme.colorScheme.surfaceContainerHigh,
+            MaterialTheme.colorScheme.onSurface,
         )
     }
     Text(

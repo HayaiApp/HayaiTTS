@@ -91,6 +91,8 @@ jobs:
       - name: Summarise rendered samples
         id: summary
         run: |
+          # `samples/*.mp3` now includes both per-(sid,lang) combos and the
+          # canonical back-compat copies, so the count reflects all clips.
           count=$(ls -1 samples/*.mp3 2>/dev/null | wc -l || echo 0)
           total=$(grep -o '"id":' catalog/v1/models.json | wc -l)
           echo "rendered=$count" >> $GITHUB_OUTPUT
@@ -109,18 +111,25 @@ jobs:
           tag_name: samples-rolling
           name: Voice samples (rolling)
           body: |
-            Per-voice MP3 audition clips rendered from the upstream
-            sherpa-onnx model bundles using the same runtime the app ships.
-            Streamed inline by HayaiTTS' Voice Detail **Listen sample**
-            button before the user downloads the model.
+            Per-(speaker, language) MP3 audition clips rendered from the
+            upstream sherpa-onnx model bundles using the same runtime the
+            app ships. Streamed inline by HayaiTTS' Browse and Voice Detail
+            audition buttons before the user downloads the model.
 
-            **Coverage**: ${{ steps.summary.outputs.rendered }} of ${{ steps.summary.outputs.total }} catalog voices.
+            **Coverage**: ${{ steps.summary.outputs.rendered }} clips across
+            the ${{ steps.summary.outputs.total }} catalog voices.
+
+            **Naming**:
+              - Per-combo: `<voice_id>__sid<N>__<lang>.mp3`
+              - Canonical (legacy `sampleAudioUrl`): `<voice_id>.mp3` (= sid=0
+                in the voice's primary language)
 
             **Source phrase**: per-locale pangram or short sentence in the
-            voice's primary language (English fallback).
+            target render language (English fallback when the language has
+            no PHRASES entry).
 
-            **Encoding**: 96 kbps mono MP3 (libmp3lame). One clip per
-            voice, typically 60–120 KB.
+            **Encoding**: 96 kbps mono MP3 (libmp3lame). Each clip is
+            typically 60–120 KB.
 
             **Update cadence**: weekly Monday 10:00 UTC via
             [`render-samples.yml`](https://github.com/HayaiApp/HayaiTTS/blob/main/.github/workflows/render-samples.yml),

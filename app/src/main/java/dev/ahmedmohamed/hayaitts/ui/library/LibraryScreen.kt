@@ -40,7 +40,6 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -63,8 +62,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.R
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
-import dev.ahmedmohamed.hayaitts.ui.components.EmptyState
 import dev.ahmedmohamed.hayaitts.ui.components.FeaturedVoiceCard
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiEmpty
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiEmptyMode
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar
 import dev.ahmedmohamed.hayaitts.ui.components.InstalledVoiceCard
 import dev.ahmedmohamed.hayaitts.ui.speaker.SpeakerPickerActivity
 import org.koin.androidx.compose.koinViewModel
@@ -110,8 +111,8 @@ fun LibraryScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.library_title)) },
+            HayaiTopBar(
+                title = stringResource(R.string.library_title),
                 actions = {
                     IconButton(onClick = onOpenQuickSwitch) {
                         Icon(
@@ -152,15 +153,16 @@ fun LibraryScreen(
             label = "library-empty",
         ) { isEmpty ->
             if (isEmpty) {
-                EmptyState(
+                HayaiEmpty(
+                    mode = HayaiEmptyMode.Empty(
+                        icon = Icons.Outlined.LibraryMusic,
+                        title = stringResource(R.string.library_empty_title),
+                        subtitle = stringResource(R.string.library_empty_subtitle),
+                        cta = stringResource(R.string.library_browse_action) to onBrowse,
+                    ),
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
-                    icon = Icons.Outlined.LibraryMusic,
-                    title = stringResource(R.string.library_empty_title),
-                    subtitle = stringResource(R.string.library_empty_subtitle),
-                    ctaLabel = stringResource(R.string.library_browse_action),
-                    onCta = onBrowse,
                 )
             } else {
                 LibraryBody(

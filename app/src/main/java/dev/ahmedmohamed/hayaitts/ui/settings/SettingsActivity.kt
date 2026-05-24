@@ -162,8 +162,8 @@ fun SettingsScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            androidx.compose.material3.TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
+            dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar(
+                title = stringResource(R.string.settings_title),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

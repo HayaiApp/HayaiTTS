@@ -10,6 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,11 +22,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Close
@@ -54,6 +54,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -65,10 +66,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.R
@@ -76,25 +77,27 @@ import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.Tier
 import dev.ahmedmohamed.hayaitts.ui.components.CatalogVoiceCard
-import dev.ahmedmohamed.hayaitts.ui.components.EmptyState
-import dev.ahmedmohamed.hayaitts.ui.components.HayaiRichTooltipBox
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiEmpty
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiEmptyMode
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar
 import dev.ahmedmohamed.hayaitts.ui.components.displayName
 import dev.ahmedmohamed.hayaitts.ui.components.displayRes
+import dev.ahmedmohamed.hayaitts.ui.theme.Spacing
 import org.koin.androidx.compose.koinViewModel
 
 /**
- * Catalog browser. UX:
- *   - Inline search field at the top with leading Back, trailing Filter icon
- *     (badged with active-filter count). The field never enters an "expanded"
- *     state — typing filters the list directly under it.
- *   - One bottom-sheet filter UI with four grouped sections (Tier / Language /
- *     Family / Gender).
- *   - Active filter chips render below the search bar (only when there
- *     are active filters), each with an inline X to remove it.
- *   - The catalog list is the only scrolling surface.
+ * Catalog browser.
  *
- * All colors come from `MaterialTheme.colorScheme`; no per-family palettes
- * leak in.
+ * Layout (top → bottom):
+ *  1. [HayaiTopBar] with back nav, title "Browse", subtitle showing result
+ *     count, filter icon in actions.
+ *  2. Inline [OutlinedTextField] search field — typing filters the list
+ *     directly under it; no expanded suggestions mode.
+ *  3. Active-filter chip row (only when filters are active).
+ *  4. Either [HayaiEmpty] (with a Clear-Filters CTA when filters are active)
+ *     or the catalog list.
+ *
+ * The filter sheet is the only modal surface; everything else lives inline.
  */
 @Composable
 fun BrowseScreen(
@@ -106,26 +109,56 @@ fun BrowseScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
     var filterSheetOpen by remember { mutableStateOf(false) }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    Scaffold { padding ->
+    val activeFilterCount = remember(state.filters) {
+        var n = 0
+        if (state.filters.languages.isNotEmpty()) n++
+        if (state.filters.tier != null) n++
+        if (state.filters.families.isNotEmpty()) n++
+        if (state.filters.genders.isNotEmpty()) n++
+        n
+    }
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            HayaiTopBar(
+                title = stringResource(R.string.nav_browse),
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = stringResource(R.string.action_back),
+                        )
+                    }
+                },
+                actions = {
+                    BadgedBox(
+                        badge = {
+                            if (activeFilterCount > 0) Badge { Text("$activeFilterCount") }
+                        },
+                    ) {
+                        IconButton(onClick = { filterSheetOpen = true }) {
+                            Icon(
+                                Icons.Outlined.FilterList,
+                                contentDescription = stringResource(R.string.browse_open_filters),
+                            )
+                        }
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            SearchHeader(
+            SearchField(
                 query = state.filters.query,
                 onQueryChange = viewModel::setQuery,
-                activeSheetFilterCount = run {
-                    var n = 0
-                    if (state.filters.languages.isNotEmpty()) n++
-                    if (state.filters.tier != null) n++
-                    if (state.filters.families.isNotEmpty()) n++
-                    if (state.filters.genders.isNotEmpty()) n++
-                    n
-                },
-                onBack = onBack,
-                onOpenFilters = { filterSheetOpen = true },
                 resultCount = state.cards.size,
             )
 
@@ -144,9 +177,17 @@ fun BrowseScreen(
                 label = "browse-empty",
             ) { empty ->
                 if (empty) {
-                    BrowseEmptyState(
-                        hasActiveFilters = state.filters.activeCount > 0,
-                        onClearFilters = viewModel::clearAllFilters,
+                    HayaiEmpty(
+                        mode = HayaiEmptyMode.Empty(
+                            icon = Icons.Outlined.LibraryMusic,
+                            title = stringResource(R.string.browse_empty_title),
+                            subtitle = stringResource(R.string.browse_empty_subtitle),
+                            cta = if (state.filters.activeCount > 0) {
+                                stringResource(R.string.browse_filter_clear_all) to {
+                                    viewModel.clearAllFilters()
+                                }
+                            } else null,
+                        ),
                     )
                 } else {
                     CatalogList(
@@ -192,78 +233,42 @@ fun BrowseScreen(
     }
 }
 
-/**
- * Plain inline search field that lives in the header row alongside Back and
- * Filter icons. No "expand to fullscreen suggestions" mode — the user
- * complaint was specifically that the previous SearchBar rendered duplicate
- * cards inside its expanded slot. Typing here just updates `query` on the
- * VM, which re-filters the LazyColumn below.
- */
 @Composable
-private fun SearchHeader(
+private fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
-    activeSheetFilterCount: Int,
-    onBack: () -> Unit,
-    onOpenFilters: () -> Unit,
     resultCount: Int,
 ) {
-    Row(
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        OutlinedTextField(
-            value = query,
-            onValueChange = onQueryChange,
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 4.dp),
-            singleLine = true,
-            shape = CircleShape,
-            placeholder = {
-                Text(stringResource(R.string.browse_search_placeholder_count, resultCount))
-            },
-            leadingIcon = {
-                Icon(Icons.Outlined.Search, contentDescription = null)
-            },
-            trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { onQueryChange("") }) {
-                        Icon(
-                            Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.action_clear),
-                        )
-                    }
-                }
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.outline,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-            ),
-        )
-        HayaiRichTooltipBox(
-            title = stringResource(R.string.tooltip_filter_title),
-            description = stringResource(R.string.tooltip_filter_body),
-        ) {
-            BadgedBox(
-                badge = {
-                    if (activeSheetFilterCount > 0) {
-                        Badge { Text("$activeSheetFilterCount") }
-                    }
-                },
-            ) {
-                IconButton(onClick = onOpenFilters) {
+            .padding(horizontal = Spacing.screenHorizontal, vertical = 8.dp),
+        singleLine = true,
+        shape = CircleShape,
+        placeholder = {
+            Text(stringResource(R.string.browse_search_placeholder_count, resultCount))
+        },
+        leadingIcon = {
+            Icon(Icons.Outlined.Search, contentDescription = null)
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
                     Icon(
-                        Icons.Outlined.FilterList,
-                        contentDescription = stringResource(R.string.browse_open_filters),
+                        Icons.Outlined.Close,
+                        contentDescription = stringResource(R.string.action_clear),
                     )
                 }
             }
-        }
-    }
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.outline,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+        ),
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -284,8 +289,8 @@ private fun ActiveFilterRow(
     FlowRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = Spacing.screenHorizontal, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.chipSpacing),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         val tier = filters.tier
@@ -334,11 +339,14 @@ private fun CatalogList(
     onCancel: (String) -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = Spacing.screenHorizontal,
+            end = Spacing.screenHorizontal,
+            top = 4.dp,
+            bottom = 96.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         items(items = cards, key = { it.id }) { card ->
             val s = downloads[card.id] ?: DownloadState.Idle
@@ -352,29 +360,6 @@ private fun CatalogList(
                 recommendedTier = recommendedTier,
             )
         }
-    }
-}
-
-@Composable
-private fun BrowseEmptyState(
-    hasActiveFilters: Boolean,
-    onClearFilters: () -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        EmptyState(
-            icon = Icons.Outlined.LibraryMusic,
-            title = stringResource(R.string.browse_empty_title),
-            subtitle = stringResource(R.string.browse_empty_subtitle),
-            ctaLabel = if (hasActiveFilters) {
-                stringResource(R.string.browse_filter_clear_all)
-            } else null,
-            onCta = if (hasActiveFilters) onClearFilters else null,
-            showLoadingPulse = false,
-        )
     }
 }
 
@@ -409,7 +394,7 @@ private fun FilterSheet(
                 .fillMaxWidth()
                 .heightIn(max = 720.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = Spacing.screenHorizontal, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             Text(
@@ -426,7 +411,7 @@ private fun FilterSheet(
 
             FilterGroup(stringResource(R.string.browse_filter_gender)) {
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.chipSpacing),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     availableGenders.forEach { gender ->
@@ -451,7 +436,7 @@ private fun FilterSheet(
 
             FilterGroup(stringResource(R.string.browse_filter_language)) {
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.chipSpacing),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     availableLanguages.forEach { lang ->
@@ -468,7 +453,7 @@ private fun FilterSheet(
 
             FilterGroup(stringResource(R.string.browse_filter_family)) {
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.chipSpacing),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     availableFamilies.forEach { fam ->

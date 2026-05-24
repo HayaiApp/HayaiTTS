@@ -111,8 +111,8 @@ fun PlaygroundScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            androidx.compose.material3.TopAppBar(
-                title = { Text(state.title) },
+            dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar(
+                title = state.title,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.action_back))

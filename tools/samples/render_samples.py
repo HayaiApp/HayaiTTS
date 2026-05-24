@@ -114,6 +114,45 @@ def phrase_for(languages: list[str]) -> str:
     return PHRASES["en"]
 
 
+def phrase_for_lang(language: str) -> str:
+    """Phrase for a single BCP47 tag (e.g. ``"en-US"`` → English pangram).
+    Falls back to English when the language has no PHRASES entry."""
+    head = language.split("-")[0].lower()
+    return PHRASES.get(head, PHRASES["en"])
+
+
+def render_languages(voice: dict[str, Any]) -> list[str]:
+    """Languages we render audition clips for, per voice.
+
+    Multi-language voices (Kokoro multi-lang, anything with more than one
+    BCP47 tag in the ``languages`` list) get one clip per language. Every
+    other voice gets a single clip in its primary language — the upstream
+    model itself only speaks that one anyway.
+    """
+    langs = voice.get("languages") or []
+    if not langs:
+        return ["en"]
+    voice_id = (voice.get("id") or "").lower()
+    family = (voice.get("family") or "").lower()
+    is_multilang = (
+        len(langs) > 1
+        or "multi-lang" in voice_id
+        or (family == "kokoro" and ("v1_" in voice_id or "multi" in voice_id))
+    )
+    return list(langs) if is_multilang else [langs[0]]
+
+
+def combo_filename(voice_id: str, sid: int, language: str) -> str:
+    """Per-(speaker, language) output file name. Format kept intentionally
+    URL-safe (only alnum, ``-``, ``_``, ``.``) so the GitHub release asset
+    upload accepts it untouched."""
+    return f"{voice_id}__sid{sid}__{language}.mp3"
+
+
+def combo_url(voice_id: str, sid: int, language: str) -> str:
+    return f"{SAMPLES_DOWNLOAD_BASE}/{combo_filename(voice_id, sid, language)}"
+
+
 def family_url(voice_id: str) -> str:
     return f"{SAMPLES_DOWNLOAD_BASE}/{voice_id}.mp3"
 
@@ -454,17 +493,31 @@ def encode_mp3(in_wav: Path, out_mp3: Path) -> None:
     )
 
 
-def _render_inline(voice: dict[str, Any], out_mp3: Path, work_dir: Path, cache_dir: Path | None) -> bool:
-    """Runs in the worker subprocess. Native `exit(-1)` here only kills the
-    worker, not the parent. espeak-ng's global singleton state lives and
-    dies inside the worker, so each voice gets a fresh data_dir."""
+def _render_inline(
+    voice: dict[str, Any],
+    out_mp3: Path,
+    work_dir: Path,
+    cache_dir: Path | None,
+    *,
+    target_sid: int = 0,
+    target_lang: str | None = None,
+) -> bool:
+    """Render one (voice, sid, language) combination inside the worker.
+
+    Native ``exit(-1)`` here only kills the worker, not the parent.
+    espeak-ng's global singleton state lives and dies inside the worker,
+    so each combo gets a fresh data_dir.
+    """
     family = (voice.get("family") or "").lower()
     builder = FAMILY_BUILDERS.get(family)
     if builder is None:
         log(f"skip {voice['id']}: unsupported family '{family}'")
         return False
     bundle_url = voice["bundleUrl"]
-    text = phrase_for(voice.get("languages") or ["en"])
+    langs = voice.get("languages") or []
+    if target_lang is None:
+        target_lang = langs[0] if langs else "en"
+    text = phrase_for_lang(target_lang)
 
     with tempfile.TemporaryDirectory(dir=str(work_dir)) as tmp:
         tmp_path = Path(tmp)
@@ -478,15 +531,12 @@ def _render_inline(voice: dict[str, Any], out_mp3: Path, work_dir: Path, cache_d
             if vocoder_url:
                 download(vocoder_url, extract_root / MATCHA_VOCODER_FILE, cache_dir=cache_dir)
 
-        primary_lang = ""
-        langs = voice.get("languages") or []
-        if langs:
-            primary_lang = langs[0].split("-")[0].lower()
+        lang_head = target_lang.split("-")[0].lower()
         if family == "kokoro":
-            tts = builder(extract_root, lang_hint=primary_lang)
+            tts = builder(extract_root, lang_hint=lang_head)
         else:
             tts = builder(extract_root)
-        audio = tts.generate(text, sid=0, speed=1.0)
+        audio = tts.generate(text, sid=target_sid, speed=1.0)
         wav_out = tmp_path / "sample.wav"
         write_wav(audio.samples, audio.sample_rate, wav_out)
         encode_mp3(wav_out, out_mp3)
@@ -500,37 +550,41 @@ def render_one(
     out_dir: Path,
     cache_dir: Path | None,
     work_dir: Path,
+    target_sid: int,
+    target_lang: str,
     in_subprocess: bool = True,
     per_voice_timeout: float = 240.0,
 ) -> bool:
-    """Render one voice. By default spawns a fresh Python subprocess so:
+    """Render one (voice, sid, language) combination.
+
+    By default spawns a fresh Python subprocess so:
       (a) sherpa-onnx's process-global espeak-ng state can't leak between
-          voices (the first voice's data_dir would otherwise be reused
-          for every subsequent voice in the same family);
-      (b) a native `exit(-1)` from the sherpa-onnx C++ layer only kills
+          renders (the first combo's data_dir would otherwise be reused
+          for every subsequent combo);
+      (b) a native ``exit(-1)`` from the sherpa-onnx C++ layer only kills
           the worker, leaving the parent loop alive to continue.
     """
     voice_id = voice["id"]
     family = (voice.get("family") or "").lower()
-    out_mp3 = out_dir / f"{voice_id}.mp3"
+    out_mp3 = out_dir / combo_filename(voice_id, target_sid, target_lang)
     if out_mp3.exists() and out_mp3.stat().st_size > 0:
         return True
     if family not in FAMILY_BUILDERS:
         log(f"skip {voice_id}: unsupported family '{family}'")
         return False
-    text = phrase_for(voice.get("languages") or ["en"])
-    log(f"render {voice_id} [{family}] '{text[:50]}…'")
+    text = phrase_for_lang(target_lang)
+    log(f"render {voice_id} [{family}] sid={target_sid} lang={target_lang} '{text[:50]}…'")
 
     if not in_subprocess:
         try:
-            return _render_inline(voice, out_mp3, work_dir, cache_dir)
+            return _render_inline(
+                voice, out_mp3, work_dir, cache_dir,
+                target_sid=target_sid, target_lang=target_lang,
+            )
         except Exception as e:
             log(f"  ✗ {voice_id}: {type(e).__name__}: {e}")
             return False
 
-    # Child invocation: same script, --render-one mode. Cleanest isolation —
-    # native exit() in the child can't reach us, and there's no shared
-    # Python interpreter state.
     cmd = [
         sys.executable,
         str(Path(__file__).resolve()),
@@ -538,6 +592,8 @@ def render_one(
         json.dumps(voice, ensure_ascii=False),
         "--output", str(out_dir),
         "--cache", str(cache_dir or ""),
+        "--target-sid", str(target_sid),
+        "--target-lang", target_lang,
     ]
     try:
         proc = subprocess.run(
@@ -551,7 +607,6 @@ def render_one(
     except subprocess.TimeoutExpired:
         log(f"  ✗ {voice_id}: TimeoutExpired (>{per_voice_timeout:.0f}s)")
         return False
-    # Mirror child stdout/stderr so the workflow log shows progress.
     if proc.stdout:
         sys.stdout.write(proc.stdout)
     if proc.stderr:
@@ -598,20 +653,37 @@ def main() -> int:
              "native exit() from sherpa-onnx kills the whole run). Default "
              "is to isolate each voice in a fresh subprocess.",
     )
+    ap.add_argument(
+        "--target-sid",
+        type=int,
+        default=0,
+        help="Worker-mode only: the speaker id to render. Ignored in "
+             "parent mode (which iterates over every speaker).",
+    )
+    ap.add_argument(
+        "--target-lang",
+        default="",
+        help="Worker-mode only: the BCP47 language tag to render. Ignored "
+             "in parent mode (which iterates over every render-language).",
+    )
     args = ap.parse_args()
 
-    # Worker mode: one voice, no orchestration. Called by the parent when
-    # rendering with subprocess isolation. We intentionally let exceptions
-    # propagate so the parent sees a non-zero exit code.
+    # Worker mode: one (voice, sid, lang) triple, no orchestration. Called
+    # by the parent when rendering with subprocess isolation. We intentionally
+    # let exceptions propagate so the parent sees a non-zero exit code.
     if args.render_one is not None:
         voice = json.loads(args.render_one)
         out_dir = Path(args.output)
         out_dir.mkdir(parents=True, exist_ok=True)
         cache_dir = Path(args.cache) if args.cache else None
         work_dir = Path(tempfile.gettempdir())
-        out_mp3 = out_dir / f"{voice['id']}.mp3"
+        target_lang = args.target_lang or (voice.get("languages") or ["en"])[0]
+        out_mp3 = out_dir / combo_filename(voice["id"], args.target_sid, target_lang)
         try:
-            ok = _render_inline(voice, out_mp3, work_dir, cache_dir)
+            ok = _render_inline(
+                voice, out_mp3, work_dir, cache_dir,
+                target_sid=args.target_sid, target_lang=target_lang,
+            )
         except Exception as e:
             log(f"  ✗ {voice['id']}: {type(e).__name__}: {e}")
             return 1
@@ -637,31 +709,76 @@ def main() -> int:
     produced = 0
     skipped = 0
     failed = 0
+    voices_done = 0
     started = time.monotonic()
     for v in voices:
         if only_families is not None and (v.get("family") or "").lower() not in only_families:
             continue
-        if args.only_missing and (out_dir / f"{v['id']}.mp3").exists():
-            v["sampleAudioUrl"] = family_url(v["id"])
-            skipped += 1
-            continue
-        ok = render_one(
-            v,
-            out_dir=out_dir,
-            cache_dir=cache_dir,
-            work_dir=work_dir,
-            in_subprocess=not args.no_subprocess,
-        )
-        if ok:
-            v["sampleAudioUrl"] = family_url(v["id"])
-            produced += 1
-        else:
-            failed += 1
-        if args.limit and produced >= args.limit:
+        speakers = v.get("speakers") or []
+        if not speakers:
+            speakers = [{"id": 0}]
+        langs_to_render = render_languages(v)
+        primary_lang = langs_to_render[0]
+        voice_id = v["id"]
+        combos: list[dict[str, Any]] = []
+        any_produced_for_voice = False
+
+        for sp in speakers:
+            sid = int(sp.get("id", 0))
+            for lang in langs_to_render:
+                combo_path = out_dir / combo_filename(voice_id, sid, lang)
+                if args.only_missing and combo_path.exists() and combo_path.stat().st_size > 0:
+                    combos.append({"speakerId": sid, "language": lang, "url": combo_url(voice_id, sid, lang)})
+                    skipped += 1
+                    continue
+                ok = render_one(
+                    v,
+                    out_dir=out_dir,
+                    cache_dir=cache_dir,
+                    work_dir=work_dir,
+                    target_sid=sid,
+                    target_lang=lang,
+                    in_subprocess=not args.no_subprocess,
+                )
+                if ok:
+                    combos.append({"speakerId": sid, "language": lang, "url": combo_url(voice_id, sid, lang)})
+                    produced += 1
+                    any_produced_for_voice = True
+                else:
+                    failed += 1
+
+        # Persist whatever combos we got onto the catalog row, so the app's
+        # `sampleFor(sid, lang)` can resolve a URL even when some combos
+        # failed but others succeeded.
+        if combos:
+            v["speakerSamples"] = combos
+            # Back-compat: the canonical single-URL field points at the
+            # (sid=0, primary_lang) clip when it exists, else the first
+            # successfully-rendered combo. The matching MP3 is also copied
+            # to `<voice_id>.mp3` so legacy releases keep resolving.
+            canonical = next(
+                (c for c in combos if c["speakerId"] == 0 and c["language"] == primary_lang),
+                combos[0],
+            )
+            canonical_src = out_dir / combo_filename(voice_id, canonical["speakerId"], canonical["language"])
+            canonical_dst = out_dir / f"{voice_id}.mp3"
+            if canonical_src.exists() and (
+                not canonical_dst.exists()
+                or canonical_dst.stat().st_size != canonical_src.stat().st_size
+            ):
+                shutil.copy2(canonical_src, canonical_dst)
+            v["sampleAudioUrl"] = family_url(voice_id)
+
+        if any_produced_for_voice:
+            voices_done += 1
+        if args.limit and voices_done >= args.limit:
             break
 
     elapsed = time.monotonic() - started
-    log(f"rendered {produced} · cached {skipped} · failed {failed} in {elapsed:.0f}s")
+    log(
+        f"rendered {produced} combos across {voices_done} voices · "
+        f"cached {skipped} · failed {failed} in {elapsed:.0f}s"
+    )
 
     with catalog_path.open("w", encoding="utf-8", newline="\n") as f:
         json.dump(catalog, f, ensure_ascii=False, indent=2)

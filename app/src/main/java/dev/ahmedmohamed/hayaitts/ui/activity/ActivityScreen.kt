@@ -24,8 +24,8 @@ import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,8 +61,8 @@ fun ActivityScreen(onBack: () -> Unit) {
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             Column {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.activity_title)) },
+                HayaiTopBar(
+                    title = stringResource(R.string.activity_title),
                     scrollBehavior = scrollBehavior,
                 )
                 PrimaryScrollableTabRow(

@@ -86,8 +86,8 @@ fun CustomImportScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            androidx.compose.material3.TopAppBar(
-                title = { Text(stringResource(R.string.import_title)) },
+            dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar(
+                title = stringResource(R.string.import_title),
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Icon(

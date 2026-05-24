@@ -13,11 +13,6 @@ import androidx.compose.ui.res.stringResource
 import dev.ahmedmohamed.hayaitts.R
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 
-/**
- * Renders a [ModelFamily] as a tertiary-container assist chip. Used in both
- * Browse and Voice Detail so the family is visually distinct from the tier
- * (which is the green/amber/red chip rendered alongside).
- */
 @Composable
 fun FamilyChip(
     family: ModelFamily,
@@ -30,8 +25,8 @@ fun FamilyChip(
         modifier = modifier,
         label = { Text(label) },
         colors = AssistChipDefaults.assistChipColors(
-            disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            disabledLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurface,
         ),
     )
 }

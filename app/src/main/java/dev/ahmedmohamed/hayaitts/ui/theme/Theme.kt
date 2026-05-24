@@ -2,80 +2,144 @@
 
 package dev.ahmedmohamed.hayaitts.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.expressiveLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 
-// Material 3 ships `expressiveLightColorScheme()` in material3 1.5.0-alpha19,
-// but never shipped a dark counterpart. Author the symmetric dark variant
-// locally: the light version softens `on*Container` contrast by moving from
-// baseline Tone 10 → Tone 30, so the dark version mirrors that with Tone 90
-// → Tone 70. Our voice-teal palette in `Color.kt` already sits on the right
-// tonal grid (VoiceTealDarkPrimary = Primary Tone 70), so the overrides we
-// `.copy()` on top of this composite cleanly.
-private fun expressiveDarkColorScheme() = darkColorScheme(
-    onPrimaryContainer = Color(0xFF82D3DE),    // Primary Tone 70
-    onSecondaryContainer = Color(0xFFB1CBD0),  // Secondary Tone 70
-    onTertiaryContainer = Color(0xFFBACADD),   // Tertiary Tone 70
-    onErrorContainer = Color(0xFFFFB4AB),      // Error Tone 70
+// HayaiTTS theme contract: every M3 slot is explicitly bound to a Neutral
+// step from Color.kt. We deliberately do NOT compose on top of
+// `expressiveLightColorScheme()` or `darkColorScheme()` defaults, because the
+// inherited slots (tertiary*, secondaryContainer, surfaceContainer*, outline,
+// inversePrimary, etc.) ship tinted with greens and blues. Any slot we leave
+// unset would re-introduce that tint, and a stray `colorScheme.tertiary`
+// reference deep in a third-party component would break the monochrome
+// promise.
+//
+// surfaceTint is forced to Transparent: M3 raises elevated surfaces by
+// blending `primary` over them, which would pull the only accent we keep
+// (near-black on light, near-white on dark) into every Card / Sheet. With
+// surfaceTint transparent, surfaces stay on the neutral ramp regardless of
+// elevation.
+//
+// `error` is the one semantic accent we keep — destructive actions need a
+// universally legible signal.
+
+private val LightScheme: ColorScheme = lightColorScheme(
+    primary = Neutral95,
+    onPrimary = Neutral00,
+    primaryContainer = Neutral20,
+    onPrimaryContainer = Neutral95,
+    inversePrimary = Neutral25,
+
+    secondary = Neutral50,
+    onSecondary = Neutral00,
+    secondaryContainer = Neutral20,
+    onSecondaryContainer = Neutral95,
+
+    // Tertiary is identical to secondary — every leftover `colorScheme.tertiary`
+    // reference resolves to the same neutral as secondary so callers we missed
+    // still render monochrome.
+    tertiary = Neutral50,
+    onTertiary = Neutral00,
+    tertiaryContainer = Neutral20,
+    onTertiaryContainer = Neutral95,
+
+    background = Neutral05,
+    onBackground = Neutral95,
+    surface = Neutral05,
+    onSurface = Neutral95,
+
+    surfaceVariant = Neutral15,
+    onSurfaceVariant = Neutral60,
+    surfaceTint = Color.Transparent,
+
+    inverseSurface = Neutral95,
+    inverseOnSurface = Neutral05,
+
+    surfaceBright = Neutral00,
+    surfaceDim = Neutral10,
+    surfaceContainerLowest = Neutral00,
+    surfaceContainerLow = Neutral10,
+    surfaceContainer = Neutral15,
+    surfaceContainerHigh = Neutral20,
+    surfaceContainerHighest = Neutral25,
+
+    outline = Neutral40,
+    outlineVariant = Neutral20,
+
+    error = ErrorLight,
+    onError = OnErrorLight,
+    errorContainer = ErrorContainerLight,
+    onErrorContainer = OnErrorContainerLight,
+
+    scrim = Neutral100,
 )
 
-private val LightScheme: ColorScheme = expressiveLightColorScheme().copy(
-    primary = VoiceTealLightPrimary,
-    onPrimary = VoiceTealLightOnPrimary,
-    primaryContainer = VoiceTealLightPrimaryContainer,
-    onPrimaryContainer = VoiceTealLightOnPrimaryContainer,
-    secondary = VoiceTealLightSecondary,
-    background = VoiceTealLightBackground,
-    onBackground = VoiceTealLightOnBackground,
-    surface = VoiceTealLightBackground,
-    onSurface = VoiceTealLightOnBackground,
-)
+private val DarkScheme: ColorScheme = darkColorScheme(
+    primary = Neutral05,
+    onPrimary = Neutral95,
+    primaryContainer = Neutral80,
+    onPrimaryContainer = Neutral05,
+    inversePrimary = Neutral70,
 
-private val DarkScheme: ColorScheme = expressiveDarkColorScheme().copy(
-    primary = VoiceTealDarkPrimary,
-    onPrimary = VoiceTealDarkOnPrimary,
-    primaryContainer = VoiceTealDarkPrimaryContainer,
-    onPrimaryContainer = VoiceTealDarkOnPrimaryContainer,
-    secondary = VoiceTealDarkSecondary,
-    background = VoiceTealDarkBackground,
-    onBackground = VoiceTealDarkOnBackground,
-    surface = VoiceTealDarkBackground,
-    onSurface = VoiceTealDarkOnBackground,
+    secondary = Neutral30,
+    onSecondary = Neutral95,
+    secondaryContainer = Neutral80,
+    onSecondaryContainer = Neutral05,
+
+    tertiary = Neutral30,
+    onTertiary = Neutral95,
+    tertiaryContainer = Neutral80,
+    onTertiaryContainer = Neutral05,
+
+    background = Neutral95,
+    onBackground = Neutral05,
+    surface = Neutral95,
+    onSurface = Neutral05,
+
+    surfaceVariant = Neutral85,
+    onSurfaceVariant = Neutral30,
+    surfaceTint = Color.Transparent,
+
+    inverseSurface = Neutral05,
+    inverseOnSurface = Neutral95,
+
+    surfaceBright = Neutral80,
+    surfaceDim = Neutral100,
+    surfaceContainerLowest = Neutral100,
+    surfaceContainerLow = Neutral92,
+    surfaceContainer = Neutral90,
+    surfaceContainerHigh = Neutral85,
+    surfaceContainerHighest = Neutral80,
+
+    outline = Neutral50,
+    outlineVariant = Neutral80,
+
+    error = ErrorDark,
+    onError = OnErrorDark,
+    errorContainer = ErrorContainerDark,
+    onErrorContainer = OnErrorContainerDark,
+
+    scrim = Neutral100,
 )
 
 @Composable
 fun HayaiTtsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // v2: dynamic color is **off by default** so the system wallpaper never
-    // bleeds tints into the UI. The monochrome scheme is the design contract.
-    // Callers that need wallpaper-derived theming can opt back in explicitly.
-    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme: ColorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkScheme
-        else -> LightScheme
-    }
+    // dynamicColor is intentionally not a parameter: the design contract is
+    // monochrome regardless of the system wallpaper. If we ever need wallpaper
+    // theming, it goes behind a power-user setting that flips to a different
+    // theme function — not back into this one.
+    val colorScheme = if (darkTheme) DarkScheme else LightScheme
 
-    // M3 Expressive is the active design line for material3 1.5.x. The
-    // expressive theme + motion + color scheme constructors live behind the
-    // `@ExperimentalMaterial3ExpressiveApi` opt-in; we honour it at the file
-    // level above.
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         motionScheme = MotionScheme.expressive(),

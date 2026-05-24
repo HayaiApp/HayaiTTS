@@ -24,7 +24,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -129,9 +128,9 @@ private fun SpeakerPickerScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.speaker_picker_title)) },
-                subtitle = { Text(voice?.title.orEmpty()) },
+            dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar(
+                title = stringResource(R.string.speaker_picker_title),
+                subtitle = voice?.title,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
