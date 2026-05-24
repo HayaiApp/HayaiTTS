@@ -295,23 +295,24 @@ def tts_kokoro(voice_dir: Path, lang_hint: str = ""):
         raise RuntimeError(f"Kokoro voice at {voice_dir} is missing {KOKORO_VOICES_FILE}")
     tokens = str(voice_dir / TOKENS_FILE)
 
-    # Multi-lang Kokoro (v1.0, v1.1, …) ships multiple lexicon-<locale>.txt
-    # files instead of a single lexicon.txt. sherpa-onnx native code calls
-    # exit() when neither `lang` nor a multi-lang lexicon is provided, so
-    # we have to detect this layout and pass the comma-joined list.
+    # Multi-lang Kokoro (v1.0, v1.1, …) ships per-language lexicon-<locale>.txt
+    # files. Monolingual v0.19 ships only the global `lexicon.txt`.
+    #
+    # Concatenating BOTH for a multi-lang bundle would be a mistake: sherpa
+    # loads the lexicons in sequence and emits thousands of
+    # "Duplicated word: …" warnings on every render, because the per-language
+    # `lexicon-en.txt` overlaps almost entirely with the global `lexicon.txt`.
+    # Pick one or the other based on layout, never both.
     single_lex = voice_dir / LEXICON_FILE
-    lexicon_paths: list[str] = []
-    if single_lex.is_file():
-        lexicon_paths.append(str(single_lex))
     multi_lexes = sorted(voice_dir.glob("lexicon-*.txt"))
-    for lx in multi_lexes:
-        lexicon_paths.append(str(lx))
-    lexicon = ",".join(lexicon_paths)
-
-    # Kokoro multi-lang also needs a `lang` selector for tokenisation; pick
-    # the requested language if we recognise it, fall back to "en" for the
-    # English multilang lexicon. Monolingual v0.19 ignores this field.
     is_multi = bool(multi_lexes) or "multi-lang" in voice_dir.name or "v1_" in voice_dir.name
+    lexicon_paths: list[str] = []
+    if is_multi and multi_lexes:
+        # Per-language only — sherpa picks the right one via the `lang` arg.
+        lexicon_paths.extend(str(lx) for lx in multi_lexes)
+    elif single_lex.is_file():
+        lexicon_paths.append(str(single_lex))
+    lexicon = ",".join(lexicon_paths)
     kokoro_kwargs: dict[str, Any] = dict(
         model=model,
         voices=str(voices_bin),
@@ -666,6 +667,20 @@ def main() -> int:
         help="Worker-mode only: the BCP47 language tag to render. Ignored "
              "in parent mode (which iterates over every render-language).",
     )
+    ap.add_argument(
+        "--voices",
+        default="",
+        help="Comma-separated list of voice IDs to render (matrix-shard "
+             "mode). Empty = render every voice in the catalog.",
+    )
+    ap.add_argument(
+        "--patch-output",
+        default="",
+        help="Path to write per-voice patches (sampleAudioUrl + "
+             "speakerSamples) as JSON instead of mutating the catalog "
+             "in place. Used by the matrix workflow so shards never write "
+             "to the same file.",
+    )
     args = ap.parse_args()
 
     # Worker mode: one (voice, sid, lang) triple, no orchestration. Called
@@ -706,6 +721,12 @@ def main() -> int:
     if args.family:
         only_families = {f.lower() for f in args.family}
 
+    only_voices: set[str] | None = None
+    if args.voices.strip():
+        only_voices = {vid.strip() for vid in args.voices.split(",") if vid.strip()}
+
+    patches: dict[str, dict] = {}
+
     produced = 0
     skipped = 0
     failed = 0
@@ -713,6 +734,8 @@ def main() -> int:
     started = time.monotonic()
     for v in voices:
         if only_families is not None and (v.get("family") or "").lower() not in only_families:
+            continue
+        if only_voices is not None and v["id"] not in only_voices:
             continue
         speakers = v.get("speakers") or []
         if not speakers:
@@ -768,6 +791,10 @@ def main() -> int:
             ):
                 shutil.copy2(canonical_src, canonical_dst)
             v["sampleAudioUrl"] = family_url(voice_id)
+            patches[voice_id] = {
+                "sampleAudioUrl": v["sampleAudioUrl"],
+                "speakerSamples": combos,
+            }
 
         if any_produced_for_voice:
             voices_done += 1
@@ -780,10 +807,21 @@ def main() -> int:
         f"cached {skipped} · failed {failed} in {elapsed:.0f}s"
     )
 
-    with catalog_path.open("w", encoding="utf-8", newline="\n") as f:
-        json.dump(catalog, f, ensure_ascii=False, indent=2)
-        f.write("\n")
-    log(f"catalog updated → {catalog_path}")
+    if args.patch_output:
+        # Matrix-shard mode: don't touch the catalog (other shards are
+        # running in parallel against the same file in their own runners).
+        # Write a per-voice patch artifact that the publish job merges.
+        patch_path = Path(args.patch_output)
+        patch_path.parent.mkdir(parents=True, exist_ok=True)
+        with patch_path.open("w", encoding="utf-8", newline="\n") as f:
+            json.dump(patches, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        log(f"patches written → {patch_path} ({len(patches)} voices)")
+    else:
+        with catalog_path.open("w", encoding="utf-8", newline="\n") as f:
+            json.dump(catalog, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        log(f"catalog updated → {catalog_path}")
     return 0 if failed == 0 else 0  # never fail the workflow on individual voice errors
 
 

@@ -1,16 +1,30 @@
 name: Render voice samples
 
-# Rebuilds the per-voice MP3 sample library hosted on the
-# `samples-rolling` release. The Voice Detail screen's "Listen sample"
-# button streams whatever lives at
-#   https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/<voice_id>.mp3
-# so refreshing this release is how new voices become auditionable.
+# Rebuilds the per-(speaker, language) MP3 sample library hosted on the
+# `samples-rolling` release. HayaiTTS' Browse and Voice Detail audition
+# buttons stream the clips at:
+#   https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/<voice_id>__sid<N>__<lang>.mp3
+#
+# Pipeline (three stages):
+#
+#   plan     — read the catalog, bin-pack voices into N shards by cost
+#              (speakers × render_languages). One Kokoro multi-lang voice
+#              has ~200 combos; one Piper voice has 1. Without bin-packing
+#              a single shard can blow past the 6h per-job runner limit.
+#
+#   render   — matrix of N parallel jobs. Each job renders only the voices
+#              assigned to its shard, writes the MP3s to `samples/` and a
+#              `{voice_id: {sampleAudioUrl, speakerSamples}}` patch JSON.
+#              Both are uploaded as artifacts.
+#
+#   publish  — downloads every shard's samples + patches, merges patches
+#              into `catalog/v1/models.json` (and the bundled asset copy),
+#              uploads all MP3s to the `samples-rolling` release in one
+#              atomic operation, commits the catalog.
 #
 # Runs on GitHub-hosted `ubuntu-latest`, NOT Blacksmith — the workload is
-# bandwidth-bound (a few GB of upstream model bundles), so paid runner
-# minutes would be wasted. Render time on the free tier is roughly:
-#   - first run, cold cache: 60–90 min (all 188 bundles downloaded)
-#   - incremental runs after catalog-refresh: 5–15 min (cache hits)
+# bandwidth-bound (bundle downloads dominate); paid runner minutes would
+# be wasted. With 12 shards the longest single shard is roughly 2h.
 
 on:
   workflow_dispatch:
@@ -20,11 +34,11 @@ on:
         required: false
         type: string
         default: ''
-      limit:
-        description: 'Stop after N voices (0 = unlimited). Useful for smoke testing.'
+      shards:
+        description: 'Number of parallel render shards (default 12). Lower for smoke tests, raise if any single voice gets too large.'
         required: false
         type: number
-        default: 0
+        default: 12
   schedule:
     # Mondays 10:00 UTC — two hours after catalog-refresh so any newly
     # added voices get their samples rendered the same day.
@@ -38,15 +52,58 @@ permissions:
   contents: write
 
 jobs:
+
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.compute.outputs.shards }}
+      shard_count: ${{ steps.compute.outputs.shard_count }}
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compute shard plan
+        id: compute
+        run: |
+          set -euo pipefail
+          SHARDS="${{ inputs.shards || 12 }}"
+          python tools/samples/plan_shards.py \
+            --catalog catalog/v1/models.json \
+            --shards "$SHARDS" \
+            --output shard-plan.json
+          # Surface the index list to the matrix job below.
+          INDICES=$(python -c "import json; p=json.load(open('shard-plan.json')); print(json.dumps([b['index'] for b in p]))")
+          echo "shards=$INDICES" >> "$GITHUB_OUTPUT"
+          echo "shard_count=$SHARDS" >> "$GITHUB_OUTPUT"
+
+      - name: Upload shard plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: shard-plan
+          path: shard-plan.json
+          if-no-files-found: error
+
   render:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.plan.outputs.shards) }}
 
     steps:
       - name: Clone repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -61,48 +118,144 @@ jobs:
       - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
-          # sherpa-onnx 1.13.2 matches the .aar vendored in app/libs/, so
-          # rendering uses the same per-family config shapes the app sees.
+          # Pinned to match the AAR vendored in app/libs/sherpa-onnx-1.13.2.aar
+          # so the renderer uses the same per-family config shapes the app sees.
           pip install requests sherpa-onnx==1.13.2 numpy
 
+      - name: Download shard plan
+        uses: actions/download-artifact@v4
+        with:
+          name: shard-plan
+          path: .
+
       - name: Restore sample + bundle cache
+        # Per-shard cache key keeps multi-job runs from stomping each other.
+        # `restore-keys` falls back to any prior render-samples cache so
+        # bundle downloads survive across runs.
         uses: actions/cache@v4
         with:
-          # `.sample_cache` holds downloaded tar.bz2 bundles keyed by name.
-          # `samples` is the rendered MP3 output (idempotent: existing
-          # files are reused if already present).
           path: |
             .sample_cache
             samples
-          key: render-samples-v2-${{ hashFiles('catalog/v1/models.json') }}
+          key: render-samples-v3-shard${{ matrix.shard }}-${{ hashFiles('catalog/v1/models.json') }}
           restore-keys: |
+            render-samples-v3-shard${{ matrix.shard }}-
+            render-samples-v3-
             render-samples-v2-
 
-      - name: Render samples
+      - name: Render shard ${{ matrix.shard }}
         run: |
+          set -euo pipefail
+          VOICES=$(python -c "import json; p=json.load(open('shard-plan.json')); print(','.join(next(b['voices'] for b in p if b['index'] == ${{ matrix.shard }})))")
+          if [ -z "$VOICES" ]; then
+            echo "shard ${{ matrix.shard }} is empty"
+            mkdir -p samples patches
+            echo '{}' > patches/shard-${{ matrix.shard }}.json
+            exit 0
+          fi
+          mkdir -p patches
           python tools/samples/render_samples.py \
             --catalog catalog/v1/models.json \
             --output samples \
             --cache .sample_cache \
             --only-missing \
-            ${{ inputs.family && format('--family {0}', inputs.family) || '' }} \
-            ${{ inputs.limit && inputs.limit > 0 && format('--limit {0}', inputs.limit) || '' }}
+            --voices "$VOICES" \
+            --patch-output patches/shard-${{ matrix.shard }}.json \
+            ${{ inputs.family && format('--family {0}', inputs.family) || '' }}
+
+      - name: Upload shard samples
+        uses: actions/upload-artifact@v4
+        with:
+          name: samples-shard-${{ matrix.shard }}
+          path: samples/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload shard patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-shard-${{ matrix.shard }}
+          path: patches/shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: [plan, render]
+    if: always() && needs.render.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download every shard's samples
+        uses: actions/download-artifact@v4
+        with:
+          pattern: samples-shard-*
+          path: samples-by-shard
+          merge-multiple: true
+
+      - name: Download every shard's patches
+        uses: actions/download-artifact@v4
+        with:
+          pattern: patches-shard-*
+          path: patches
+
+      - name: Consolidate sample MP3s into one directory
+        run: |
+          # `merge-multiple: true` already flattened samples-by-shard/, but
+          # let it be defensive: glob through everything and move into samples/.
+          mkdir -p samples
+          if [ -d samples-by-shard ]; then
+            find samples-by-shard -type f -name '*.mp3' -exec mv -n {} samples/ \;
+          fi
+          echo "Consolidated $(ls -1 samples/*.mp3 2>/dev/null | wc -l) MP3s."
+
+      - name: Merge patches into catalog
+        run: |
+          python <<'PY'
+          import json, glob, os
+          with open("catalog/v1/models.json", "r", encoding="utf-8") as fh:
+              catalog = json.load(fh)
+          patches = {}
+          for path in sorted(glob.glob("patches/**/*.json", recursive=True)):
+              with open(path, "r", encoding="utf-8") as fh:
+                  patches.update(json.load(fh))
+          by_id = {v["id"]: v for v in catalog.get("voices", [])}
+          touched = 0
+          for vid, patch in patches.items():
+              v = by_id.get(vid)
+              if v is None:
+                  continue
+              v["sampleAudioUrl"] = patch.get("sampleAudioUrl", v.get("sampleAudioUrl"))
+              if patch.get("speakerSamples"):
+                  v["speakerSamples"] = patch["speakerSamples"]
+              touched += 1
+          with open("catalog/v1/models.json", "w", encoding="utf-8", newline="\n") as fh:
+              json.dump(catalog, fh, ensure_ascii=False, indent=2)
+              fh.write("\n")
+          print(f"merged patches for {touched} of {len(patches)} voices into catalog ({len(catalog.get('voices', []))} total)")
+          PY
 
       - name: Summarise rendered samples
         id: summary
         run: |
-          # `samples/*.mp3` now includes both per-(sid,lang) combos and the
-          # canonical back-compat copies, so the count reflects all clips.
           count=$(ls -1 samples/*.mp3 2>/dev/null | wc -l || echo 0)
           total=$(grep -o '"id":' catalog/v1/models.json | wc -l)
-          echo "rendered=$count" >> $GITHUB_OUTPUT
-          echo "total=$total" >> $GITHUB_OUTPUT
+          echo "rendered=$count" >> "$GITHUB_OUTPUT"
+          echo "total=$total" >> "$GITHUB_OUTPUT"
           {
-            echo "Rendered: $count of $total"
+            echo "Rendered: $count clips across $total voices"
             echo
             echo "Sample list (first 30):"
             ls -1 samples/ | head -30 | sed 's/^/  - /'
-          } >> $GITHUB_STEP_SUMMARY || true
+          } >> "$GITHUB_STEP_SUMMARY" || true
 
       - name: Upload sample MP3s to release
         if: steps.summary.outputs.rendered != '0'
@@ -154,7 +307,7 @@ jobs:
             git config user.email "actions@github.com"
             git config user.name "HayaiTTS samples bot"
             git add catalog/v1/models.json app/src/main/assets/catalog/v1/models.json
-            git commit -m "samples: refresh sampleAudioUrl after render run"
+            git commit -m "samples: refresh sampleAudioUrl after sharded render run"
             git push
           else
             echo "no catalog changes — nothing to commit"
