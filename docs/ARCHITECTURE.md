@@ -203,6 +203,9 @@ Packages mirror the layer: `data.catalog.*`, `domain.repo.*`,
 - A `@Composable` that does I/O or holds business state (use a ViewModel).
 - A `runBlocking { ... }` in production code (acceptable in tests for setup).
 - A `Dispatchers.X` import outside `core/` and the Worker/Receiver exemption.
+- A raw `Color(0x…)` hex literal outside `theme/Color.kt`, or a
+  `colorScheme.tertiary` reference — both bypass the monochrome scheme.
+  Enforced by `ThemeRulesTest`.
 - Throwing from a repository — return `Outcome.Failure`.
 - A version literal in `app/build.gradle.kts`. Add to
   `gradle/libs.versions.toml` instead.

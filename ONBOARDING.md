@@ -141,8 +141,10 @@ regressions in particular are easy to miss in compile-only CI.
 
 ```
 HayaiTTS/
-├── catalog/v1/models.json               # 186 voices, auto-refreshed weekly
-├── tools/catalog/build_catalog.py       # Scrapes upstream + computes sha256
+├── catalog/v1/models.json               # 600+ voices, auto-refreshed weekly
+├── tools/catalog/build_catalog.py       # Scrapes upstream + enriches + sha256
+├── tools/catalog/sources.py             # HF / GitHub model-card metadata
+├── tools/catalog/overlays/voices.yaml   # Hand-curated flagship descriptions
 ├── app/
 │   ├── libs/sherpa-onnx-1.13.2.aar      # Inference runtime, LFS-tracked
 │   ├── proguard-rules.pro               # R8 keep rules for JNI bindings
@@ -187,20 +189,22 @@ HayaiTTS/
   `assets/` is regenerable, so the storage-location migrator skips it.
   Practical impact: zero — the mirror is ~78 MB on internal storage
   even when the rest of your voices live on the SD card.
-- **ZipVoice + Pocket are runtime-supported but not yet in the catalog**.
-  The slug-matcher fix landed in commit
-  [`a9f8a97`](https://github.com/HayaiApp/HayaiTTS/commit/a9f8a97);
-  the next `catalog-refresh` run will pick up those two upstream
-  releases.
+- **ZipVoice + Pocket now ship in the catalog** alongside Piper, VITS,
+  Kokoro, Kitten, Matcha, and Supertonic. As of v2.5 the generator
+  enumerates the *full* sherpa-onnx `tts-models` release via the paginated
+  GitHub assets API (the old tag endpoint truncated the list), so bundles
+  the doc index missed are no longer dropped. The Meta MMS / Coqui / MeloTTS
+  VITS voices that were already present now carry correct per-voice language
+  (BCP-47) and tier metadata instead of a blanket English / mid guess.
 - **Custom-import speaker probing is best-effort**. Bundles without a
   `speakers.txt` / `voices.txt` / `speaker_id_map` JSON default to one
   `speaker_0`. The wizard lets you correct this manually after import.
-- **Auto-updater not yet shipped**. Tag scheme is in place; an in-app
-  check-for-updates flow is a future task.
-- **Per-voice licenses vary**. The catalog's `license` field is
-  best-effort scraped from upstream subpages — check upstream Hugging
-  Face / GitHub before redistributing any individual voice
-  commercially.
+- **Per-voice licenses vary**. As of v2.5 the catalog's `license`,
+  `dataset`, `author`, and `baseModel` fields are scraped per-voice from
+  Hugging Face model cards + GitHub repos (with family defaults as a
+  fallback). Piper voices report MIT weights but may carry a restrictive
+  *dataset* license surfaced as a `dataset-license:` tag — still check
+  upstream before redistributing any individual voice commercially.
 
 ## Catalog regeneration (rare, usually CI's job)
 

@@ -45,8 +45,12 @@ CI goes red.
   bodies. Just write the change.
 - Strings ship in all 10 supported locales. CI diffs the key sets across
   `res/values-*/strings.xml`.
-- Voice teal (`#0E7C86`) is the brand color. Don't override the M3 Expressive
-  scheme; extend it.
+- The app is strictly **flat monochrome**: every M3 slot binds to a neutral
+  step in [`theme/Color.kt`](app/src/main/java/dev/ahmedmohamed/hayaitts/ui/theme/Color.kt)
+  and `error` is the only accent. Don't reach for hue — `ThemeRulesTest` fails
+  the build on a raw `Color(0x…)` literal outside `Color.kt` or a
+  `colorScheme.tertiary` reference. (Historical note: an earlier `#0E7C86`
+  "voice teal" brand color was deliberately removed in v1.1.0.)
 - For UI changes attach a screenshot or short recording — Compose previews
   don't capture motion/haptics, which is most of where the UX lives.
 
