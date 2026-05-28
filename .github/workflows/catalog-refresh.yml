@@ -40,8 +40,26 @@ jobs:
       - name: Install generator dependencies
         run: pip install -r tools/catalog/requirements.txt
 
+      # Persist the enrichment + sha256 cache week-to-week so the generator
+      # only re-fetches model cards / HF + GitHub metadata whose 7-day TTL
+      # has lapsed. Keyed on the run id with a stable restore prefix so each
+      # run warm-starts from the previous week's cache and writes a fresh one.
+      - name: Restore catalog cache
+        uses: actions/cache@v4
+        with:
+          path: .catalog_cache
+          key: catalog-cache-${{ github.run_id }}
+          restore-keys: |
+            catalog-cache-
+
       - name: Regenerate catalog
-        run: python tools/catalog/build_catalog.py --output catalog/v1/models.json
+        # GITHUB_TOKEN lifts the GitHub API rate limit from 60/hr (anonymous)
+        # to 5000/hr so the full-release asset enumeration + per-repo license
+        # lookups don't throttle across 600+ voices. HF metadata stays
+        # anonymous (no secret required); enrichment is fail-soft either way.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python tools/catalog/build_catalog.py --output catalog/v1/models.json --cache-dir .catalog_cache
 
       # Curated overlay (descriptions / source URLs / use cases). Runs
       # after the scrape so family defaults can fill anything the

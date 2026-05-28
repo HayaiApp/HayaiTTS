@@ -25,6 +25,12 @@ from dataclasses import dataclass, field
 
 import requests
 
+# `sources` lives alongside this script. Add the script dir to sys.path so
+# the import resolves whether invoked as `python tools/catalog/build_catalog.py`
+# (CI, cwd=repo-root) or from within tools/catalog/.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import sources  # noqa: E402
+
 INDEX_ROOT = "https://k2-fsa.github.io/sherpa/onnx/tts/all/"
 
 # Map mdBook language directory -> BCP47 tag(s). The id's `en_US` locale wins
@@ -44,6 +50,34 @@ LANGUAGE_DIR_BCP47: dict[str, list[str]] = {
     "Turkish": ["tr"], "Ukrainian": ["uk"], "Urdu": ["ur"], "Vietnamese": ["vi"],
     "Welsh": ["cy"], "Chinese-English": ["zh-CN", "en-US"],
 }
+
+# Meta MMS bundles carry a 3-letter ISO-639-3 code (`vits-mms-eng`,
+# `vits-mms-deu`…). Map the common ones to a BCP-47 tag; anything not in the
+# table keeps its 3-letter code as the language tag rather than being dropped.
+ISO6393_TO_BCP47: dict[str, str] = {
+    "eng": "en", "deu": "de-DE", "ger": "de-DE", "fra": "fr-FR", "fre": "fr-FR",
+    "spa": "es-ES", "por": "pt", "ita": "it-IT", "rus": "ru", "ukr": "uk",
+    "pol": "pl", "nld": "nl", "dut": "nl", "tha": "th", "vie": "vi",
+    "ind": "id", "jpn": "ja-JP", "kor": "ko-KR", "zho": "zh-CN",
+    "cmn": "zh-CN", "nan": "nan", "ara": "ar", "hin": "hi", "ben": "bn",
+    "tur": "tr", "fas": "fa", "per": "fa", "ron": "ro", "rum": "ro",
+    "ces": "cs", "cze": "cs", "slk": "sk", "slo": "sk", "hun": "hu",
+    "fin": "fi", "swe": "sv", "dan": "da", "nor": "no", "ell": "el",
+    "gre": "el", "heb": "he", "swa": "sw", "tam": "ta", "tel": "te",
+    "urd": "ur", "guj": "gu", "kan": "kn", "mal": "ml", "mar": "mr",
+}
+
+
+def mms_language(voice_id: str) -> list[str] | None:
+    """If ``voice_id`` is a Meta MMS slug (``vits-mms-<iso3>``), return its
+    BCP-47 language list, mapping the ISO-639-3 code where known and keeping
+    the raw 3-letter code as a fallback. Returns None for non-MMS ids."""
+    m = re.match(r'^vits-mms-([a-z]{3})$', voice_id)
+    if not m:
+        return None
+    code = m.group(1)
+    return [ISO6393_TO_BCP47.get(code, code)]
+
 
 # Best-effort license per family — sourced from the upstream training repos.
 FAMILY_DEFAULT_LICENSE = {
@@ -91,6 +125,23 @@ class Voice:
     # catalog refresh so the field doesn't disappear between renders.
     speakerSamples: list[dict] | None = None
 
+    # ---------- network-enriched metadata (Stage 2) -------------------
+    # Filled by `enrich_voices()` from upstream model cards / HF + GitHub
+    # APIs. All optional — absent values stay omitted from to_json() so the
+    # output is byte-identical to today's when enrichment is skipped.
+    description: str | None = None
+    dataset: str | None = None
+    author: str | None = None
+    sourceUrl: str | None = None
+    baseModel: str | None = None
+    tags: list[str] = field(default_factory=list)
+    recommendedUseCases: list[str] = field(default_factory=list)
+    quality: str | None = None
+    # Internal-only: the dataset's own license (often differs from the model
+    # weights' license, e.g. MIT weights trained on a CC-BY-NC corpus). Used
+    # to decide whether to append a `dataset-license:` tag. NEVER serialized.
+    _dataset_license: str | None = None
+
     def to_json(self) -> dict:
         d: dict = {
             "id": self.id, "family": self.family, "title": self.title,
@@ -102,9 +153,16 @@ class Voice:
         }
         for k in ("vocoderUrl", "vocoderFileName", "vocoderSha256",
                   "modelFileName", "lexiconFileName", "dictDirName",
-                  "demoUrl", "sampleAudioUrl", "speakerSamples"):
+                  "demoUrl", "sampleAudioUrl", "speakerSamples",
+                  "description", "dataset", "author", "sourceUrl",
+                  "baseModel", "quality"):
             v = getattr(self, k)
             if v is not None:
+                d[k] = v
+        # List fields emit only when non-empty (match optional-field style).
+        for k in ("tags", "recommendedUseCases"):
+            v = getattr(self, k)
+            if v:
                 d[k] = v
         return d
 
@@ -358,6 +416,8 @@ def derive_title(speakers: list[dict], family: str) -> str:
 
 def derive_tier(voice_id: str, family: str) -> str:
     """Tier heuristic per spec section 3."""
+    # Meta MMS voices are narrowband single-speaker — always "low".
+    if voice_id.startswith("vits-mms-"): return "low"
     if family in ("kokoro", "matcha", "supertonic"): return "high"
     if voice_id.endswith(("-x_low", "-low")): return "low"
     if voice_id.endswith("-high"): return "high"
@@ -367,7 +427,10 @@ def derive_tier(voice_id: str, family: str) -> str:
 
 
 def derive_languages(voice_id: str, language_dir: str, text: str) -> list[str]:
-    """Priority: explicit locale in id -> Supertonic-style list -> directory."""
+    """Priority: MMS ISO-639-3 -> explicit locale in id -> Supertonic-style
+    list -> directory."""
+    mms = mms_language(voice_id)
+    if mms: return mms
     m = re.search(r'\b([a-z]{2})_([A-Z]{2})\b', voice_id)
     if m: return [f"{m.group(1)}-{m.group(2)}"]
     m2 = re.search(r'supports\s+\d+\s+languages?\s*:\s*([^.<]+)', text)
@@ -396,10 +459,20 @@ def derive_model_filename(text: str, family: str) -> str | None:
 
 
 def gender_for(speaker_name: str) -> str:
-    """Kokoro `af`/`am`/`bf`/`bm` prefixes + Kitten `-f`/`-m` suffixes."""
+    """Kokoro `<accent><gender>_<name>` voice codes (``af_sky``, ``am_adam``,
+    ``bf_emma``…) + Kitten `-f`/`-m` suffixes (``expr-voice-2-f``).
+
+    The Kokoro gender code is a single letter (``f``/``m``) following a
+    one-letter accent code (a/b/c/e/…). We match it precisely — anchored as
+    the whole 2-char token or followed by ``_`` — so bare Piper names that
+    merely *start* with those letters (``amy``, ``alba``, ``carlfm``) don't
+    get a spurious "declared" gender.
+    """
     n = speaker_name.lower()
-    if n.startswith(("af", "bf", "cf")) or n.endswith(("-f", "_f")): return "F"
-    if n.startswith(("am", "bm", "cm")) or n.endswith(("-m", "_m")): return "M"
+    if re.match(r'^[a-z]f(_|$)', n) or n.endswith(("-f", "_f")):
+        return "F"
+    if re.match(r'^[a-z]m(_|$)', n) or n.endswith(("-m", "_m")):
+        return "M"
     return "U"
 
 
@@ -495,12 +568,63 @@ PIPER_VOICE_GENDERS: dict[str, str] = {
 }
 
 
+# High-precision name → gender sets for the heuristic layer. These are the
+# voices whose gender we know from the upstream model cards but that aren't
+# pinned by an explicit naming convention. Kept separate from
+# PIPER_VOICE_GENDERS (which is the curated "inferred" table) so the heuristic
+# can also catch VITS/Coqui/MMS slugs that reuse these names.
+_HEURISTIC_FEMALE = {
+    "amy", "lessac", "cori", "jenny", "jenny_dioco", "kristin", "kathleen",
+    "alba", "aru", "southern_english_female", "hfc_female", "ljspeech",
+    "eva_k", "kerstin", "ramona", "siwis", "paola", "gosia", "irina",
+    "lada", "huayan", "rapunzelina", "haaniye", "anna", "berta", "salka",
+    "ugla", "natia", "iseke", "raya", "marylux", "nathalie", "lili",
+    "lisa", "glados",
+}
+_HEURISTIC_MALE = {
+    "ryan", "joe", "alan", "thorsten", "danny", "kusal",
+    "northern_english_male", "hfc_male", "bryce", "john", "norman",
+    "davefx", "carlfm", "karlsson", "pavoque", "gilles", "tom",
+    "riccardo", "darkman", "faber", "edresson", "denis", "dmitri",
+    "ruslan", "vais1000", "kareem", "jirka", "amir", "ganji", "gyro",
+    "harri", "imre", "bui", "steinn", "issai", "chitwanian", "rdh",
+    "mihai", "artur", "dfki", "fahrettin", "fettah", "claude",
+}
+# Anonymous multi-speaker rosters — always "unknown" regardless of any
+# substring match (e.g. an `mls` corpus voice should not inherit a gender).
+_ANON_ROSTER_TOKENS = ("libritts", "vctk", "mls")
+
+
+def gender_heuristic(name: str | None) -> str | None:
+    """Pattern + high-precision name heuristic. Sits between the curated Piper
+    table and the "unknown" fallback. Returns ``"F"``/``"M"`` or None.
+
+    Anonymous multi-speaker roster ids (libritts/vctk/mls) deliberately fall
+    through to None so we don't guess a gender for an unlabelled speaker."""
+    if not name:
+        return None
+    n = name.lower()
+    if any(tok in n for tok in _ANON_ROSTER_TOKENS):
+        return None
+    # Explicit suffix/substring patterns.
+    if n.endswith(("_female", "-female", "-f", "_f")) or "hfc_female" in n:
+        return "F"
+    if n.endswith(("_male", "-male", "-m", "_m")) or "hfc_male" in n:
+        return "M"
+    if n in _HEURISTIC_FEMALE:
+        return "F"
+    if n in _HEURISTIC_MALE:
+        return "M"
+    return None
+
+
 def infer_gender(voice_id: str, speaker_name: str, family: str) -> tuple[str, str]:
-    """Return (gender, confidence) where:
-      - confidence = "declared" when the upstream metadata explicitly carries gender
-        (Kokoro/Kitten naming patterns).
-      - confidence = "inferred" when we mapped a voice name through the Piper table.
-      - confidence = "unknown" otherwise.
+    """Return (gender, confidence) with precedence:
+      declared  → upstream metadata explicitly carries gender (Kokoro/Kitten
+                  naming patterns).
+      inferred  → mapped a voice name through the curated Piper table.
+      heuristic → matched a pattern / high-precision name set.
+      unknown   → none of the above.
     The UI uses confidence to surface a "Has gender data" filter that excludes
     the unknowns so users can find labelled voices.
     """
@@ -508,11 +632,15 @@ def infer_gender(voice_id: str, speaker_name: str, family: str) -> tuple[str, st
     pattern_gender = gender_for(speaker_name)
     if pattern_gender != "U":
         return pattern_gender, "declared"
-    # Piper single-speaker voices — lookup the canonical name.
+    # Piper single-speaker voices — lookup the curated canonical-name table.
     if family in ("piper", "vits"):
         mapped = PIPER_VOICE_GENDERS.get(speaker_name.lower())
         if mapped is not None and mapped != "U":
             return mapped, "inferred"
+    # Heuristic layer — pattern suffixes + high-precision name sets.
+    heur = gender_heuristic(speaker_name)
+    if heur is not None:
+        return heur, "heuristic"
     return "U", "unknown"
 
 
@@ -587,30 +715,98 @@ def hash_voice(v: Voice, *, idx: int, total: int, cache_dir: str | None,
     return v
 
 
-def discover_release_only_bundles(known_ids: set[str]) -> list[Voice]:
-    """Pick up family bundles that exist on the upstream `tts-models` release
-    page but aren't documented on the mdBook index.
+def _bundle_url_ok(url: str) -> bool:
+    """Defensive HEAD-check for a release bundle. Returns False on any error
+    or non-success status so a bad/withdrawn asset never breaks the refresh."""
+    try:
+        r = requests.head(url, allow_redirects=True, timeout=30)
+        # GitHub release downloads 302 to a signed S3 URL; allow_redirects
+        # resolves that, so a 200 here means the bytes are reachable.
+        return r.status_code == 200
+    except Exception:
+        return False
 
-    The doc-page scraper misses any model k2-fsa hasn't written a subpage
-    for yet — which is currently the entire ZipVoice + Pocket cloning
-    catalog. Querying the release-assets list directly is the gap-filler.
-    Anything not already covered by [known_ids] gets a minimal Voice
-    record with the data we can pull from the bundle filename alone;
-    speaker counts come from the JNI runtime once the user installs.
-    """
+
+def _fetch_release_assets() -> list[dict]:
+    """Enumerate the FULL `tts-models` release via the paginated assets
+    endpoint. The embedded asset list on the `/releases/tags/` object is
+    capped by GitHub and silently truncates large releases (it drops at least
+    one bundle today), so we resolve the release id then page through
+    `/releases/<id>/assets`. FAIL-SOFT: returns [] on any error."""
+    headers = {"Accept": "application/vnd.github+json",
+               "User-Agent": "HayaiTTS-catalog-builder/1"}
+    tok = os.environ.get("GITHUB_TOKEN")
+    if tok:
+        headers["Authorization"] = f"Bearer {tok}"
     try:
         r = requests.get(
             "https://api.github.com/repos/k2-fsa/sherpa-onnx/releases/tags/tts-models",
-            timeout=30,
-            headers={"Accept": "application/vnd.github+json"},
+            timeout=30, headers=headers,
         )
         r.raise_for_status()
-        assets = r.json().get("assets", [])
+        release = r.json()
     except Exception as e:
-        err(f"Release-asset fallback failed: {e}")
+        err(f"Release-asset fallback failed (tag lookup): {e}")
+        return []
+    release_id = release.get("id")
+    if not release_id:
+        # No id to paginate with — fall back to the embedded (capped) list.
+        return release.get("assets", []) or []
+    assets: list[dict] = []
+    for page in range(1, 30):  # hard ceiling; 7 pages today
+        try:
+            r = requests.get(
+                f"https://api.github.com/repos/k2-fsa/sherpa-onnx/releases/{release_id}/assets",
+                params={"per_page": 100, "page": page},
+                timeout=30, headers=headers,
+            )
+            r.raise_for_status()
+            batch = r.json()
+        except Exception as e:
+            err(f"Release-asset pagination stopped at page {page}: {e}")
+            break
+        if not isinstance(batch, list):
+            # A rate-limit/error body can sneak through as a 200 dict; never
+            # let it reach discover_release_only_bundles (which calls .get()
+            # per asset) and crash the weekly refresh.
+            err(f"Release-asset page {page} returned non-list "
+                f"({type(batch).__name__}); stopping pagination")
+            break
+        if not batch:
+            break
+        assets.extend(batch)
+        if len(batch) < 100:
+            break
+    if not assets:
+        # Pagination yielded nothing (e.g. token-scoped 403) — use the
+        # embedded list rather than dropping the entire fallback.
+        return release.get("assets", []) or []
+    return assets
+
+
+def discover_release_only_bundles(known_ids: set[str]) -> list[Voice]:
+    """Pick up family bundles that exist on the upstream `tts-models` release
+    but aren't documented on the mdBook index.
+
+    The doc-page scraper misses any model k2-fsa hasn't written a subpage
+    for yet — historically the ZipVoice + Pocket cloning catalog, and any
+    Meta MMS / Coqui / MeloTTS bundle the index hasn't caught up with.
+    Querying the full (paginated) release-asset list directly is the
+    gap-filler. Anything not already covered by [known_ids] gets a minimal
+    Voice record with the data we can pull from the bundle filename alone;
+    speaker counts come from the JNI runtime once the user installs.
+
+    DEFENSIVE: each new bundle URL is HEAD-checked; a bundle that 404s or
+    errors is SKIPPED and logged — a bad asset never breaks the refresh.
+    """
+    assets = _fetch_release_assets()
+    if not assets:
         return []
 
-    extras: list[Voice] = []
+    # First pass: build candidate Voice records for every release-only
+    # bundle that classifies to a known family and isn't already ingested.
+    # No network here — the HEAD-check happens in a concurrent second pass.
+    candidates: list[Voice] = []
     seen: set[str] = set()
     for asset in assets:
         name = asset.get("name", "")
@@ -648,7 +844,7 @@ def discover_release_only_bundles(known_ids: set[str]) -> list[Voice]:
             "genderConfidence": "unknown",
         }]
         langs = derive_languages_from_slug(voice_id, family)
-        extras.append(Voice(
+        candidates.append(Voice(
             id=voice_id,
             family=family,
             title=derive_title(speakers, family),
@@ -663,12 +859,41 @@ def discover_release_only_bundles(known_ids: set[str]) -> list[Voice]:
             demoUrl=demo_url_for(family, voice_id),
             sampleAudioUrl=None,
         ))
+
+    # Second pass: DEFENSIVE concurrent HEAD-check. A bundle that 404s or
+    # errors is SKIPPED and logged — a bad asset never breaks the refresh.
+    # (The doc-scraper path implicitly verified its bundles by fetching the
+    # subpage; release-only bundles have no such gate.) Concurrency keeps
+    # this tractable when many candidates are new.
+    extras: list[Voice] = []
+    skipped_unreachable: list[str] = []
+    if candidates:
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            checks = {ex.submit(_bundle_url_ok, c.bundleUrl): c
+                      for c in candidates}
+            for fut in as_completed(checks):
+                c = checks[fut]
+                ok = False
+                try:
+                    ok = fut.result()
+                except Exception:
+                    ok = False
+                if ok:
+                    extras.append(c)
+                else:
+                    skipped_unreachable.append(c.id)
+                    err(f"  release bundle unreachable, skipping: {c.id}")
+        extras.sort(key=lambda v: v.id)
     if extras:
         by_fam: dict[str, int] = {}
         for v in extras:
             by_fam[v.family] = by_fam.get(v.family, 0) + 1
         summary = ", ".join(f"{c}× {f}" for f, c in sorted(by_fam.items()))
         log(f"Release-asset fallback added {len(extras)} bundle(s) ({summary}).")
+    if skipped_unreachable:
+        log(f"Release-asset fallback skipped {len(skipped_unreachable)} "
+            f"unreachable bundle(s): {', '.join(skipped_unreachable[:10])}"
+            + (" …" if len(skipped_unreachable) > 10 else ""))
     return extras
 
 
@@ -680,6 +905,10 @@ def derive_languages_from_slug(voice_id: str, family: str) -> list[str]:
     name. Strip the family + qualifier tokens and keep anything that
     looks like a 2-letter language code.
     """
+    # Meta MMS bundles encode their language as an ISO-639-3 code.
+    mms = mms_language(voice_id)
+    if mms:
+        return mms
     lower = voice_id.lower()
     # Tokens that come before the language list and should be ignored.
     junk = {
@@ -704,8 +933,150 @@ def derive_languages_from_slug(voice_id: str, family: str) -> list[str]:
     return languages
 
 
+def _enrich_one(v: Voice, *, cache_dir: str | None,
+                piper_index: dict, hf_cache: dict, gh_cache: dict,
+                hf_lock: threading.Lock, gh_lock: threading.Lock) -> None:
+    """Enrich a single Voice in place. FAIL-SOFT: any source returning {}/None
+    just leaves the corresponding field untouched."""
+    fam = v.family
+    try:
+        if fam in ("piper", "vits"):
+            _enrich_piper(v, cache_dir=cache_dir, piper_index=piper_index)
+        elif fam in sources.FAMILY_HF_REPO:
+            _enrich_hf_family(v, cache_dir=cache_dir, hf_cache=hf_cache,
+                              hf_lock=hf_lock)
+        elif fam in sources.FAMILY_GH_REPO:
+            _enrich_gh_family(v, cache_dir=cache_dir, gh_cache=gh_cache,
+                              gh_lock=gh_lock)
+        # License safety net (Stage 4): never emit "unknown" for a known
+        # family — fall back to the family default.
+        if v.license in (None, "", "unknown"):
+            v.license = FAMILY_DEFAULT_LICENSE.get(fam, v.license or "unknown")
+    except Exception as e:
+        err(f"  enrich failed for {v.id}: {e}")
+
+
+def _enrich_piper(v: Voice, *, cache_dir: str | None, piper_index: dict) -> None:
+    """Piper/VITS-piper: authoritative speaker name from the index, dataset +
+    sourceUrl from the MODEL_CARD, dataset-license tag when NC."""
+    key = sources.piper_key_for(v.id)
+    if not key:
+        return
+    entry = piper_index.get(key)
+    if not entry:
+        return
+
+    # Authoritative single-speaker name from the index, then re-infer gender.
+    try:
+        num = entry.get("num_speakers")
+        idx_name = entry.get("name")
+        if num == 1 and idx_name and len(v.speakers) == 1:
+            v.speakers[0]["name"] = idx_name
+            g, conf = infer_gender(v.id, idx_name, v.family)
+            v.speakers[0]["gender"] = g
+            v.speakers[0]["genderConfidence"] = conf
+            v.title = derive_title(v.speakers, v.family)
+    except Exception:
+        pass
+
+    # Quality from the structured index.
+    q = entry.get("quality")
+    if isinstance(q, str) and q and not v.quality:
+        v.quality = q
+
+    # Dataset / source URL / dataset-license from the MODEL_CARD.
+    card = sources.piper_model_card(entry, cache_dir=cache_dir)
+    if card.get("dataset") and not v.dataset:
+        v.dataset = card["dataset"]
+    if card.get("datasetUrl") and not v.sourceUrl:
+        v.sourceUrl = card["datasetUrl"]
+    ds_lic = card.get("datasetLicense")
+    if ds_lic:
+        v._dataset_license = ds_lic
+        # Stage 4: weights license stays MIT, but flag a non-commercial
+        # training corpus so the UI / users can see the restriction.
+        if "NC" in ds_lic.upper().replace(" ", ""):
+            spdx = sources.normalize_license(ds_lic)
+            tag = f"dataset-license:{spdx}"
+            if tag not in v.tags:
+                v.tags.append(tag)
+
+
+def _enrich_hf_family(v: Voice, *, cache_dir: str | None,
+                      hf_cache: dict, hf_lock: threading.Lock) -> None:
+    """Kokoro/Kitten/Supertonic: one HF API call per family (memoized).
+    Sets license (SPDX over family default); fills baseModel/author if empty."""
+    repo = sources.FAMILY_HF_REPO.get(v.family)
+    if not repo:
+        return
+    with hf_lock:
+        if repo not in hf_cache:
+            hf_cache[repo] = sources.hf_model_meta(repo, cache_dir=cache_dir)
+        meta = hf_cache[repo]
+    if not meta:
+        return
+    lic = sources.normalize_license(meta.get("license"))
+    if lic:
+        v.license = lic
+    if meta.get("baseModel") and not v.baseModel:
+        v.baseModel = meta["baseModel"]
+    if meta.get("author") and not v.author:
+        v.author = meta["author"]
+
+
+def _enrich_gh_family(v: Voice, *, cache_dir: str | None,
+                      gh_cache: dict, gh_lock: threading.Lock) -> None:
+    """Matcha/ZipVoice/Pocket: GitHub license endpoint → license when it
+    yields a clean SPDX. One call per repo (memoized)."""
+    repo = sources.FAMILY_GH_REPO.get(v.family)
+    if not repo:
+        return
+    with gh_lock:
+        if repo not in gh_cache:
+            gh_cache[repo] = sources.github_license(repo, cache_dir=cache_dir)
+        spdx = gh_cache[repo]
+    if spdx:
+        lic = sources.normalize_license(spdx)
+        if lic:
+            v.license = lic
+
+
+def enrich_voices(voices: list[Voice], *, cache_dir: str | None,
+                  no_enrich: bool, workers: int) -> None:
+    """Network-enrichment pass. Runs AFTER dedupe/release-merge and BEFORE the
+    hash pass. Mutates ``voices`` in place. FAIL-SOFT throughout — a dead
+    network leaves every field exactly as the scraper produced it."""
+    if no_enrich:
+        log("Enrichment skipped (--no-enrich).")
+        return
+    piper_index = sources.load_piper_index(cache_dir)
+    log(f"Enriching {len(voices)} voices "
+        f"(piper index: {len(piper_index)} entries)…")
+    hf_cache: dict = {}
+    gh_cache: dict = {}
+    hf_lock = threading.Lock()
+    gh_lock = threading.Lock()
+    pool = min(workers, 4)
+    with ThreadPoolExecutor(max_workers=pool) as ex:
+        futures = [
+            ex.submit(_enrich_one, v, cache_dir=cache_dir,
+                      piper_index=piper_index, hf_cache=hf_cache,
+                      gh_cache=gh_cache, hf_lock=hf_lock, gh_lock=gh_lock)
+            for v in voices
+        ]
+        for f in as_completed(futures):
+            # _enrich_one catches Exception internally; this guard covers the
+            # residual (a future that died before its try-block) so enrichment
+            # can never redden the weekly refresh.
+            try:
+                f.result()
+            except Exception as e:
+                err(f"  enrich future raised unexpectedly: {e}")
+    log("Enrichment pass complete.")
+
+
 def build_voices(pages: list[tuple[str, str]], *, limit: int | None,
-                 cache_dir: str | None, skip_hash: bool,
+                 cache_dir: str | None, skip_hash: bool, no_enrich: bool,
                  workers: int, stats: RunStats) -> list[Voice]:
     todo = pages if limit is None else pages[:limit]
     total = len(todo)
@@ -748,6 +1119,18 @@ def build_voices(pages: list[tuple[str, str]], *, limit: int | None,
 
     if cache_dir:
         os.makedirs(cache_dir, exist_ok=True)
+
+    # Enrichment pass — authoritative names, dataset/source URLs, SPDX
+    # licenses. Runs after dedupe/release-merge, before the hash pass.
+    enrich_voices(ordered, cache_dir=cache_dir, no_enrich=no_enrich,
+                  workers=workers)
+
+    # Family-count summary so catalog size growth is visible at a glance.
+    by_fam_total: dict[str, int] = {}
+    for v in ordered:
+        by_fam_total[v.family] = by_fam_total.get(v.family, 0) + 1
+    summary = ", ".join(f"{c}× {f}" for f, c in sorted(by_fam_total.items()))
+    log(f"Catalog composition by family ({len(ordered)} total): {summary}")
 
     # Hash pass — concurrent streaming. 8 workers is the empirical sweet spot
     # against the GitHub release CDN (more starts hitting 429).
@@ -859,6 +1242,8 @@ def main(argv: list[str]) -> int:
                     help="Only process the first N voices (dev)")
     ap.add_argument("--skip-hash", action="store_true",
                     help="Skip SHA-256 (dev only — yields null sha256)")
+    ap.add_argument("--no-enrich", action="store_true",
+                    help="Skip ALL network enrichment (dev only — faster runs)")
     ap.add_argument("--workers", type=int, default=8,
                     help="Concurrent HTTP streams for hashing (default 8)")
     args = ap.parse_args(argv)
@@ -870,8 +1255,8 @@ def main(argv: list[str]) -> int:
         err(f"Fatal: could not fetch sherpa-onnx TTS index: {e}"); return 1
     pages = discover_model_pages(search_js)
     voices = build_voices(pages, limit=args.limit, cache_dir=args.cache_dir,
-                          skip_hash=args.skip_hash, workers=args.workers,
-                          stats=stats)
+                          skip_hash=args.skip_hash, no_enrich=args.no_enrich,
+                          workers=args.workers, stats=stats)
     stats.written = len(voices)
     write_catalog(voices, args.output)
     elapsed = time.time() - stats.started_at

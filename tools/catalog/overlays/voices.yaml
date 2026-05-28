@@ -69,3 +69,171 @@ voices:
       LJSpeech corpus. Sub-second synthesis on a 2020+ phone — a safe
       starting point for read-aloud apps.
     tags: ["bundled", "en-US", "female"]
+
+  # ----------------------------------------------------------------------
+  # Flagships — the marquee multi-lingual / SOTA bundles.
+  # ----------------------------------------------------------------------
+  kokoro-en-v0_19:
+    description: >
+      Kokoro v0.19, English. An 82M-parameter StyleTTS2-based model with
+      multiple built-in speaker styles and natural prosody. The original
+      English-only Kokoro release.
+    dataset: "Kokoro internal"
+    tags: ["english", "multi-speaker", "expressive"]
+    recommendedUseCases: ["narration", "audiobook", "podcast"]
+  kokoro-multi-lang-v1_0:
+    description: >
+      Kokoro v1.0, multilingual. Covers English plus several additional
+      languages from a single 82M model, with dozens of voice styles. A
+      strong default for apps that need more than one language.
+    dataset: "Kokoro internal"
+    tags: ["multilingual", "multi-speaker", "expressive"]
+    recommendedUseCases: ["narration", "audiobook", "multilingual"]
+  kokoro-multi-lang-v1_1:
+    description: >
+      Kokoro v1.1, multilingual. The latest Kokoro release — refreshed
+      voice styles and broader language coverage over v1.0 while keeping
+      the same compact 82M footprint.
+    dataset: "Kokoro internal"
+    tags: ["multilingual", "multi-speaker", "expressive", "latest"]
+    recommendedUseCases: ["narration", "audiobook", "multilingual"]
+  kitten-nano-en-v0_2-fp16:
+    description: >
+      KittenTTS Nano, English (fp16). An ultra-compact model built for
+      on-device, low-latency synthesis — small enough to bundle and run
+      comfortably on mid-range phones.
+    tags: ["english", "tiny", "on-device", "fp16"]
+    recommendedUseCases: ["mobile", "dictation", "navigation"]
+  matcha-icefall-en_US-ljspeech:
+    description: >
+      Matcha-TTS trained on LJSpeech (US English). A flow-matching acoustic
+      model paired with a HiFi-GAN vocoder, giving high-quality single-speaker
+      output at a modest model size.
+    dataset: "LJSpeech"
+    tags: ["english", "female", "single-speaker", "vocoder"]
+    recommendedUseCases: ["audiobook", "narration"]
+  sherpa-onnx-supertonic-3-tts-int8-2026-05-11:
+    description: >
+      Supertonic 3 (int8), multilingual. A high-quality voice covering 30+
+      languages from one model. Note: released under CC-BY-NC — non-commercial
+      use only; do not ship in a paid or ad-supported product without a
+      separate license from Supertone.
+    dataset: "Emilia"
+    tags: ["multilingual", "production", "int8", "non-commercial"]
+    recommendedUseCases: ["multilingual", "narration"]
+  sherpa-onnx-zipvoice-distill-int8-zh-en-emilia:
+    description: >
+      ZipVoice distilled (int8), Chinese + English. A flow-matching zero-shot
+      voice-cloning model: supply a short reference clip and it speaks new text
+      in that voice. The distilled int8 build trades a little quality for speed
+      and size.
+    dataset: "Emilia"
+    tags: ["voice cloning", "zh", "en", "zero-shot", "int8"]
+    recommendedUseCases: ["voice cloning", "multilingual"]
+  sherpa-onnx-pocket-tts-int8-2026-01-26:
+    description: >
+      Pocket TTS (int8). A compact zero-shot voice-cloning model tuned for
+      mobile, English. Clones a target voice from a brief reference sample
+      and runs entirely on-device.
+    tags: ["voice cloning", "english", "on-device", "int8"]
+    recommendedUseCases: ["voice cloning", "mobile"]
+
+  # ----------------------------------------------------------------------
+  # Top English Piper voices.
+  # ----------------------------------------------------------------------
+  vits-piper-en_US-ryan-high:
+    description: >
+      Male US English Piper voice at high quality. Clear, even delivery —
+      one of the most popular Piper voices for long-form reading.
+    tags: ["en-US", "male", "high"]
+    recommendedUseCases: ["audiobook", "narration"]
+  vits-piper-en_US-lessac-medium:
+    description: >
+      Female US English Piper voice trained on the Lessac corpus. A neutral,
+      professional tone; the base many other English Piper voices fine-tune
+      from.
+    dataset: "Lessac"
+    tags: ["en-US", "female", "medium"]
+    recommendedUseCases: ["narration", "dictation"]
+  vits-piper-en_US-amy-medium:
+    description: >
+      Female US English Piper voice at medium quality. The higher-fidelity
+      sibling of the bundled Amy voice, with smoother prosody.
+    tags: ["en-US", "female", "medium"]
+    recommendedUseCases: ["narration", "audiobook"]
+  vits-piper-en_US-hfc_female-medium:
+    description: >
+      Female US English Piper voice from the HiFi-Captain corpus. Crisp,
+      studio-recorded source audio gives it a clean, broadcast-like quality.
+      The HiFi-Captain training corpus is CC-BY-NC-SA — the MIT-licensed
+      weights are fine to ship, but verify the dataset terms before any
+      commercial use.
+    # `dataset-license:` is also appended by the enrichment pass; restated
+    # here because the overlay overwrites `tags` for curated voices.
+    tags: ["en-US", "female", "medium", "dataset-license:CC-BY-NC-SA-4.0"]
+    recommendedUseCases: ["narration", "podcast"]
+  vits-piper-en_US-hfc_male-medium:
+    description: >
+      Male US English Piper voice from the HiFi-Captain corpus. A clean,
+      broadcast-style male counterpart to hfc_female. The HiFi-Captain
+      corpus is CC-BY-NC-SA; the MIT-licensed weights ship fine but verify
+      the dataset terms before any commercial use.
+    tags: ["en-US", "male", "medium", "dataset-license:CC-BY-NC-SA-4.0"]
+    recommendedUseCases: ["narration", "podcast"]
+  vits-piper-en_US-libritts_r-medium:
+    description: >
+      Multi-speaker US English Piper voice trained on LibriTTS-R (900+
+      speakers). Pick a speaker id to switch voices; useful when you want
+      variety from a single download.
+    dataset: "LibriTTS-R"
+    tags: ["en-US", "multi-speaker", "medium"]
+    recommendedUseCases: ["narration", "variety"]
+  vits-piper-en_US-joe-medium:
+    description: >
+      Male US English Piper voice at medium quality. Warm, conversational
+      tone that suits assistant-style read-aloud.
+    tags: ["en-US", "male", "medium"]
+    recommendedUseCases: ["narration", "dictation"]
+  vits-piper-en_US-kristin-medium:
+    description: >
+      Female US English Piper voice at medium quality. Bright, friendly
+      delivery.
+    tags: ["en-US", "female", "medium"]
+    recommendedUseCases: ["narration", "dictation"]
+  vits-piper-en_US-kusal-medium:
+    description: >
+      Male US English Piper voice at medium quality. Even, neutral read
+      that works well for informational content.
+    tags: ["en-US", "male", "medium"]
+    recommendedUseCases: ["narration", "dictation"]
+  vits-piper-en_US-glados-high:
+    description: >
+      Female US English character voice at high quality, modelled on the
+      synthetic-sounding GLaDOS persona. A novelty / character voice rather
+      than a neutral narrator.
+    tags: ["en-US", "female", "character", "high"]
+    recommendedUseCases: ["games", "novelty"]
+  vits-piper-en_GB-alan-medium:
+    description: >
+      Male British English Piper voice at medium quality. Standard southern
+      UK accent; a dependable default for en-GB content.
+    tags: ["en-GB", "male", "medium"]
+    recommendedUseCases: ["narration", "dictation"]
+  vits-piper-en_GB-cori-high:
+    description: >
+      Female British English Piper voice at high quality. Smooth, articulate
+      delivery — a top pick for en-GB audiobooks.
+    tags: ["en-GB", "female", "high"]
+    recommendedUseCases: ["audiobook", "narration"]
+  vits-piper-en_GB-jenny_dioco-medium:
+    description: >
+      Female British English Piper voice (Jenny / Dioco) at medium quality.
+      Natural, friendly tone with a contemporary UK accent.
+    tags: ["en-GB", "female", "medium"]
+    recommendedUseCases: ["narration", "dictation"]
+  vits-piper-en_GB-northern_english_male-medium:
+    description: >
+      Male British English Piper voice with a northern English accent at
+      medium quality. Adds regional variety to the en-GB set.
+    tags: ["en-GB", "male", "regional", "medium"]
+    recommendedUseCases: ["narration"]
