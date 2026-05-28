@@ -8,7 +8,7 @@
 [![Release](https://github.com/HayaiApp/HayaiTTS/actions/workflows/build_push.yml/badge.svg)](https://github.com/HayaiApp/HayaiTTS/actions/workflows/build_push.yml)
 [![Catalog refresh](https://github.com/HayaiApp/HayaiTTS/actions/workflows/catalog-refresh.yml/badge.svg)](https://github.com/HayaiApp/HayaiTTS/actions/workflows/catalog-refresh.yml)
 [![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
-[![Latest release](https://img.shields.io/github/v/release/HayaiApp/HayaiTTS?include_prereleases)](https://github.com/HayaiApp/HayaiTTS/releases)
+[![Latest release](https://img.shields.io/github/v/release/HayaiApp/HayaiTTS)](https://github.com/HayaiApp/HayaiTTS/releases)
 
 </div>
 
