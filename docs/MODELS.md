@@ -4,21 +4,25 @@
 
 ## Summary
 
-- **188 voices** across **5 model families**
-- **73 languages** covered
-- Bundle size: 26–365 MB (median 67 MB)
+- **630 voices** across **8 model families**
+- **134 languages** covered
+- Bundle size: 13–635 MB (median 36 MB)
+- **6 voices** support reference-audio cloning
 
 ### By family
 
 | Family | Voices | Notes |
 |---|---:|---|
-| **piper** | 174 | Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, sub-second on a 2020+ phone, ~70 languages covered. |
-| **kokoro** | 3 | Higher-quality multilingual VITS variant (Kokoro-82M). 80–360 MB per voice; English bundles ship 1–50 speakers in a single model. |
+| **piper** | 536 | Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, sub-second on a 2020+ phone, ~70 languages covered. |
+| **kokoro** | 6 | Higher-quality multilingual VITS variant (Kokoro-82M). 80–360 MB per voice; English bundles ship 1–50 speakers in a single model. |
 | **kitten** | 7 | Tiny English-only VITS distillations tuned for low-end phones. <60 MB, fastest synthesis on the catalog. |
-| **matcha** | 3 | Diffusion-based Matcha-TTS voices. Ships a vocoder side-asset alongside the main weights — Browse handles the dual download. |
-| **supertonic** | 1 | Newest (2026) multilingual model from Supertone. Single 100–200 MB bundle covering ~30 languages × 10 speakers. |
+| **matcha** | 5 | Diffusion-based Matcha-TTS voices. Ships a vocoder side-asset alongside the main weights — Browse handles the dual download. |
+| **supertonic** | 2 | Newest (2026) multilingual model from Supertone. Single 100–200 MB bundle covering ~30 languages × 10 speakers. |
+| **zipvoice** | 4 | Flow-matching voice-cloning model. Accepts a reference clip + transcript and synthesises the target text in the cloned voice. |
+| **pocket** | 2 | Compact voice-cloning model. Same reference-audio API as ZipVoice but with a smaller voice-embedding cache and lighter weights. |
+| **vits** | 68 | _(family blurb pending — add to `FAMILY_BLURB`)_ |
 
-## piper (174)
+## piper (536)
 
 Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, sub-second on a 2020+ phone, ~70 languages covered.
 
@@ -180,6 +184,368 @@ Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, 
 | Siwis | fr-FR | 1 | 27 MB | low | — | — | MIT |
 | Siwis | fr-FR | 1 | 67 MB | mid | — | — | MIT |
 | Southern_english_female | en-GB | 1 | 67 MB | low | — | — | MIT |
+| Speaker_0 | ar, jo, sa | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ar, jo, sa | 1 | 22 MB | mid | — | — | MIT |
+| Speaker_0 | ar, jo, sa | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ar, jo, sa | 1 | 22 MB | mid | — | — | MIT |
+| Speaker_0 | ar, jo, sa | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ar, jo, sa | 1 | 22 MB | mid | — | — | MIT |
+| Speaker_0 | ar, jo | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ar, jo | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ar, jo | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ar, jo | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ca, es | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ca, es | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ca, es | 1 | 17 MB | mid | — | — | MIT |
+| Speaker_0 | ca, es | 1 | 13 MB | mid | — | — | MIT |
+| Speaker_0 | ca, es | 1 | 17 MB | mid | — | — | MIT |
+| Speaker_0 | ca, es | 1 | 13 MB | mid | — | — | MIT |
+| Speaker_0 | cs, cz | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | cs, cz | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | cs, cz | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | cs, cz | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | cy, gb, bu | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | cy, gb, bu | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | cy, gb | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | cy, gb | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | da, dk | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | da, dk | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 17 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 13 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 58 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 35 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 58 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 35 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 59 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 35 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | de, de | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | el, gr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | el, gr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 59 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 35 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 24 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 80 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 24 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 116 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | en, gb | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 67 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 58 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 35 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 58 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 35 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 66 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 43 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 59 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 34 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 59 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 34 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | en, us | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | es | 1 | 67 MB | mid | — | — | MIT |
+| Speaker_0 | es, ar | 1 | 59 MB | mid | — | — | MIT |
+| Speaker_0 | es, ar | 1 | 35 MB | mid | — | — | MIT |
+| Speaker_0 | es, es | 1 | 17 MB | mid | — | — | MIT |
+| Speaker_0 | es, es | 1 | 13 MB | mid | — | — | MIT |
+| Speaker_0 | es, es | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | es, es | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | es, es | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | es, es | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | es, es | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | es, es | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | es, es | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | es, es | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | es, mx | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | es, mx | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | es, mx | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | es, mx | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | eu, es | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | eu, es | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | eu, es | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | eu, es | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fa | 1 | 67 MB | mid | — | — | MIT |
+| Speaker_0 | fa, ir | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fa, ir | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fa, ir | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fa, ir | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fa, ir | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fa, ir | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fa, ir | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fa, ir | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fa, ir | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fa, ir | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fa, en | 1 | 67 MB | mid | — | — | MIT |
+| Speaker_0 | fi, fi | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fi, fi | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fi, fi | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fi, fi | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 17 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 13 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | hi, in | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | hi, in | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | hi, in | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | hi, in | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | hi, in | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | hi, in | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | hu, hu | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | hu, hu | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | hu, hu | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | hu, hu | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | hu, hu | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | hu, hu | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | id, id | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | id, id | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | is, is | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | is, is | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | is, is | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | is, is | 1 | 20 MB | mid | — | — | MIT |
+| Speaker_0 | is, is | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | is, is | 1 | 20 MB | mid | — | — | MIT |
+| Speaker_0 | is, is | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | is, is | 1 | 20 MB | mid | — | — | MIT |
+| Speaker_0 | it, it | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | it, it | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | it, it | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | it, it | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | it, it | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | it, it | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | it, it | 1 | 16 MB | mid | — | — | MIT |
+| Speaker_0 | it, it | 1 | 13 MB | mid | — | — | MIT |
+| Speaker_0 | ka, ge | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ka, ge | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | kk, kz | 1 | 16 MB | mid | — | — | MIT |
+| Speaker_0 | kk, kz | 1 | 13 MB | mid | — | — | MIT |
+| Speaker_0 | kk, kz | 1 | 65 MB | mid | — | — | MIT |
+| Speaker_0 | kk, kz | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | kk, kz | 1 | 16 MB | mid | — | — | MIT |
+| Speaker_0 | kk, kz | 1 | 13 MB | mid | — | — | MIT |
+| Speaker_0 | ku, tr | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | ku, tr | 1 | 24 MB | mid | — | — | MIT |
+| Speaker_0 | lb, lu | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | lb, lu | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | lv, lv | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | lv, lv | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ml, in | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ml, in | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ml, in | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ml, in | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ne, np | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ne, np | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ne, np | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | ne, np | 1 | 24 MB | mid | — | — | MIT |
+| Speaker_0 | ne, np | 1 | 20 MB | mid | — | — | MIT |
+| Speaker_0 | ne, np | 1 | 15 MB | mid | — | — | MIT |
+| Speaker_0 | nl, be | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | nl, be | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | nl, be | 1 | 16 MB | mid | — | — | MIT |
+| Speaker_0 | nl, be | 1 | 13 MB | mid | — | — | MIT |
+| Speaker_0 | nl, be | 1 | 67 MB | mid | — | — | MIT |
+| Speaker_0 | nl, be | 1 | 26 MB | low | — | — | MIT |
+| Speaker_0 | nl, nl | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | nl, nl | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | nl, nl | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | nl, nl | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | nl, nl | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | nl, nl | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | nl, nl | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | nl, nl | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | nl, nl | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | nl, nl | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | no, no | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | no, no | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl | 1 | 59 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl | 1 | 35 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl, wg | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl, wg | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl, wg | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl, wg | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl, mc | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl, mc | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl, wg | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl, wg | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl, wg | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pl, pl, wg | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pt, br | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pt, pt | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pt, pt | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pt, pt | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pt, pt | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | pt, pt | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | pt, pt | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ro, ro | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ru, ru | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ru, ru | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ru, ru | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ru, ru | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ru, ru | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ru, ru | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | ru, ru | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ru, ru | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | sk, sk | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | sk, sk | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | sl, si | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | sl, si | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | sq, al | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | sq, al | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | sr, rs | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | sr, rs | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | sv, se | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | sv, se | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | sv, se | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | sv, se | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | sv, se | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | sv, se | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | sw, cd | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | sw, cd | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | tr, tr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | tr, tr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | tr, tr | 1 | 67 MB | mid | — | — | MIT |
+| Speaker_0 | tr, tr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | tr, tr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | tr, tr | 1 | 67 MB | mid | — | — | MIT |
+| Speaker_0 | tr, tr | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | tr, tr | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | uk, ua | 1 | 17 MB | mid | — | — | MIT |
+| Speaker_0 | uk, ua | 1 | 13 MB | mid | — | — | MIT |
+| Speaker_0 | uk, ua | 1 | 42 MB | mid | — | — | MIT |
+| Speaker_0 | uk, ua | 1 | 23 MB | mid | — | — | MIT |
+| Speaker_0 | ur, pk | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | ur, pk | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | vi, vn | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | vi, vn | 1 | 21 MB | mid | — | — | MIT |
+| Speaker_0 | vi, vn | 1 | 36 MB | mid | — | — | MIT |
+| Speaker_0 | vi, vn | 1 | 22 MB | mid | — | — | MIT |
+| Speaker_0 | vi, vn | 1 | 20 MB | mid | — | — | MIT |
+| Speaker_0 | vi, vn | 1 | 15 MB | mid | — | — | MIT |
+| Speaker_0 | zh, cn | 1 | 29 MB | mid | — | — | MIT |
+| Speaker_0 | zh, cn | 1 | 14 MB | mid | — | — | MIT |
+| Speaker_0 | zh, cn | 1 | 67 MB | mid | — | — | MIT |
+| Speaker_0 | zh, cn, ya | 1 | 29 MB | mid | — | — | MIT |
+| Speaker_0 | zh, cn, ya | 1 | 14 MB | mid | — | — | MIT |
 | Steinn | is-IS | 1 | 67 MB | mid | — | — | MIT |
 | Talesyntese | da-DK | 1 | 67 MB | mid | — | — | MIT |
 | Talesyntese | no-NO | 1 | 67 MB | mid | — | — | MIT |
@@ -199,7 +565,7 @@ Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, 
 | Xiao_ya | zh-CN | 1 | 60 MB | mid | — | — | MIT |
 | Zenski_wg_glos | pl-PL | 1 | 67 MB | mid | — | — | MIT |
 
-## kokoro (3)
+## kokoro (6)
 
 Higher-quality multilingual VITS variant (Kokoro-82M). 80–360 MB per voice; English bundles ship 1–50 speakers in a single model.
 
@@ -208,6 +574,9 @@ Higher-quality multilingual VITS variant (Kokoro-82M). 80–360 MB per voice; En
 | Kokoro (103 speakers) | zh-CN, en-US | 103 | 365 MB | high | — | — | Apache-2.0 |
 | Kokoro (11 speakers) | en-US | 11 | 320 MB | high | — | — | Apache-2.0 |
 | Kokoro (53 speakers) | zh-CN, en-US | 53 | 349 MB | high | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 103 MB | high | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 132 MB | high | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 147 MB | high | — | — | Apache-2.0 |
 
 ## kitten (7)
 
@@ -223,7 +592,7 @@ Tiny English-only VITS distillations tuned for low-end phones. <60 MB, fastest s
 | Kitten (8 speakers) | en-US | 8 | 64 MB | low | — | — | Apache-2.0 |
 | Kitten (8 speakers) | en-US | 8 | 31 MB | low | — | — | Apache-2.0 |
 
-## matcha (3)
+## matcha (5)
 
 Diffusion-based Matcha-TTS voices. Ships a vocoder side-asset alongside the main weights — Browse handles the dual download.
 
@@ -232,14 +601,110 @@ Diffusion-based Matcha-TTS voices. Ships a vocoder side-asset alongside the main
 | Baker | zh-CN | 1 | 75 MB | high | — | — | CC-BY-4.0 |
 | En | zh-CN, en-US | 1 | 79 MB | high | — | — | CC-BY-4.0 |
 | Ljspeech | en-US | 1 | 77 MB | high | — | — | CC-BY-4.0 |
+| Speaker_0 | fa, en | 1 | 77 MB | high | — | — | CC-BY-4.0 |
+| Speaker_0 | fa, en | 1 | 77 MB | high | — | — | CC-BY-4.0 |
 
-## supertonic (1)
+## supertonic (2)
 
 Newest (2026) multilingual model from Supertone. Single 100–200 MB bundle covering ~30 languages × 10 speakers.
 
 | Title | Languages | Speakers | Size | Tier | Quality | RTF | License |
 |---|---|---:|---:|---|---|---:|---|
+| Speaker_0 | en | 1 | 85 MB | high | — | — | CC-BY-NC-4.0 |
 | Supertonic (10 speakers) | 31 languages | 10 | 129 MB | high | — | — | CC-BY-NC-4.0 |
+
+## zipvoice (4)
+
+Flow-matching voice-cloning model. Accepts a reference clip + transcript and synthesises the target text in the cloned voice.
+
+| Title | Languages | Speakers | Size | Tier | Quality | RTF | License |
+|---|---|---:|---:|---|---|---:|---|
+| Speaker_0 · 🎤 cloning | zh, en | 1 | 478 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 · 🎤 cloning | zh, en | 1 | 109 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 · 🎤 cloning | zh, en | 1 | 635 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 · 🎤 cloning | zh, en | 1 | 635 MB | mid | — | — | Apache-2.0 |
+
+## pocket (2)
+
+Compact voice-cloning model. Same reference-audio API as ZipVoice but with a smaller voice-embedding cache and lighter weights.
+
+| Title | Languages | Speakers | Size | Tier | Quality | RTF | License |
+|---|---|---:|---:|---|---|---:|---|
+| Speaker_0 · 🎤 cloning | en | 1 | 168 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 · 🎤 cloning | en | 1 | 98 MB | mid | — | — | Apache-2.0 |
+
+## vits (68)
+
+| Title | Languages | Speakers | Size | Tier | Quality | RTF | License |
+|---|---|---:|---:|---|---|---:|---|
+| Speaker_0 | hf | 1 | 108 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | bg, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | bn | 1 | 108 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | cs, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | da, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | de | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 115 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 115 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 122 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | es | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | et, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | fi | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | fr | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | ga, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | hr, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | lt, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | lv, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | mt, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | nl | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | pl | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | pt, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | ro, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | sk, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | sl, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | sv, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | uk | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en, us | 1 | 32 MB | low | — | — | Apache-2.0 |
+| Speaker_0 | en, us | 1 | 74 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh | 1 | 32 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 109 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 163 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, en | 1 | 167 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | af, za | 1 | 80 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | bn | 1 | 80 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | el, gr | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | es, es | 1 | 80 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | fa | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | fi, fi | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | gu, in | 1 | 80 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | hu, hu | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | ko, ko | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | ne, np, ne | 1 | 80 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | pl, pl | 1 | 80 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | tn, za | 1 | 80 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | vi, vn | 1 | 67 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 108 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 108 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 108 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 108 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 108 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 108 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 108 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 108 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en | 1 | 152 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh | 1 | 147 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 119 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 119 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 119 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 119 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 119 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
 
 ---
 
