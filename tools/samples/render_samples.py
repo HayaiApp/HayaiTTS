@@ -8,12 +8,20 @@ bundles); paid runner minutes would be wasted.
 
 Output layout:
 
-    samples/<voice_id>.mp3       (uploaded to the `samples-rolling` release)
-    catalog/v1/models.json       (patched with `sampleAudioUrl` for every
-                                  voice that rendered successfully)
+    samples/<voice_id>__sid<N>__<lang>.mp3   (uploaded by the workflow's
+                                              publish job to one of the
+                                              sharded sample releases on
+                                              HayaiApp/HayaiTTS-samples;
+                                              shard = zlib.crc32(name) % 4)
+    samples/<voice_id>.mp3                   (canonical legacy copy, same
+                                              hash-sharding rule)
+    catalog/v1/models.json                   (patched with `sampleAudioUrl`
+                                              + `speakerSamples` for every
+                                              voice that rendered)
 
-The script is idempotent: re-running skips voices whose MP3 already
-exists on disk. Family config builders mirror
+The script is idempotent: re-running skips combos whose MP3 already
+exists on disk OR appears in the `--existing-assets` manifest (which the
+workflow pre-populates from the live release asset lists). Family config builders mirror
 `app/src/main/.../tts/SherpaTtsRuntime.kt` exactly — adding a new family
 upstream means porting the matching Kotlin builder here.
 
@@ -34,6 +42,7 @@ import tarfile
 import tempfile
 import time
 import wave
+import zlib
 from pathlib import Path
 from typing import Any
 
@@ -42,10 +51,22 @@ from typing import Any
 # can import this module on hosts that haven't installed the render-time
 # Python deps yet.
 
-SAMPLES_RELEASE_TAG = "samples-rolling"
-SAMPLES_DOWNLOAD_BASE = (
-    f"https://github.com/HayaiApp/HayaiTTS/releases/download/{SAMPLES_RELEASE_TAG}"
-)
+# Samples are hosted in a dedicated repo to dodge the 1000-assets-per-release
+# cap; within that repo they're sharded across `SAMPLES_SHARD_COUNT` release
+# tags by a stable hash of the filename. The shard math is mirrored verbatim
+# in `.github/workflows/render-samples.yml`'s publish job — keep both in sync.
+SAMPLES_REPO = "HayaiApp/HayaiTTS-samples"
+SAMPLES_SHARD_COUNT = 4
+SAMPLES_RELEASE_TAG_PREFIX = "samples-"
+SAMPLES_DOWNLOAD_BASE = f"https://github.com/{SAMPLES_REPO}/releases/download"
+
+
+def _shard_for(filename: str) -> int:
+    return zlib.crc32(filename.encode("utf-8")) % SAMPLES_SHARD_COUNT
+
+
+def _shard_tag(shard: int) -> str:
+    return f"{SAMPLES_RELEASE_TAG_PREFIX}{shard}"
 
 # Per-locale sample phrase. Pangrams where they exist, short culturally
 # familiar lines otherwise. Keep under ~80 chars so synthesis stays under
@@ -153,11 +174,13 @@ def combo_filename(voice_id: str, sid: int, language: str) -> str:
 
 
 def combo_url(voice_id: str, sid: int, language: str) -> str:
-    return f"{SAMPLES_DOWNLOAD_BASE}/{combo_filename(voice_id, sid, language)}"
+    fn = combo_filename(voice_id, sid, language)
+    return f"{SAMPLES_DOWNLOAD_BASE}/{_shard_tag(_shard_for(fn))}/{fn}"
 
 
 def family_url(voice_id: str) -> str:
-    return f"{SAMPLES_DOWNLOAD_BASE}/{voice_id}.mp3"
+    fn = f"{voice_id}.mp3"
+    return f"{SAMPLES_DOWNLOAD_BASE}/{_shard_tag(_shard_for(fn))}/{fn}"
 
 
 def log(msg: str) -> None:
@@ -685,6 +708,16 @@ def main() -> int:
              "in place. Used by the matrix workflow so shards never write "
              "to the same file.",
     )
+    ap.add_argument(
+        "--existing-assets",
+        default="",
+        help="Path to JSON file containing a flat list of asset filenames "
+             "(e.g. ['voiceid__sid0__en.mp3', ...]) that already exist on "
+             "the sharded sample releases. Combos whose filename is in this "
+             "set are treated as already rendered: the patch JSON still "
+             "records their URL, but no synthesis runs. Lets the matrix "
+             "workflow skip re-rendering when the per-shard cache misses.",
+    )
     args = ap.parse_args()
 
     # Worker mode: one (voice, sid, lang) triple, no orchestration. Called
@@ -729,6 +762,12 @@ def main() -> int:
     if args.voices.strip():
         only_voices = {vid.strip() for vid in args.voices.split(",") if vid.strip()}
 
+    existing_assets: set[str] = set()
+    if args.existing_assets:
+        with open(args.existing_assets, "r", encoding="utf-8") as fh:
+            existing_assets = {str(name) for name in json.load(fh)}
+        log(f"existing-assets manifest: {len(existing_assets)} filenames")
+
     patches: dict[str, dict] = {}
 
     produced = 0
@@ -753,8 +792,11 @@ def main() -> int:
         for sp in speakers:
             sid = int(sp.get("id", 0))
             for lang in langs_to_render:
-                combo_path = out_dir / combo_filename(voice_id, sid, lang)
-                if args.only_missing and combo_path.exists() and combo_path.stat().st_size > 0:
+                combo_fn = combo_filename(voice_id, sid, lang)
+                combo_path = out_dir / combo_fn
+                on_disk = combo_path.exists() and combo_path.stat().st_size > 0
+                on_release = combo_fn in existing_assets
+                if (args.only_missing and on_disk) or on_release:
                     combos.append({"speakerId": sid, "language": lang, "url": combo_url(voice_id, sid, lang)})
                     skipped += 1
                     continue

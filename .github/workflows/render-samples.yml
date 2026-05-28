@@ -1,26 +1,36 @@
 name: Render voice samples
 
 # Rebuilds the per-(speaker, language) MP3 sample library hosted on the
-# `samples-rolling` release. HayaiTTS' Browse and Voice Detail audition
+# sharded sample releases. HayaiTTS' Browse and Voice Detail audition
 # buttons stream the clips at:
-#   https://github.com/HayaiApp/HayaiTTS/releases/download/samples-rolling/<voice_id>__sid<N>__<lang>.mp3
+#   https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-<shard>/<voice_id>__sid<N>__<lang>.mp3
+# where `<shard>` is `zlib.crc32(filename) % 4`. Sharding sidesteps GitHub's
+# 1000-assets-per-release cap (current corpus is ~3,156 files).
 #
-# Pipeline (three stages):
+# Pipeline (four stages):
 #
-#   plan     — read the catalog, bin-pack voices into N shards by cost
-#              (speakers × render_languages). One Kokoro multi-lang voice
-#              has ~200 combos; one Piper voice has 1. Without bin-packing
-#              a single shard can blow past the 6h per-job runner limit.
+#   plan                     — read the catalog, bin-pack voices into N
+#                              render shards by cost (speakers ×
+#                              render_languages). Unrelated to the 4
+#                              hosting shards.
 #
-#   render   — matrix of N parallel jobs. Each job renders only the voices
-#              assigned to its shard, writes the MP3s to `samples/` and a
-#              `{voice_id: {sampleAudioUrl, speakerSamples}}` patch JSON.
-#              Both are uploaded as artifacts.
+#   prepare-assets-manifest  — list assets currently on every sharded
+#                              release (and the legacy samples-rolling
+#                              release during migration); write the union
+#                              to `existing-assets.json`. Lets render
+#                              skip combos that already exist online,
+#                              even when its local cache is cold.
 #
-#   publish  — downloads every shard's samples + patches, merges patches
-#              into `catalog/v1/models.json` (and the bundled asset copy),
-#              uploads all MP3s to the `samples-rolling` release in one
-#              atomic operation, commits the catalog.
+#   render                   — matrix of N parallel jobs. Each renders
+#                              only its assigned voices, writes the MP3s
+#                              to `samples/` and a patch JSON. Skips any
+#                              combo present in the manifest.
+#
+#   publish                  — downloads every shard's samples + patches,
+#                              merges patches into `catalog/v1/models.json`,
+#                              buckets MP3s by hosting shard, uploads each
+#                              bucket to its `samples-<i>` release on
+#                              HayaiTTS-samples, commits the catalog.
 #
 # Runs on GitHub-hosted `ubuntu-latest`, NOT Blacksmith — the workload is
 # bandwidth-bound (bundle downloads dominate); paid runner minutes would
@@ -90,8 +100,79 @@ jobs:
           path: shard-plan.json
           if-no-files-found: error
 
+  prepare-assets-manifest:
+    # Lists every MP3 already published to the sharded sample releases
+    # (and the legacy `samples-rolling` release on this repo during the
+    # migration window) so the render jobs can skip combos that already
+    # exist online — survives a cold per-shard cache.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Fetch existing assets from sharded sample releases
+        env:
+          GH_TOKEN: ${{ secrets.SAMPLES_REPO_TOKEN }}
+          LEGACY_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python <<'PY'
+          import json, os, subprocess
+          REPO = "HayaiApp/HayaiTTS-samples"
+          SHARDS = 4
+          LEGACY_REPO = "HayaiApp/HayaiTTS"
+          LEGACY_TAG = "samples-rolling"
+
+          names: set[str] = set()
+          for tag in [f"samples-{i}" for i in range(SHARDS)]:
+              try:
+                  out = subprocess.check_output(
+                      ["gh", "api",
+                       f"repos/{REPO}/releases/tags/{tag}",
+                       "--jq", ".assets[].name"],
+                      text=True,
+                  )
+                  asset_names = [n for n in out.splitlines() if n]
+                  names.update(asset_names)
+                  print(f"  {tag}: {len(asset_names)} assets")
+              except subprocess.CalledProcessError:
+                  print(f"  {tag}: release not found yet (first run?)")
+
+          # Legacy fallback: pull from the old single release on this repo
+          # so the migration run can skip-and-relabel instead of re-rendering
+          # ~3k MP3s. Remove this block in PR 2 once the new releases are
+          # populated.
+          env_with_legacy = {**os.environ,
+                             "GH_TOKEN": os.environ.get("LEGACY_GH_TOKEN", "")}
+          try:
+              out = subprocess.check_output(
+                  ["gh", "api",
+                   f"repos/{LEGACY_REPO}/releases/tags/{LEGACY_TAG}",
+                   "--jq", ".assets[].name"],
+                  text=True,
+                  env=env_with_legacy,
+              )
+              legacy = [n for n in out.splitlines() if n]
+              names.update(legacy)
+              print(f"  LEGACY {LEGACY_TAG}: {len(legacy)} assets")
+          except subprocess.CalledProcessError as e:
+              print(f"  LEGACY {LEGACY_TAG}: skipped ({e})")
+
+          with open("existing-assets.json", "w", encoding="utf-8") as fh:
+              json.dump(sorted(names), fh)
+          print(f"total unique asset names: {len(names)}")
+          PY
+
+      - name: Upload existing-assets manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: existing-assets
+          path: existing-assets.json
+          if-no-files-found: error
+
   render:
-    needs: plan
+    needs: [plan, prepare-assets-manifest]
     runs-on: ubuntu-latest
     timeout-minutes: 350
     strategy:
@@ -128,6 +209,12 @@ jobs:
           name: shard-plan
           path: .
 
+      - name: Download existing-assets manifest
+        uses: actions/download-artifact@v4
+        with:
+          name: existing-assets
+          path: .
+
       - name: Restore sample + bundle cache
         # Per-shard cache key keeps multi-job runs from stomping each other.
         # `restore-keys` falls back to any prior render-samples cache so
@@ -159,6 +246,7 @@ jobs:
             --output samples \
             --cache .sample_cache \
             --only-missing \
+            --existing-assets existing-assets.json \
             --voices "$VOICES" \
             --patch-output patches/shard-${{ matrix.shard }}.json \
             ${{ inputs.family && format('--family {0}', inputs.family) || '' }}
@@ -180,7 +268,7 @@ jobs:
           retention-days: 7
 
   publish:
-    needs: [plan, render]
+    needs: [plan, prepare-assets-manifest, render]
     if: always() && needs.render.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
@@ -257,79 +345,79 @@ jobs:
             ls -1 samples/ | head -30 | sed 's/^/  - /'
           } >> "$GITHUB_STEP_SUMMARY" || true
 
-      - name: Ensure samples-rolling release exists
+      - name: Ensure sharded sample releases exist
         if: steps.summary.outputs.rendered != '0'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.SAMPLES_REPO_TOKEN }}
         run: |
           set -euo pipefail
-          # softprops/action-gh-release@v2 created this release in earlier
-          # runs; if it's gone (manual cleanup), recreate it before any
-          # upload step. `gh release view` exits non-zero on miss.
-          if ! gh release view samples-rolling >/dev/null 2>&1; then
-            gh release create samples-rolling \
-              --title "Voice samples (rolling)" \
-              --prerelease \
-              --notes "Per-(speaker, language) MP3 audition clips rendered from sherpa-onnx. Overwritten in place each run; do not link to specific commit SHAs."
-          fi
-
-      - name: Upload sample MP3s to release (batched)
-        if: steps.summary.outputs.rendered != '0'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # softprops/action-gh-release@v2 uploads every asset sequentially
-        # and trips GitHub's secondary rate limit at ~3k files (request
-        # ID 325F:350FCF:0720:359FB:6A1353C3 in run 26365081440). The fix
-        # is to batch: 80 files per `gh release upload` call, 20 s sleep
-        # between batches. `--clobber` makes each call idempotent so reruns
-        # (and the cache+only-missing combo) are safe.
-        run: |
-          set -euo pipefail
-          mapfile -t FILES < <(ls samples/*.mp3 2>/dev/null || true)
-          total=${#FILES[@]}
-          echo "Uploading $total MP3s to samples-rolling in batches of 80..."
-          batch=80
-          i=0
-          while [ $i -lt $total ]; do
-            chunk=("${FILES[@]:i:batch}")
-            attempt=0
-            until gh release upload samples-rolling "${chunk[@]}" --clobber; do
-              attempt=$((attempt+1))
-              if [ $attempt -ge 5 ]; then
-                echo "::error::upload batch starting at $i failed after 5 attempts"
-                exit 1
-              fi
-              backoff=$((attempt * 60))
-              echo "batch $i failed; sleeping ${backoff}s before retry $attempt..."
-              sleep "$backoff"
-            done
-            i=$((i + batch))
-            if [ $i -lt $total ]; then
-              sleep 20
+          for i in 0 1 2 3; do
+            tag="samples-$i"
+            if ! gh release view "$tag" --repo HayaiApp/HayaiTTS-samples >/dev/null 2>&1; then
+              gh release create "$tag" \
+                --repo HayaiApp/HayaiTTS-samples \
+                --title "Voice samples (shard $i of 4)" \
+                --prerelease \
+                --notes "Per-(speaker, language) MP3 audition clips for HayaiTTS. Asset filenames hash into this shard via \`zlib.crc32(name) % 4\`. Rendered weekly from sherpa-onnx; see https://github.com/HayaiApp/HayaiTTS/blob/main/.github/workflows/render-samples.yml."
             fi
           done
-          echo "Uploaded $total MP3s."
 
-      - name: Update release notes
+      - name: Upload sample MP3s to sharded releases (batched)
         if: steps.summary.outputs.rendered != '0'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.SAMPLES_REPO_TOKEN }}
+        # The previous incarnation uploaded everything to a single
+        # `samples-rolling` release and tripped GitHub's 1000-asset
+        # per-release cap once the corpus passed ~1k files (HTTP 422
+        # Validation Failed in run 26403163305). Sharding across 4 release
+        # tags gives 4000-asset headroom over the current ~3,156 corpus.
+        # The CRC32 shard math here must stay byte-identical to
+        # `_shard_for` in `tools/samples/render_samples.py`.
         run: |
-          gh release edit samples-rolling \
-            --title "Voice samples (rolling)" \
-            --notes "Per-(speaker, language) MP3 audition clips rendered from sherpa-onnx using the same runtime HayaiTTS ships. Streamed inline by Browse and Voice Detail audition buttons before the user downloads the model.
+          set -euo pipefail
+          python <<'PY'
+          import subprocess, sys, time, zlib
+          from pathlib import Path
 
-          **Coverage**: ${{ steps.summary.outputs.rendered }} clips across the ${{ steps.summary.outputs.total }} catalog voices.
+          SHARDS = 4
+          BATCH = 80
+          SLEEP_BETWEEN = 20
+          REPO = "HayaiApp/HayaiTTS-samples"
 
-          **Naming**:
-          - Per-combo: \`<voice_id>__sid<N>__<lang>.mp3\`
-          - Canonical (legacy \`sampleAudioUrl\`): \`<voice_id>.mp3\` (= sid=0 in the voice's primary language)
+          def shard_for(name: str) -> int:
+              return zlib.crc32(name.encode("utf-8")) % SHARDS
 
-          **Encoding**: 96 kbps mono MP3 (libmp3lame). Each clip is typically 60–120 KB.
+          buckets: dict[int, list[str]] = {i: [] for i in range(SHARDS)}
+          for p in sorted(Path("samples").glob("*.mp3")):
+              buckets[shard_for(p.name)].append(str(p))
 
-          **Update cadence**: weekly Monday 10:00 UTC via [\`render-samples.yml\`](https://github.com/HayaiApp/HayaiTTS/blob/main/.github/workflows/render-samples.yml), two hours after the catalog refresh.
+          total = sum(len(v) for v in buckets.values())
+          print(f"uploading {total} MP3s across {SHARDS} sharded releases")
 
-          This release is overwritten in place each run; do not link to specific commit SHAs."
+          for shard, files in buckets.items():
+              tag = f"samples-{shard}"
+              print(f"shard {shard} ({tag}): {len(files)} files")
+              for i in range(0, len(files), BATCH):
+                  chunk = files[i : i + BATCH]
+                  for attempt in range(1, 6):
+                      rc = subprocess.call(
+                          ["gh", "release", "upload", tag, *chunk,
+                           "--repo", REPO, "--clobber"]
+                      )
+                      if rc == 0:
+                          break
+                      backoff = attempt * 60
+                      print(f"  batch {i} failed (attempt {attempt}); "
+                            f"sleeping {backoff}s")
+                      time.sleep(backoff)
+                  else:
+                      print(f"::error::shard {shard} batch {i} failed "
+                            f"after 5 attempts")
+                      sys.exit(1)
+                  if i + BATCH < len(files):
+                      time.sleep(SLEEP_BETWEEN)
+          print(f"uploaded {total} MP3s")
+          PY
 
       - name: Sync catalog to bundled asset
         run: |
