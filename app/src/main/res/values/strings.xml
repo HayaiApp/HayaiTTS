@@ -102,6 +102,10 @@
 
     <!-- Phase 7: tier auto-recommendation pill + Settings overhaul -->
     <string name="voice_chip_recommended">Recommended for your device</string>
+    <string name="voice_chip_cloning">Voice cloning</string>
+    <string name="voice_chip_streaming">Streaming</string>
+    <string name="browse_filter_capabilities">Capabilities</string>
+    <string name="browse_filter_cloning_only">Voice cloning</string>
     <string name="settings_section_downloads">Downloads</string>
     <string name="settings_wifi_only">Wi-Fi only</string>
     <string name="settings_wifi_only_subtitle">Block voice downloads on metered cellular.</string>

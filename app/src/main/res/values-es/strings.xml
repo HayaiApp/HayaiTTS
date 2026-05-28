@@ -19,6 +19,10 @@
     <string name="voice_chip_bundled">Incluida</string>
     <string name="voice_chip_coming_soon">Próximamente</string>
     <string name="voice_chip_recommended">Recomendada para tu dispositivo</string>
+    <string name="voice_chip_cloning">Clonación de voz</string>
+    <string name="voice_chip_streaming">Streaming</string>
+    <string name="browse_filter_capabilities">Capacidades</string>
+    <string name="browse_filter_cloning_only">Clonación de voz</string>
     <string name="custom_chip">Personalizada</string>
     <string name="voice_favorite">Marcar como favorita</string>
     <string name="voice_unfavorite">Quitar de favoritas</string>

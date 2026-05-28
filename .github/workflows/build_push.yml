@@ -213,10 +213,12 @@ jobs:
       #   3. CI for the nightly repo never re-runs source builds — it only
       #      hosts release assets uploaded here.
       #
-      # Requires `NIGHTLY_REPO_TOKEN` (a GitHub PAT with `repo` scope on
-      # HayaiApp/HayaiTTS-nightly) configured in the main repo's Actions
-      # secrets. Falls back to GITHUB_TOKEN if you only ever publish nightlies
-      # in the same repo.
+      # We reuse `SAMPLES_REPO_TOKEN` here — it's the PAT the
+      # render-samples workflow uses to publish into HayaiTTS-samples, and
+      # the same token has been granted release-write on
+      # HayaiApp/HayaiTTS-nightly so a second secret is not needed. The
+      # workflow-default GITHUB_TOKEN cannot create releases on a different
+      # repository (returns 403 "Resource not accessible by integration").
       - name: Create Nightly
         if: startsWith(env.VERSION_TAG, 'r')
         uses: softprops/action-gh-release@v2
@@ -247,4 +249,4 @@ jobs:
           draft: false
           prerelease: true
         env:
-          GITHUB_TOKEN: ${{ secrets.NIGHTLY_REPO_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SAMPLES_REPO_TOKEN }}

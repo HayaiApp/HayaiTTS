@@ -261,6 +261,18 @@ fun CatalogVoiceCard(
             }
             FamilyChip(card.modelFamily)
             TierChip(tier = card.tierEnum, sizeMb = card.approxSizeMb)
+            if (card.modelFamily.supportsCloning) {
+                AssistChip(
+                    onClick = {},
+                    label = { Text(stringResource(R.string.voice_chip_cloning)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Outlined.Tune,
+                            contentDescription = null,
+                        )
+                    },
+                )
+            }
             val showRecommended = recommendedTier != null &&
                 card.tierEnum == recommendedTier &&
                 !isInstalled &&

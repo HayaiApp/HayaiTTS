@@ -59,6 +59,12 @@ class BrowseViewModel(
          */
         val genders: Set<String> = emptySet(),
         val query: String = "",
+        /**
+         * When `true`, only voices whose family supports reference-audio
+         * cloning (ZipVoice, Pocket) make it into the result set. Default is
+         * `false` — no restriction.
+         */
+        val cloningOnly: Boolean = false,
     ) {
         val activeCount: Int get() {
             var n = 0
@@ -67,6 +73,7 @@ class BrowseViewModel(
             if (families.isNotEmpty()) n++
             if (genders.isNotEmpty()) n++
             if (query.isNotBlank()) n++
+            if (cloningOnly) n++
             return n
         }
     }
@@ -148,6 +155,7 @@ class BrowseViewModel(
         if (!next.add(normalised)) next.remove(normalised)
         it.copy(genders = next)
     }
+    fun setCloningOnly(value: Boolean) = filters.update { it.copy(cloningOnly = value) }
     fun clearLanguages() = filters.update { it.copy(languages = emptySet()) }
     fun clearFamilies() = filters.update { it.copy(families = emptySet()) }
     fun clearAllFilters() = filters.update { Filters() }
@@ -167,6 +175,7 @@ class BrowseViewModel(
             (f.families.isEmpty() || card.modelFamily in f.families) &&
             (f.genders.isEmpty() ||
                 card.speakers.any { normaliseGender(it.gender) in f.genders }) &&
+            (!f.cloningOnly || card.modelFamily.supportsCloning) &&
             (f.query.isBlank() || card.title.contains(f.query.trim(), ignoreCase = true))
     }
 

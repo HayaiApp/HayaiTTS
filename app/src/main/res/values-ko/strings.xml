@@ -17,6 +17,10 @@
     <string name="voice_chip_bundled">내장</string>
     <string name="voice_chip_coming_soon">곧 제공</string>
     <string name="voice_chip_recommended">기기에 추천</string>
+    <string name="voice_chip_cloning">음성 복제</string>
+    <string name="voice_chip_streaming">스트리밍</string>
+    <string name="browse_filter_capabilities">기능</string>
+    <string name="browse_filter_cloning_only">음성 복제</string>
     <string name="custom_chip">사용자 지정</string>
     <string name="voice_favorite">즐겨찾기에 추가</string>
     <string name="voice_unfavorite">즐겨찾기에서 제거</string>

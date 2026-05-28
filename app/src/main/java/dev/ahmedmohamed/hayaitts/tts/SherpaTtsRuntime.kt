@@ -3,6 +3,7 @@ package dev.ahmedmohamed.hayaitts.tts
 import android.annotation.SuppressLint
 import android.content.Context
 import co.touchlab.kermit.Logger
+import com.k2fsa.sherpa.onnx.GenerationConfig
 import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsKittenModelConfig
@@ -95,6 +96,107 @@ class SherpaTtsRuntime private constructor(
      * IllegalArgumentExceptions, etc., from the native code.
      */
     class SynthesisFailure(message: String, cause: Throwable) : RuntimeException(message, cause)
+
+    /**
+     * Streaming variant: invokes [onChunk] with each FloatArray chunk
+     * produced by the JNI layer as it lands instead of waiting for the whole
+     * synthesis to finish. Returning `0` from [onChunk] cancels generation
+     * (sherpa-onnx contract); any non-zero return value asks for more.
+     *
+     * Pitch shifting is applied *per chunk*. The resampler is stateless on
+     * the chunk boundary, so very fine pitch shifts at chunk seams may
+     * introduce a click — caller code that values low-latency over fidelity
+     * should leave pitch at 1.0.
+     */
+    fun synthesizeStreaming(
+        voiceId: String,
+        text: String,
+        sid: Int = 0,
+        speed: Float = 1.0f,
+        pitch: Float = 1.0f,
+        lengthScale: Float = 1.0f,
+        noiseScale: Float = 0.667f,
+        noiseScaleW: Float = 0.8f,
+        onChunk: (FloatArray) -> Int,
+    ): SynthesisOutput {
+        val tts = engine(voiceId, lengthScale, noiseScale, noiseScaleW)
+        val audio = try {
+            tts.generateWithCallback(
+                text = text,
+                sid = sid,
+                speed = speed,
+            ) { chunk ->
+                val shifted = if (kotlin.math.abs(pitch - 1f) < 0.001f) chunk
+                    else PitchResampler.resample(chunk, pitch)
+                onChunk(shifted)
+            }
+        } catch (t: Throwable) {
+            log.e(t) { "tts.generateWithCallback failed for $voiceId sid=$sid" }
+            throw SynthesisFailure(
+                "Streaming synthesis failed for $voiceId: ${t.message ?: t::class.simpleName}",
+                t,
+            )
+        }
+        return SynthesisOutput(sampleRate = audio.sampleRate, samples = audio.samples)
+    }
+
+    /**
+     * Voice-cloning variant for ZipVoice / Pocket. Pass the reference clip's
+     * float samples in [-1, 1] (mono) plus the reference sample rate and the
+     * transcript of *what the reference says*. Sherpa-onnx synthesises the
+     * target [text] in the voice characterised by the reference.
+     *
+     * Throws on non-cloning families — caller must gate on
+     * [ModelFamily.supportsCloning] before invoking.
+     */
+    fun synthesizeCloned(
+        voiceId: String,
+        text: String,
+        referenceAudio: FloatArray,
+        referenceSampleRate: Int,
+        referenceText: String,
+        speed: Float = 1.0f,
+        sid: Int = 0,
+        numSteps: Int = 8,
+        onChunk: ((FloatArray) -> Int)? = null,
+    ): SynthesisOutput {
+        val installed = installedFor(voiceId)
+            ?: throw SynthesisFailure(
+                "Voice $voiceId is not installed",
+                IllegalStateException("voice not installed"),
+            )
+        require(installed.family.supportsCloning) {
+            "Family ${installed.family} does not support voice cloning"
+        }
+        val tts = engine(voiceId, lengthScale = 1f, noiseScale = 0.667f, noiseScaleW = 0.8f)
+        val cfg = GenerationConfig(
+            silenceScale = 1f,
+            speed = speed,
+            sid = sid,
+            referenceAudio = referenceAudio,
+            referenceSampleRate = referenceSampleRate,
+            referenceText = referenceText,
+            numSteps = numSteps,
+            extra = emptyMap(),
+        )
+        val audio = try {
+            if (onChunk == null) {
+                tts.generateWithConfig(text = text, config = cfg)
+            } else {
+                tts.generateWithConfigAndCallback(text = text, config = cfg, callback = onChunk)
+            }
+        } catch (t: Throwable) {
+            log.e(t) { "tts.generateWithConfig failed for $voiceId (cloning)" }
+            throw SynthesisFailure(
+                "Voice cloning failed for $voiceId: ${t.message ?: t::class.simpleName}",
+                t,
+            )
+        }
+        return SynthesisOutput(sampleRate = audio.sampleRate, samples = audio.samples)
+    }
+
+    private fun installedFor(voiceId: String): InstalledVoice? =
+        listAvailableVoices().firstOrNull { it.voiceId == voiceId }
 
     /**
      * Phase 9b: Kokoro 1.1 multi-speaker blending. Synthesizes once per

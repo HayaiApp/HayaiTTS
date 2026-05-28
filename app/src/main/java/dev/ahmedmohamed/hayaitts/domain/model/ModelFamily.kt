@@ -18,6 +18,23 @@ enum class ModelFamily {
     SUPERTONIC,
     CUSTOM;
 
+    /**
+     * `true` when the family's sherpa-onnx config accepts a reference audio
+     * clip + transcript via [com.k2fsa.sherpa.onnx.GenerationConfig] so the
+     * runtime can synthesise *in the cloned voice*. Only the flow-matching
+     * families ZipVoice and Pocket implement this in lib-sherpa-onnx 1.13.2.
+     */
+    val supportsCloning: Boolean get() = this == ZIPVOICE || this == POCKET
+
+    /**
+     * Every sherpa-onnx family exposes the JNI `generateWithCallback` hook
+     * which streams audio chunks as they're produced, so streaming is a
+     * runtime feature, not a per-voice one. Kept as a property here so
+     * future families that don't (e.g. a hypothetical pre-batched neural
+     * codec) can override.
+     */
+    val supportsStreaming: Boolean get() = this != CUSTOM
+
     companion object {
         fun fromCatalog(raw: String): ModelFamily = when (raw.lowercase()) {
             "piper" -> PIPER

@@ -107,14 +107,10 @@ fun BrowseScreen(
     var filterSheetOpen by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    val activeFilterCount = remember(state.filters) {
-        var n = 0
-        if (state.filters.languages.isNotEmpty()) n++
-        if (state.filters.tier != null) n++
-        if (state.filters.families.isNotEmpty()) n++
-        if (state.filters.genders.isNotEmpty()) n++
-        n
-    }
+    // Defer to the model's canonical accounting (which knows about
+    // cloningOnly and any future filter additions); the local copy used to
+    // miss new fields when filters grew.
+    val activeFilterCount = state.filters.activeCount
 
     dev.ahmedmohamed.hayaitts.ui.components.HayaiScreenChrome(
         title = stringResource(R.string.nav_browse),
@@ -216,6 +212,10 @@ fun BrowseScreen(
             },
             onToggleGender = {
                 viewModel.toggleGender(it)
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            },
+            onSetCloningOnly = {
+                viewModel.setCloningOnly(it)
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             },
             onReset = viewModel::clearAllFilters,
@@ -334,6 +334,7 @@ private fun FilterSheet(
     onSetTier: (Tier?) -> Unit,
     onToggleFamily: (ModelFamily) -> Unit,
     onToggleGender: (String) -> Unit,
+    onSetCloningOnly: (Boolean) -> Unit,
     onReset: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -358,6 +359,23 @@ private fun FilterSheet(
 
             FilterGroup(stringResource(R.string.browse_filter_tier)) {
                 TierSegmented(tier = filters.tier, onPick = onSetTier)
+            }
+
+            HorizontalDivider()
+
+            FilterGroup(stringResource(R.string.browse_filter_capabilities)) {
+                FilterChip(
+                    selected = filters.cloningOnly,
+                    onClick = { onSetCloningOnly(!filters.cloningOnly) },
+                    label = { Text(stringResource(R.string.browse_filter_cloning_only)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Outlined.RecordVoiceOver,
+                            contentDescription = null,
+                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                        )
+                    },
+                )
             }
 
             HorizontalDivider()

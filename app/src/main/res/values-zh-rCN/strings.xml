@@ -17,6 +17,10 @@
     <string name="voice_chip_bundled">内置</string>
     <string name="voice_chip_coming_soon">即将推出</string>
     <string name="voice_chip_recommended">推荐给你的设备</string>
+    <string name="voice_chip_cloning">语音克隆</string>
+    <string name="voice_chip_streaming">流式传输</string>
+    <string name="browse_filter_capabilities">能力</string>
+    <string name="browse_filter_cloning_only">语音克隆</string>
     <string name="custom_chip">自定义</string>
     <string name="voice_favorite">收藏语音</string>
     <string name="voice_unfavorite">取消收藏</string>

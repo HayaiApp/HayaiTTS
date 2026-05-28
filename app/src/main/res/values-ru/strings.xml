@@ -17,6 +17,10 @@
     <string name="voice_chip_bundled">Встроено</string>
     <string name="voice_chip_coming_soon">Скоро</string>
     <string name="voice_chip_recommended">Рекомендовано для вашего устройства</string>
+    <string name="voice_chip_cloning">Клонирование голоса</string>
+    <string name="voice_chip_streaming">Потоковая передача</string>
+    <string name="browse_filter_capabilities">Возможности</string>
+    <string name="browse_filter_cloning_only">Клонирование голоса</string>
     <string name="custom_chip">Свой</string>
     <string name="voice_favorite">В избранное</string>
     <string name="voice_unfavorite">Убрать из избранного</string>

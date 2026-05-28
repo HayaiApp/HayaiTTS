@@ -17,6 +17,10 @@
     <string name="voice_chip_bundled">同梱</string>
     <string name="voice_chip_coming_soon">近日提供</string>
     <string name="voice_chip_recommended">このデバイスにおすすめ</string>
+    <string name="voice_chip_cloning">音声クローン</string>
+    <string name="voice_chip_streaming">ストリーミング</string>
+    <string name="browse_filter_capabilities">機能</string>
+    <string name="browse_filter_cloning_only">音声クローン</string>
     <string name="custom_chip">カスタム</string>
     <string name="voice_favorite">お気に入りに追加</string>
     <string name="voice_unfavorite">お気に入りから外す</string>

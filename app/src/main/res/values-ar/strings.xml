@@ -17,6 +17,10 @@
     <string name="voice_chip_bundled">مضمَّن</string>
     <string name="voice_chip_coming_soon">قريبًا</string>
     <string name="voice_chip_recommended">موصى به لجهازك</string>
+    <string name="voice_chip_cloning">استنساخ الصوت</string>
+    <string name="voice_chip_streaming">بث مباشر</string>
+    <string name="browse_filter_capabilities">الإمكانيات</string>
+    <string name="browse_filter_cloning_only">استنساخ الصوت</string>
     <string name="custom_chip">مخصّص</string>
     <string name="voice_favorite">إضافة إلى المفضّلة</string>
     <string name="voice_unfavorite">إزالة من المفضّلة</string>
