@@ -43,11 +43,17 @@ jobs:
       - name: Regenerate catalog
         run: python tools/catalog/build_catalog.py --output catalog/v1/models.json
 
+      # docs/MODELS.md is the human-readable view of catalog/v1/models.json
+      # that the README points at. Rebuild it after every refresh so the
+      # markdown table never lags behind the JSON the app actually consumes.
+      - name: Regenerate model list
+        run: python tools/catalog/build_model_list.py --catalog catalog/v1/models.json --output docs/MODELS.md
+
       - name: Commit + push if changed
         run: |
           set -euo pipefail
-          if git diff --quiet --exit-code catalog/v1/models.json; then
-            echo "Catalog is identical to upstream — nothing to commit."
+          if git diff --quiet --exit-code catalog/v1/models.json docs/MODELS.md; then
+            echo "Catalog + model list are identical to upstream — nothing to commit."
             exit 0
           fi
           git config user.name 'github-actions[bot]'
@@ -55,6 +61,6 @@ jobs:
           # Count voices for the commit message — a quick at-a-glance audit
           # of catalog churn from `git log catalog/v1/models.json`.
           count=$(python -c "import json; print(len(json.load(open('catalog/v1/models.json'))['voices']))")
-          git add catalog/v1/models.json
+          git add catalog/v1/models.json docs/MODELS.md
           git commit -m "Refresh catalog from upstream sherpa-onnx index ($count voices)"
           git push origin HEAD:main

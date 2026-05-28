@@ -18,6 +18,12 @@
          "Install blocked" OS error toast on API 26+. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- Voice cloning: capture a 5–30 s reference clip via the in-app
+         recorder. Asked at runtime via Activity.requestPermissions, only
+         when the user opens the cloning screen for a ZipVoice / Pocket
+         voice. Never requested at launch. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:name=".app.HayaiTtsApplication"
         android:label="@string/app_name"
