@@ -380,4 +380,25 @@
     <string name="updates_channel_description">Уведомляет о новых сборках на GitHub.</string>
     <string name="catalog_refresh_channel_name">Новые голоса</string>
     <string name="catalog_refresh_channel_description">Когда еженедельный сканер каталога находит новые голоса.</string>
+
+    <!-- v2.5 -->
+    <string name="crash_title">HayaiTTS аварийно завершился</string>
+    <string name="crash_body">Извините — что-то пошло не так. Скопируйте отчёт ниже и вставьте его в issue на GitHub по адресу github.com/HayaiApp/HayaiTTS, чтобы мы могли это исправить.</string>
+    <string name="crash_copy">Копировать отчёт</string>
+    <string name="crash_restart">Перезапустить</string>
+    <string name="crash_copied">Скопировано в буфер обмена</string>
+    <string name="activity_status_idle">Простой</string>
+    <string name="activity_status_cancelled">Отменено</string>
+    <string name="activity_cache_voices_installed">установлено голосов: %1$d</string>
+    <string name="activity_cache_mb_on_disk">%1$d MB на диске</string>
+    <string name="activity_generation_detail">синтез %1$d ms · аудио %2$d ms · символов: %3$d</string>
+    <string name="voice_detail_about">О голосе</string>
+    <string name="voice_detail_dataset">Набор данных: %1$s</string>
+    <string name="voice_detail_author">Автор: %1$s</string>
+    <string name="voice_detail_base_model">Дообучен на основе %1$s</string>
+    <string name="voice_detail_source_link">Открыть источник</string>
+    <string name="voice_detail_use_cases">Лучше всего для</string>
+    <string name="voice_detail_sample_play">Прослушать образец</string>
+    <string name="voice_detail_sample_loading">Загрузка…</string>
+    <string name="voice_detail_sample_stop">Остановить образец</string>
 </resources>

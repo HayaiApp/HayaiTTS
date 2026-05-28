@@ -380,4 +380,25 @@
     <string name="updates_channel_description">يُعلمك عند توفّر إصدار أحدث من HayaiTTS على GitHub.</string>
     <string name="catalog_refresh_channel_name">أصوات جديدة</string>
     <string name="catalog_refresh_channel_description">عندما يكتشف الفحص الأسبوعي للكتالوج أصواتًا جديدة للتثبيت.</string>
+
+    <!-- v2.5 -->
+    <string name="crash_title">تعطّل HayaiTTS</string>
+    <string name="crash_body">نأسف — حدث خطأ ما. انسخ التقرير أدناه والصقه في تقرير مشكلة على GitHub عبر github.com/HayaiApp/HayaiTTS كي نتمكّن من إصلاحه.</string>
+    <string name="crash_copy">نسخ التقرير</string>
+    <string name="crash_restart">إعادة التشغيل</string>
+    <string name="crash_copied">تم النسخ إلى الحافظة</string>
+    <string name="activity_status_idle">خامل</string>
+    <string name="activity_status_cancelled">ملغى</string>
+    <string name="activity_cache_voices_installed">‏%1$d صوت مثبَّت</string>
+    <string name="activity_cache_mb_on_disk">‏%1$d MB على القرص</string>
+    <string name="activity_generation_detail">تركيب %1$d ms · صوت %2$d ms · %3$d حرف</string>
+    <string name="voice_detail_about">حول</string>
+    <string name="voice_detail_dataset">مجموعة البيانات: %1$s</string>
+    <string name="voice_detail_author">بواسطة %1$s</string>
+    <string name="voice_detail_base_model">مضبوط بدقّة من %1$s</string>
+    <string name="voice_detail_source_link">عرض المصدر</string>
+    <string name="voice_detail_use_cases">الأفضل لـ</string>
+    <string name="voice_detail_sample_play">استماع إلى العينة</string>
+    <string name="voice_detail_sample_loading">جارٍ التحميل…</string>
+    <string name="voice_detail_sample_stop">إيقاف العينة</string>
 </resources>

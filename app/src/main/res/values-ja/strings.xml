@@ -380,4 +380,25 @@
     <string name="updates_channel_description">GitHub に新しいビルドがあるとお知らせ。</string>
     <string name="catalog_refresh_channel_name">新しい音声</string>
     <string name="catalog_refresh_channel_description">週次のカタログ更新で新しい音声が見つかったとき。</string>
+
+    <!-- v2.5 -->
+    <string name="crash_title">HayaiTTS がクラッシュしました</string>
+    <string name="crash_body">申し訳ありません。問題が発生しました。下のレポートをコピーし、github.com/HayaiApp/HayaiTTS の GitHub Issue に貼り付けてください。修正に役立ちます。</string>
+    <string name="crash_copy">レポートをコピー</string>
+    <string name="crash_restart">再起動</string>
+    <string name="crash_copied">クリップボードにコピーしました</string>
+    <string name="activity_status_idle">アイドル</string>
+    <string name="activity_status_cancelled">キャンセル済み</string>
+    <string name="activity_cache_voices_installed">%1$d 個インストール済み</string>
+    <string name="activity_cache_mb_on_disk">ディスク使用量 %1$d MB</string>
+    <string name="activity_generation_detail">合成 %1$d ms · 音声 %2$d ms · %3$d 文字</string>
+    <string name="voice_detail_about">概要</string>
+    <string name="voice_detail_dataset">データセット: %1$s</string>
+    <string name="voice_detail_author">作成: %1$s</string>
+    <string name="voice_detail_base_model">%1$s をファインチューニング</string>
+    <string name="voice_detail_source_link">ソースを表示</string>
+    <string name="voice_detail_use_cases">おすすめの用途</string>
+    <string name="voice_detail_sample_play">サンプルを再生</string>
+    <string name="voice_detail_sample_loading">読み込み中…</string>
+    <string name="voice_detail_sample_stop">サンプルを停止</string>
 </resources>

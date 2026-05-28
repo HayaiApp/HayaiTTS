@@ -31,7 +31,7 @@ android {
         applicationId = "dev.ahmedmohamed.hayaitts"
         minSdk = 26
         targetSdk = 36
-        versionCode = 202
+        versionCode = 203
         // `HAYAITTS_VERSION_NAME` is exported by the release workflow as the
         // git tag (`v2.0.0`, `v2.0.0-b3`, or `r142`) so the installed APK's
         // `BuildConfig.VERSION_NAME` matches the release the user downloaded.

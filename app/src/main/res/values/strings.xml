@@ -350,7 +350,6 @@
 
     <string name="empty_section">Nothing here yet.</string>
     <string name="speak_selection_label">Speak with HayaiTTS</string>
-    <string name="voice_detail_open_demo">Try in browser</string>
     <string name="voice_detail_sample_play">Listen sample</string>
     <string name="voice_detail_sample_loading">Loading…</string>
     <string name="voice_detail_sample_stop">Stop sample</string>
@@ -416,4 +415,28 @@
     <string name="updates_channel_description">Notifies you when a newer HayaiTTS build is on GitHub.</string>
     <string name="catalog_refresh_channel_name">New voices</string>
     <string name="catalog_refresh_channel_description">When the weekly catalog scrape finds new voices to install.</string>
+
+    <!-- v2.5: crash screen -->
+    <string name="crash_title">HayaiTTS crashed</string>
+    <string name="crash_body">Sorry — something went wrong. Copy the report below and paste it into a GitHub issue at github.com/HayaiApp/HayaiTTS so we can fix it.</string>
+    <string name="crash_copy">Copy report</string>
+    <string name="crash_restart">Restart</string>
+    <string name="crash_copied">Copied to clipboard</string>
+
+    <!-- v2.5: Activity tab status + cache labels -->
+    <string name="activity_status_idle">Idle</string>
+    <string name="activity_status_running_pct" translatable="false">%1$d%%</string>
+    <string name="activity_status_cancelled">Cancelled</string>
+    <string name="activity_cache_voices_installed">%1$d voices installed</string>
+    <string name="activity_cache_mb_on_disk">%1$d MB on disk</string>
+    <string name="activity_generation_detail">synth %1$d ms · audio %2$d ms · %3$d chars</string>
+    <string name="activity_request_chars" translatable="false">%1$d ch</string>
+
+    <!-- v2.5: Voice Detail metadata section -->
+    <string name="voice_detail_about">About</string>
+    <string name="voice_detail_dataset">Dataset: %1$s</string>
+    <string name="voice_detail_author">By %1$s</string>
+    <string name="voice_detail_base_model">Fine-tuned from %1$s</string>
+    <string name="voice_detail_source_link">View source</string>
+    <string name="voice_detail_use_cases">Best for</string>
 </resources>

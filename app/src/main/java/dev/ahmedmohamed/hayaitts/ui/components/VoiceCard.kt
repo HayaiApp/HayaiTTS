@@ -539,30 +539,28 @@ private fun MoreMenu(
     }
 }
 
+// Multi-language models (Supertonic, the multilingual Kokoros) ship one model
+// file covering 20–30 BCP-47 tags. Showing only `languages.first()` makes them
+// read like single-locale voices ("ar · Supertonic"), which is exactly the
+// confusion users reported. Collapse to a count once we cross the threshold
+// where individual chips would dominate the row. Shared by both subtitle
+// builders so the two flavours (catalog card vs installed voice) never drift.
+private fun collapseLanguages(languages: List<String>): String = when {
+    languages.isEmpty() -> "—"
+    languages.size >= 4 -> "${languages.size} languages"
+    else -> languages.joinToString(" · ")
+}
+
+private fun speakerSuffix(count: Int): String =
+    if (count > 1) " · $count voices" else ""
+
 private fun VoiceCard.subtitle(): String {
-    // Multi-language models (Supertonic, the multilingual Kokoros) ship one
-    // model file covering 20–30 BCP-47 tags. Showing only `languages.first()`
-    // makes them read like single-locale voices ("ar · Supertonic"), which
-    // is exactly the confusion the user reported. Collapse to a count once
-    // we cross the threshold where individual chips would dominate the row.
-    val lang = when {
-        languages.isEmpty() -> "—"
-        languages.size >= 4 -> "${languages.size} languages"
-        else -> languages.joinToString(" · ")
-    }
     val family = family.replaceFirstChar { it.uppercase() }
-    val speakers = if (speakers.size > 1) " · ${speakers.size} voices" else ""
-    return "$lang · $family$speakers · $license"
+    return "${collapseLanguages(languages)} · $family${speakerSuffix(speakers.size)} · $license"
 }
 
 private fun subtitleFor(voice: InstalledVoice): String {
-    val lang = when {
-        voice.languages.isEmpty() -> "—"
-        voice.languages.size >= 4 -> "${voice.languages.size} languages"
-        else -> voice.languages.joinToString(" · ")
-    }
     val fam = voice.family.name.lowercase().replaceFirstChar { it.uppercase() }
     val tier = voice.tier.name.lowercase().replaceFirstChar { it.uppercase() }
-    val speakers = if (voice.speakers.size > 1) " · ${voice.speakers.size} voices" else ""
-    return "$lang · $fam · $tier$speakers"
+    return "${collapseLanguages(voice.languages)} · $fam · $tier${speakerSuffix(voice.speakers.size)}"
 }

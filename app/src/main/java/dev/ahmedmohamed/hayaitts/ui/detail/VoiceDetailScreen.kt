@@ -84,6 +84,7 @@ import dev.ahmedmohamed.hayaitts.R
 import kotlinx.coroutines.launch
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.Speaker
+import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
 import dev.ahmedmohamed.hayaitts.ui.components.DownloadProgress
 import dev.ahmedmohamed.hayaitts.ui.components.FamilyChip
 import dev.ahmedmohamed.hayaitts.ui.components.HayaiRichTooltipBox
@@ -230,6 +231,7 @@ fun VoiceDetailScreen(
         ) {
             Spacer(Modifier.height(topInset))
             HeroBlock(state = state)
+            AboutBlock(card = state.card)
             // Audition block: streams the upstream-rendered MP3 sample so the
             // user can hear the voice *before* downloading the model. When the
             // voice has multiple speakers or languages, the pickers let the
@@ -408,6 +410,90 @@ private fun HeroShape(
     }
 }
 
+/**
+ * Catalog metadata surfaced from the enriched catalog: description, author,
+ * dataset, base model, recommended use cases, tags, and a source link. Every
+ * line is gated on a non-blank value so voices without enrichment (most of the
+ * long tail) render nothing here rather than an empty section.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AboutBlock(card: VoiceCard?) {
+    if (card == null) return
+    val description = card.description?.takeIf { it.isNotBlank() }
+    val author = card.author?.takeIf { it.isNotBlank() }
+    val dataset = card.dataset?.takeIf { it.isNotBlank() }
+    val baseModel = card.baseModel?.takeIf { it.isNotBlank() }
+    val sourceUrl = card.sourceUrl?.takeIf { it.isNotBlank() }
+    val useCases = card.recommendedUseCases
+    val tags = card.tags
+    val hasAny = description != null || author != null || dataset != null ||
+        baseModel != null || sourceUrl != null || useCases.isNotEmpty() || tags.isNotEmpty()
+    if (!hasAny) return
+
+    val context = LocalContext.current
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.voice_detail_about),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        description?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        author?.let { CaptionLine(stringResource(R.string.voice_detail_author, it)) }
+        dataset?.let { CaptionLine(stringResource(R.string.voice_detail_dataset, it)) }
+        baseModel?.let { CaptionLine(stringResource(R.string.voice_detail_base_model, it)) }
+        if (useCases.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.voice_detail_use_cases),
+                style = MaterialTheme.typography.labelLarge,
+            )
+            ChipRow {
+                useCases.forEach { uc ->
+                    AssistChip(onClick = {}, enabled = false, label = { Text(uc) })
+                }
+            }
+        }
+        if (tags.isNotEmpty()) {
+            ChipRow {
+                tags.forEach { tag ->
+                    AssistChip(onClick = {}, enabled = false, label = { Text(tag) })
+                }
+            }
+        }
+        sourceUrl?.let { url ->
+            TextButton(
+                onClick = {
+                    runCatching {
+                        context.startActivity(
+                            android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse(url),
+                            ),
+                        )
+                    }
+                },
+            ) {
+                Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null)
+                Spacer(Modifier.size(8.dp))
+                Text(stringResource(R.string.voice_detail_source_link))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CaptionLine(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
 
 @Composable
 private fun PreviewSection(

@@ -178,13 +178,15 @@ private fun DownloadRowItem(row: ActivityViewModel.DownloadRow) {
     ) {
         Text(row.title, style = MaterialTheme.typography.titleMedium)
         val (label, fraction) = when (val s = row.state) {
-            is DownloadState.Idle -> "Idle" to null
-            is DownloadState.Queued -> "Queued" to null
-            is DownloadState.Running -> "${(s.pct * 100).toInt()}%" to s.pct
-            is DownloadState.Extracting -> "Extracting ${(s.pct * 100).toInt()}%" to s.pct
-            is DownloadState.Done -> "Installed" to 1f
-            is DownloadState.Failed -> "Failed: ${s.reason}" to null
-            is DownloadState.Cancelled -> "Cancelled" to null
+            is DownloadState.Idle -> stringResource(R.string.activity_status_idle) to null
+            is DownloadState.Queued -> stringResource(R.string.downloads_status_queued) to null
+            is DownloadState.Running ->
+                stringResource(R.string.activity_status_running_pct, (s.pct * 100).toInt()) to s.pct
+            is DownloadState.Extracting ->
+                stringResource(R.string.downloads_status_extracting_pct, (s.pct * 100).toInt()) to s.pct
+            is DownloadState.Done -> stringResource(R.string.action_installed) to 1f
+            is DownloadState.Failed -> stringResource(R.string.downloads_status_failed, s.reason) to null
+            is DownloadState.Cancelled -> stringResource(R.string.activity_status_cancelled) to null
         }
         if (fraction != null) {
             LinearWavyProgressIndicator(
@@ -232,7 +234,12 @@ private fun GenerationsPane(events: List<SynthesisTelemetryRepository.Event>, to
                     style = MaterialTheme.typography.titleSmall,
                 )
                 Text(
-                    text = "synth ${event.synthMs} ms · audio ${event.audioMs} ms · ${event.textLength} chars",
+                    text = stringResource(
+                        R.string.activity_generation_detail,
+                        event.synthMs,
+                        event.audioMs,
+                        event.textLength,
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontFamily = FontFamily.Monospace,
@@ -276,7 +283,7 @@ private fun RequestLogPane(events: List<SynthesisTelemetryRepository.Event>, top
                     style = MaterialTheme.typography.labelMedium,
                 )
                 Text(
-                    text = "${event.textLength} ch",
+                    text = stringResource(R.string.activity_request_chars, event.textLength),
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
@@ -293,10 +300,13 @@ private fun CachePane(installedCount: Int, bytes: Long, topInset: androidx.compo
             .padding(horizontal = 24.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("$installedCount voices installed", style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(R.string.activity_cache_voices_installed, installedCount),
+            style = MaterialTheme.typography.titleMedium,
+        )
         val mb = bytes / 1_000_000L
         Text(
-            "$mb MB on disk",
+            stringResource(R.string.activity_cache_mb_on_disk, mb),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

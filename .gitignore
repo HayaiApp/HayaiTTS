@@ -9,6 +9,11 @@ local.properties
 # Local sha256 cache emitted by tools/catalog/build_catalog.py — not committed.
 .catalog_cache/
 catalog_build.log
+# Bundled catalog mirror — generated from the root catalog/ by the
+# `syncCatalogAssets` Gradle task at build time, never hand-edited. Kept out
+# of git so it can't drift from the canonical root catalog (the weekly
+# catalog-refresh only updates root).
+app/src/main/assets/catalog/
 # Release signing — never commit the keystore or its credentials. Only the
 # `signing.properties.template` stub belongs in version control.
 signing.properties

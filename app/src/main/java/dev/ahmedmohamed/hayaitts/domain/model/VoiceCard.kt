@@ -23,12 +23,13 @@ data class VoiceCard(
     val sha256: String? = null,
     /**
      * `true` when the current build of sherpa-onnx can actually load and
-     * synthesise this voice. We set it to `false` for Kokoro and Kitten —
-     * lib-sherpa-onnx 6.25.12 ships no JNI for those families (confirmed by
-     * grepping the .so for `Java_com_k2fsa_sherpa_onnx_OfflineTts*` exports
-     * and for the string "Kokoro" / "Kitten"; both came back empty). The
-     * catalog still lists them so the Browse screen can surface them as
-     * "Coming soon" — Phase 7+ may upgrade the JNI dependency.
+     * synthesise this voice. As of the vendored sherpa-onnx 1.13.2 AAR every
+     * catalog family — Piper, VITS, Kokoro, Kitten, Matcha, ZipVoice, Pocket,
+     * Supertonic — is runnable, so this is `true` for all shipped voices. The
+     * flag is the runtime-capability gate kept for future families the JNI
+     * can't yet load: such a voice would set `available=false` and Browse
+     * surfaces it as "Coming soon". See `RUNTIME_SUPPORTED_FAMILIES` in
+     * `tools/catalog/build_catalog.py` for the source of truth.
      */
     val available: Boolean = true,
     /**
@@ -122,6 +123,19 @@ data class VoiceCard(
     val defaultNoiseScaleW: Float? = null,
     /** Bundle structure flags so Browse can render appropriate badges. */
     val bundleStructure: BundleStructure? = null,
+    /**
+     * Short descriptive tags written by the curated overlay
+     * (`tools/catalog/overlays/voices.yaml`) — e.g. "flagship", "en-US",
+     * "male", "natural", or a `dataset-license:CC-BY-NC-SA` marker. Rendered
+     * as chips on Voice Detail. Empty for most voices.
+     */
+    val tags: List<String> = emptyList(),
+    /**
+     * Author/curator-recommended use cases (e.g. "audiobook", "narration",
+     * "podcast"). Rendered under a "Best for" heading on Voice Detail. Empty
+     * for most voices.
+     */
+    val recommendedUseCases: List<String> = emptyList(),
 ) {
     val modelFamily: ModelFamily get() = ModelFamily.fromCatalog(family)
     val tierEnum: Tier get() = Tier.fromCatalog(tier)

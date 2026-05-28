@@ -397,4 +397,25 @@
     <string name="updates_channel_description">Te prévient quand une nouvelle version est sur GitHub.</string>
     <string name="catalog_refresh_channel_name">Nouvelles voix</string>
     <string name="catalog_refresh_channel_description">Quand le scan hebdo du catalogue trouve de nouvelles voix.</string>
+
+    <!-- v2.5 -->
+    <string name="crash_title">HayaiTTS a planté</string>
+    <string name="crash_body">Désolé — une erreur s\'est produite. Copiez le rapport ci-dessous et collez-le dans un ticket GitHub sur github.com/HayaiApp/HayaiTTS pour que nous puissions corriger le problème.</string>
+    <string name="crash_copy">Copier le rapport</string>
+    <string name="crash_restart">Redémarrer</string>
+    <string name="crash_copied">Copié dans le presse-papiers</string>
+    <string name="activity_status_idle">Inactif</string>
+    <string name="activity_status_cancelled">Annulé</string>
+    <string name="activity_cache_voices_installed">%1$d voix installées</string>
+    <string name="activity_cache_mb_on_disk">%1$d MB sur le disque</string>
+    <string name="activity_generation_detail">synth %1$d ms · audio %2$d ms · %3$d caractères</string>
+    <string name="voice_detail_about">À propos</string>
+    <string name="voice_detail_dataset">Jeu de données : %1$s</string>
+    <string name="voice_detail_author">Par %1$s</string>
+    <string name="voice_detail_base_model">Affinée à partir de %1$s</string>
+    <string name="voice_detail_source_link">Voir la source</string>
+    <string name="voice_detail_use_cases">Idéale pour</string>
+    <string name="voice_detail_sample_play">Écouter l\'exemple</string>
+    <string name="voice_detail_sample_loading">Chargement…</string>
+    <string name="voice_detail_sample_stop">Arrêter l\'exemple</string>
 </resources>

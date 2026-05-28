@@ -380,4 +380,25 @@
     <string name="updates_channel_description">GitHub에 새 빌드가 있으면 알림.</string>
     <string name="catalog_refresh_channel_name">새 음성</string>
     <string name="catalog_refresh_channel_description">주간 카탈로그 스캔에서 새 음성이 발견될 때.</string>
+
+    <!-- v2.5 -->
+    <string name="crash_title">HayaiTTS가 충돌했습니다</string>
+    <string name="crash_body">죄송합니다. 문제가 발생했습니다. 아래 보고서를 복사해 github.com/HayaiApp/HayaiTTS의 GitHub 이슈에 붙여 넣어 주시면 수정하는 데 도움이 됩니다.</string>
+    <string name="crash_copy">보고서 복사</string>
+    <string name="crash_restart">다시 시작</string>
+    <string name="crash_copied">클립보드에 복사됨</string>
+    <string name="activity_status_idle">대기 중</string>
+    <string name="activity_status_cancelled">취소됨</string>
+    <string name="activity_cache_voices_installed">음성 %1$d개 설치됨</string>
+    <string name="activity_cache_mb_on_disk">디스크 %1$d MB 사용</string>
+    <string name="activity_generation_detail">합성 %1$d ms · 오디오 %2$d ms · %3$d자</string>
+    <string name="voice_detail_about">정보</string>
+    <string name="voice_detail_dataset">데이터셋: %1$s</string>
+    <string name="voice_detail_author">제작: %1$s</string>
+    <string name="voice_detail_base_model">%1$s에서 파인튜닝</string>
+    <string name="voice_detail_source_link">소스 보기</string>
+    <string name="voice_detail_use_cases">추천 용도</string>
+    <string name="voice_detail_sample_play">샘플 듣기</string>
+    <string name="voice_detail_sample_loading">불러오는 중…</string>
+    <string name="voice_detail_sample_stop">샘플 정지</string>
 </resources>

@@ -60,6 +60,23 @@ class ThemeRulesTest {
             }
     }
 
+    @Test
+    fun `no production code hardcodes a raw Color hex literal outside Color-kt`() {
+        // The monochrome palette lives entirely in theme/Color.kt; every other
+        // file resolves colors through MaterialTheme.colorScheme. A raw
+        // Color(0xFF…) literal anywhere else is a hardcoded accent that
+        // bypasses the scheme and silently breaks light/dark + the monochrome
+        // contract (this is exactly how TierChip drifted to green/amber/red).
+        // Color.X named constants (Color.Transparent, Color.White) are fine —
+        // only the hex-literal constructor is banned.
+        sources
+            .files
+            .filterNot { it.path.endsWith("Color.kt") }
+            .assertFalse { file ->
+                Regex("Color\\(0[xX]").containsMatchIn(file.text)
+            }
+    }
+
     // Note: a ContainedLoadingIndicator-outside-HayaiEmpty rule was tried
     // here briefly. It conflicts with legitimate uses in DownloadProgress
     // (active download spinner) and CustomImportScreen (busy state); the

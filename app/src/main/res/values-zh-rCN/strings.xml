@@ -380,4 +380,25 @@
     <string name="updates_channel_description">GitHub 有新版本时通知你。</string>
     <string name="catalog_refresh_channel_name">新音色</string>
     <string name="catalog_refresh_channel_description">每周目录扫描发现新音色时。</string>
+
+    <!-- v2.5 -->
+    <string name="crash_title">HayaiTTS 已崩溃</string>
+    <string name="crash_body">抱歉，出了点问题。请复制下方报告，并粘贴到 github.com/HayaiApp/HayaiTTS 的 GitHub issue 中，以便我们修复。</string>
+    <string name="crash_copy">复制报告</string>
+    <string name="crash_restart">重新启动</string>
+    <string name="crash_copied">已复制到剪贴板</string>
+    <string name="activity_status_idle">空闲</string>
+    <string name="activity_status_cancelled">已取消</string>
+    <string name="activity_cache_voices_installed">已安装 %1$d 个语音</string>
+    <string name="activity_cache_mb_on_disk">占用磁盘 %1$d MB</string>
+    <string name="activity_generation_detail">合成 %1$d ms · 音频 %2$d ms · %3$d 字符</string>
+    <string name="voice_detail_about">关于</string>
+    <string name="voice_detail_dataset">数据集：%1$s</string>
+    <string name="voice_detail_author">作者：%1$s</string>
+    <string name="voice_detail_base_model">基于 %1$s 微调</string>
+    <string name="voice_detail_source_link">查看来源</string>
+    <string name="voice_detail_use_cases">适用场景</string>
+    <string name="voice_detail_sample_play">试听样本</string>
+    <string name="voice_detail_sample_loading">加载中…</string>
+    <string name="voice_detail_sample_stop">停止试听</string>
 </resources>
