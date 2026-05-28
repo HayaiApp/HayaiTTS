@@ -65,19 +65,31 @@ class SherpaTtsRuntime private constructor(
         noiseScaleW: Float = 0.8f,
     ): SynthesisOutput {
         val tts = engine(voiceId, lengthScale, noiseScale, noiseScaleW)
+        // Clamp the speaker id to the model's actual range before
+        // crossing the JNI boundary. Kokoro 1.1 ships ~50–100 named
+        // speakers, but the catalog occasionally over-counts (placeholder
+        // rows for missing pt files, samples renderer that never
+        // synthesised every sid). An OOB sid inside sherpa-onnx is a
+        // SIGSEGV rather than a Java exception, so we have to guard
+        // here — there is no catch upstream that would survive it.
+        val nSpeakers = runCatching { tts.numSpeakers() }.getOrDefault(0)
+        val safeSid = if (nSpeakers > 0) sid.coerceIn(0, nSpeakers - 1) else 0
+        if (safeSid != sid) {
+            log.w { "Clamping sid for $voiceId: requested=$sid, available=$nSpeakers" }
+        }
         // The JNI `generate` call can throw RuntimeException from sherpa-onnx
-        // for bad sid/text combos (Kokoro is particularly strict about sid
-        // bounds). Catch broadly here so callers up the stack — Playground,
+        // for bad text payloads (Kokoro is particularly strict about
+        // input format). Catch broadly here so callers — Playground,
         // VoiceDetail preview, the TTS service — can surface a friendly
-        // error instead of letting the JVM tear down the process. A true
-        // native SIGSEGV inside the .so is still unrecoverable, but anything
-        // raised as a Java throwable will land here.
+        // error instead of letting the JVM tear down the process. A
+        // true native SIGSEGV inside the .so is still unrecoverable, but
+        // anything raised as a Java throwable will land here.
         val audio = try {
-            tts.generate(text = text, sid = sid, speed = speed)
+            tts.generate(text = text, sid = safeSid, speed = speed)
         } catch (t: Throwable) {
-            log.e(t) { "tts.generate failed for $voiceId sid=$sid (${text.length} chars)" }
+            log.e(t) { "tts.generate failed for $voiceId sid=$safeSid (${text.length} chars)" }
             throw SynthesisFailure(
-                "Synthesis failed for $voiceId (sid=$sid): ${t.message ?: t::class.simpleName}",
+                "Synthesis failed for $voiceId (sid=$safeSid): ${t.message ?: t::class.simpleName}",
                 t,
             )
         }
@@ -120,10 +132,12 @@ class SherpaTtsRuntime private constructor(
         onChunk: (FloatArray) -> Int,
     ): SynthesisOutput {
         val tts = engine(voiceId, lengthScale, noiseScale, noiseScaleW)
+        val nSpeakers = runCatching { tts.numSpeakers() }.getOrDefault(0)
+        val safeSid = if (nSpeakers > 0) sid.coerceIn(0, nSpeakers - 1) else 0
         val audio = try {
             tts.generateWithCallback(
                 text = text,
-                sid = sid,
+                sid = safeSid,
                 speed = speed,
             ) { chunk ->
                 val shifted = if (kotlin.math.abs(pitch - 1f) < 0.001f) chunk

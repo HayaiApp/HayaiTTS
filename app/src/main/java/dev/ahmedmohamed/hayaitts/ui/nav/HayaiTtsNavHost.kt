@@ -154,6 +154,17 @@ fun HayaiTtsNavHost(
                     onBack = { navController.popBackStack() },
                     onOpenQuickSwitch = onOpenQuickSwitch,
                     onOpenPlayground = { navController.navigate(Routes.STUDIO) },
+                    onOpenCloning = { navController.navigate(Routes.voiceCloning(id)) },
+                )
+            }
+            composable(
+                route = Routes.VOICE_CLONING,
+                arguments = listOf(navArgument(Routes.ARG_VOICE_ID) { type = NavType.StringType }),
+            ) { entry ->
+                val id = entry.arguments?.getString(Routes.ARG_VOICE_ID).orEmpty()
+                dev.ahmedmohamed.hayaitts.ui.cloning.VoiceCloningScreen(
+                    voiceId = id,
+                    onBack = { navController.popBackStack() },
                 )
             }
             composable(
@@ -195,11 +206,13 @@ object Routes {
     const val SETTINGS = "settings"
     const val ARG_VOICE_ID = "voiceId"
     const val VOICE_DETAIL = "voiceDetail/{$ARG_VOICE_ID}"
+    const val VOICE_CLONING = "voiceCloning/{$ARG_VOICE_ID}"
 
     const val ARG_ENCODED_URI = "encodedUri"
     const val CUSTOM_IMPORT = "customImport/{$ARG_ENCODED_URI}"
 
     fun voiceDetail(voiceId: String): String = "voiceDetail/$voiceId"
+    fun voiceCloning(voiceId: String): String = "voiceCloning/$voiceId"
 
     /**
      * Picked SAF URIs are URL-encoded so the `content://...` literal doesn't

@@ -56,6 +56,7 @@
     <string name="voice_detail_speakers">Speakers</string>
     <string name="voice_detail_preview">Preview</string>
     <string name="voice_detail_preview_text">The quick brown fox jumps over the lazy dog.</string>
+    <string name="voice_detail_preview_generating">Generating…</string>
     <string name="voice_detail_preview_not_installed">Install the voice to preview</string>
     <string name="voice_detail_license">License: %1$s</string>
     <string name="voice_detail_sample_rate" translatable="false">%1$d Hz</string>
@@ -106,6 +107,20 @@
     <string name="voice_chip_streaming">Streaming</string>
     <string name="browse_filter_capabilities">Capabilities</string>
     <string name="browse_filter_cloning_only">Voice cloning</string>
+    <string name="cloning_title">Clone voice</string>
+    <string name="cloning_open_action">Clone this voice</string>
+    <string name="cloning_intro">Record or upload a short reference clip, type what it says, then type the new text. The cloned voice will speak it.</string>
+    <string name="cloning_record">Record</string>
+    <string name="cloning_stop_recording">Stop</string>
+    <string name="cloning_upload">Upload</string>
+    <string name="cloning_clip_summary">Reference clip</string>
+    <string name="cloning_reference_text">Reference transcript</string>
+    <string name="cloning_reference_text_hint">What the reference clip says, verbatim</string>
+    <string name="cloning_target_text">Target text</string>
+    <string name="cloning_target_text_hint">What the cloned voice should say</string>
+    <string name="cloning_generate">Generate</string>
+    <string name="cloning_generating">Generating…</string>
+    <string name="cloning_playing">Playing</string>
     <string name="settings_section_downloads">Downloads</string>
     <string name="settings_wifi_only">Wi-Fi only</string>
     <string name="settings_wifi_only_subtitle">Block voice downloads on metered cellular.</string>

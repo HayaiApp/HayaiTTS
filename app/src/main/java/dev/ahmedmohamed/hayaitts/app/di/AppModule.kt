@@ -192,6 +192,14 @@ val appModule = module {
             previewPlayer = get(),
         )
     }
+    viewModel { (voiceId: String) ->
+        dev.ahmedmohamed.hayaitts.ui.cloning.VoiceCloningViewModel(
+            context = androidContext(),
+            voiceId = voiceId,
+            dispatchers = get(),
+            previewPlayer = get(),
+        )
+    }
     viewModel { QuickSwitchViewModel(get(), get()) }
     viewModel { (encodedUri: String) ->
         CustomImportViewModel(

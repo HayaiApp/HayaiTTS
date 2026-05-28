@@ -47,6 +47,13 @@ class VoiceDetailViewModel(
         val downloadState: DownloadState = DownloadState.Idle,
         val defaults: Map<String, String> = emptyMap(),
         val previewing: Boolean = false,
+        /**
+         * `true` from the moment the user taps Play until the runtime
+         * returns audio (synthesis only, no playback). Mirrors the
+         * Playground/Studio "generating" affordance so multi-speaker
+         * Kokoros that take ~3 s to synthesise don't look hung.
+         */
+        val generating: Boolean = false,
         val selectedSid: Int = 0,
     ) {
         val isInstalled: Boolean get() = installed != null
@@ -58,6 +65,7 @@ class VoiceDetailViewModel(
 
     private val selectedSidFlow = MutableStateFlow(0)
     private val previewingFlow = MutableStateFlow(false)
+    private val generatingFlow = MutableStateFlow(false)
 
     val previewAmplitudes: StateFlow<FloatArray> = previewPlayer.amplitudes
 
@@ -67,13 +75,27 @@ class VoiceDetailViewModel(
         downloadRepository.states,
         defaultsRepository.defaults,
         selectedSidFlow,
-    ) { catalog, installed, downloads, defaults, sid ->
+        previewingFlow,
+        generatingFlow,
+    ) { values ->
+        @Suppress("UNCHECKED_CAST")
+        val catalog = values[0] as List<VoiceCard>
+        @Suppress("UNCHECKED_CAST")
+        val installed = values[1] as List<InstalledVoice>
+        @Suppress("UNCHECKED_CAST")
+        val downloads = values[2] as Map<String, DownloadState>
+        @Suppress("UNCHECKED_CAST")
+        val defaults = values[3] as Map<String, String>
+        val sid = values[4] as Int
+        val previewing = values[5] as Boolean
+        val generating = values[6] as Boolean
         UiState(
             card = catalog.firstOrNull { it.id == voiceId },
             installed = installed.firstOrNull { it.voiceId == voiceId },
             downloadState = downloads[voiceId] ?: DownloadState.Idle,
             defaults = defaults,
-            previewing = previewingFlow.value,
+            previewing = previewing,
+            generating = generating,
             selectedSid = sid,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), UiState())
@@ -108,11 +130,26 @@ class VoiceDetailViewModel(
     fun play(text: String) {
         if (!uiState.value.isInstalled) return
         previewJob?.cancel()
-        previewingFlow.value = true
+        // generating == true until the runtime returns audio; then it
+        // flips to previewing == true for the playback. The UI uses
+        // both flags to label the button (Generating… → Stop) and to
+        // gate the waveform animation (only animates during playback).
+        generatingFlow.value = true
+        previewingFlow.value = false
         previewJob = viewModelScope.launch {
             try {
-                previewPlayer.play(voiceId, text, sid = uiState.value.selectedSid)
+                val output = previewPlayer.synthesizeTuned(
+                    voiceId = voiceId,
+                    text = text,
+                    sid = uiState.value.selectedSid,
+                    tuning = dev.ahmedmohamed.hayaitts.data.playground.VoiceTuning.Default,
+                )
+                generatingFlow.value = false
+                if (output == null) return@launch
+                previewingFlow.value = true
+                previewPlayer.playSamples(output.samples, output.sampleRate)
             } finally {
+                generatingFlow.value = false
                 previewingFlow.value = false
                 previewJob = null
             }
@@ -123,6 +160,7 @@ class VoiceDetailViewModel(
         previewJob?.cancel()
         previewJob = null
         previewingFlow.value = false
+        generatingFlow.value = false
         previewPlayer.stop()
     }
 

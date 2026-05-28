@@ -1,0 +1,71 @@
+# Hand-curated metadata overlay for the voice catalog.
+#
+# This file gets merged on top of `catalog/v1/models.json` by
+# `tools/catalog/apply_overlay.py` after the weekly catalog refresh. It
+# is the only place to put fields that:
+#
+#   * the upstream documentation doesn't expose,
+#   * the bundle probe in render-samples can't infer,
+#   * we want to override despite what either source says.
+#
+# Schema (per voice id):
+#
+#   description:         str — verbose human description shown in Voice Detail
+#   tags:                list[str] — free-form tags for search / filter
+#   sourceUrl:           str — HF repo or GitHub URL
+#   author:              str — model author / organisation
+#   dataset:             str — training corpus name
+#   baseModel:           str — upstream model the voice was fine-tuned from
+#   recommendedUseCases: list[str] — audiobook, dictation, navigation, …
+#
+# Any other field name lands directly in the catalog entry, so we can
+# extend the schema here without touching code (the merge just calls
+# dict.update). Use with care: every key here overrides whatever the
+# scraper or bundle probe produced.
+
+# Family-level defaults. Voices fall back to these when they don't have
+# an entry of their own; per-voice keys win where both are present.
+families:
+  kokoro:
+    sourceUrl: "https://huggingface.co/hexgrad/Kokoro-82M"
+    author: "hexgrad"
+    baseModel: "Kokoro-82M"
+    recommendedUseCases: ["narration", "audiobook"]
+  kitten:
+    sourceUrl: "https://huggingface.co/KittenML/kitten-tts-nano-0.2"
+    author: "KittenML"
+    recommendedUseCases: ["mobile", "dictation"]
+  matcha:
+    sourceUrl: "https://github.com/shivammehta25/Matcha-TTS"
+    author: "Shivam Mehta et al."
+    baseModel: "Matcha-TTS"
+  supertonic:
+    sourceUrl: "https://huggingface.co/Supertone/supertonic"
+    author: "Supertone"
+    dataset: "Emilia"
+    recommendedUseCases: ["multilingual", "production"]
+  zipvoice:
+    sourceUrl: "https://github.com/k2-fsa/ZipVoice"
+    author: "k2-fsa"
+    baseModel: "ZipVoice (flow-matching)"
+    recommendedUseCases: ["voice cloning"]
+  pocket:
+    sourceUrl: "https://github.com/csukuangfj/pocket-tts"
+    author: "k2-fsa"
+    baseModel: "Pocket TTS"
+    recommendedUseCases: ["voice cloning", "mobile"]
+  piper:
+    sourceUrl: "https://github.com/rhasspy/piper"
+    author: "Rhasspy / Mike Hansen"
+
+# Per-voice overrides. Add entries here when a specific bundle deserves
+# richer copy than the family default.
+voices:
+  # Bundled Piper voice — the first voice users hear, worth a friendly
+  # description on the Voice Detail page.
+  vits-piper-en_US-amy-low:
+    description: >
+      Bundled out of the box. Female US English voice trained on the
+      LJSpeech corpus. Sub-second synthesis on a 2020+ phone — a safe
+      starting point for read-aloud apps.
+    tags: ["bundled", "en-US", "female"]

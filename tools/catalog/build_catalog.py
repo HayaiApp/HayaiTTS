@@ -49,6 +49,7 @@ LANGUAGE_DIR_BCP47: dict[str, list[str]] = {
 FAMILY_DEFAULT_LICENSE = {
     "piper": "MIT", "vits": "Apache-2.0", "matcha": "CC-BY-4.0",
     "kokoro": "Apache-2.0", "kitten": "Apache-2.0", "supertonic": "CC-BY-NC-4.0",
+    "zipvoice": "Apache-2.0", "pocket": "Apache-2.0",
 }
 
 # Families that `SherpaTtsRuntime` currently builds `OfflineTtsConfig`s for.
@@ -586,6 +587,123 @@ def hash_voice(v: Voice, *, idx: int, total: int, cache_dir: str | None,
     return v
 
 
+def discover_release_only_bundles(known_ids: set[str]) -> list[Voice]:
+    """Pick up family bundles that exist on the upstream `tts-models` release
+    page but aren't documented on the mdBook index.
+
+    The doc-page scraper misses any model k2-fsa hasn't written a subpage
+    for yet — which is currently the entire ZipVoice + Pocket cloning
+    catalog. Querying the release-assets list directly is the gap-filler.
+    Anything not already covered by [known_ids] gets a minimal Voice
+    record with the data we can pull from the bundle filename alone;
+    speaker counts come from the JNI runtime once the user installs.
+    """
+    try:
+        r = requests.get(
+            "https://api.github.com/repos/k2-fsa/sherpa-onnx/releases/tags/tts-models",
+            timeout=30,
+            headers={"Accept": "application/vnd.github+json"},
+        )
+        r.raise_for_status()
+        assets = r.json().get("assets", [])
+    except Exception as e:
+        err(f"Release-asset fallback failed: {e}")
+        return []
+
+    extras: list[Voice] = []
+    seen: set[str] = set()
+    for asset in assets:
+        name = asset.get("name", "")
+        if not name.endswith(".tar.bz2"):
+            continue
+        # Some assets are SDK-version wrappers (`sherpa-onnx-wasm-simd-1.12.x-…`)
+        # that bundle the *same* model inside a per-build directory. Strip
+        # the leading `sherpa-onnx-wasm-…-` prefix so the canonical model
+        # id is what we key on.
+        voice_id = name.removesuffix(".tar.bz2")
+        wasm_strip = re.match(
+            r"sherpa-onnx-(?:wasm-simd|wasm-tts)-\d+\.\d+\.\d+-(.+)$",
+            voice_id,
+        )
+        if wasm_strip:
+            voice_id = wasm_strip.group(1)
+        # `voice_id` now is the canonical slug. Bail if we have already
+        # ingested it (doc scraper or earlier release pass).
+        if voice_id in known_ids or voice_id in seen:
+            continue
+        family = family_for_slug(voice_id)
+        if family == "unknown":
+            continue
+        seen.add(voice_id)
+
+        bundle_url = asset.get("browser_download_url", "")
+        if not bundle_url:
+            continue
+        # Default to a single anonymous "Voice 1" — the actual speaker
+        # roster comes from `OfflineTts.numSpeakers()` once the user
+        # installs. Speaker labels in-app already collapse anonymous
+        # `speaker_N` placeholders to "Voice N+1".
+        speakers = [{
+            "id": 0, "name": "speaker_0", "gender": "U",
+            "genderConfidence": "unknown",
+        }]
+        langs = derive_languages_from_slug(voice_id, family)
+        extras.append(Voice(
+            id=voice_id,
+            family=family,
+            title=derive_title(speakers, family),
+            languages=langs,
+            speakers=speakers,
+            sampleRateHz=24000,
+            approxSizeMb=0,
+            tier=derive_tier(voice_id, family),
+            license=FAMILY_DEFAULT_LICENSE.get(family, "Apache-2.0"),
+            bundleUrl=bundle_url,
+            available=family in RUNTIME_SUPPORTED_FAMILIES,
+            demoUrl=demo_url_for(family, voice_id),
+            sampleAudioUrl=None,
+        ))
+    if extras:
+        by_fam: dict[str, int] = {}
+        for v in extras:
+            by_fam[v.family] = by_fam.get(v.family, 0) + 1
+        summary = ", ".join(f"{c}× {f}" for f, c in sorted(by_fam.items()))
+        log(f"Release-asset fallback added {len(extras)} bundle(s) ({summary}).")
+    return extras
+
+
+def derive_languages_from_slug(voice_id: str, family: str) -> list[str]:
+    """Best-effort language tag extraction from a cloning-bundle filename.
+
+    The slugs aren't structured — `sherpa-onnx-zipvoice-distill-int8-zh-en-emilia`
+    embeds two BCP-47 codes (`zh`, `en`) followed by a training-corpus
+    name. Strip the family + qualifier tokens and keep anything that
+    looks like a 2-letter language code.
+    """
+    lower = voice_id.lower()
+    # Tokens that come before the language list and should be ignored.
+    junk = {
+        "sherpa", "onnx", "zipvoice", "pocket", "tts", "distill",
+        "int8", "fp16", "fp32", "emilia", "v1", "v2", "v3",
+    }
+    parts = re.split(r"[-_]", lower)
+    languages: list[str] = []
+    for p in parts:
+        # Strip any trailing date / version digits ("2026-01-26" → skip)
+        if p.isdigit():
+            continue
+        if p in junk:
+            continue
+        if len(p) == 2 and p.isalpha():
+            languages.append(p)
+    # Pocket TTS is currently English-only per the upstream README.
+    if family == "pocket" and not languages:
+        languages = ["en"]
+    if not languages:
+        languages = ["en"]
+    return languages
+
+
 def build_voices(pages: list[tuple[str, str]], *, limit: int | None,
                  cache_dir: str | None, skip_hash: bool,
                  workers: int, stats: RunStats) -> list[Voice]:
@@ -617,6 +735,15 @@ def build_voices(pages: list[tuple[str, str]], *, limit: int | None,
         else:
             by_id[v.id] = v
     log(f"Unique voices after dedupe: {len(by_id)}")
+
+    # Release-asset fallback. Picks up bundles k2-fsa publishes but
+    # hasn't documented on the mdBook index yet — currently the entire
+    # ZipVoice + Pocket cloning catalog, plus any future family they
+    # release before writing a subpage for it.
+    for extra in discover_release_only_bundles(known_ids=set(by_id.keys())):
+        by_id[extra.id] = extra
+    log(f"Total unique voices (incl. release-only): {len(by_id)}")
+
     ordered = sorted(by_id.values(), key=lambda x: x.id)
 
     if cache_dir:
@@ -650,6 +777,25 @@ def write_catalog(voices: list[Voice], output_path: str) -> None:
     every refresh would wipe out the rendered-sample URLs that
     render_samples.py wrote on the previous Monday.
     """
+    # Everything in this list gets carried forward from the previous
+    # catalog if the scraper didn't produce a fresh value. These are the
+    # fields populated by downstream pipelines (render-samples bundle
+    # probe + curated overlay) that the scraper has no way to recompute.
+    PRESERVE_KEYS = (
+        "sampleAudioUrl", "speakerSamples",
+        # Bundle-probe enrichment
+        "description", "quality", "dataset", "phonemeType", "vocabSize",
+        "author", "sourceUrl", "baseModel", "renderRtf",
+        "renderDurationMs", "defaultLengthScale", "defaultNoiseScale",
+        "defaultNoiseScaleW", "bundleStructure",
+        # Overlay-only fields
+        "tags", "recommendedUseCases",
+        # If render-samples upgraded the speakers list with named
+        # speakers + inferred gender, keep that — the scrape would
+        # otherwise reset us back to anonymous placeholders for the
+        # release-only voices.
+        "speakers",
+    )
     preserved: dict[str, dict] = {}
     if os.path.exists(output_path):
         try:
@@ -660,10 +806,10 @@ def write_catalog(voices: list[Voice], output_path: str) -> None:
                 if not vid:
                     continue
                 keep: dict = {}
-                if v.get("sampleAudioUrl"):
-                    keep["sampleAudioUrl"] = v["sampleAudioUrl"]
-                if v.get("speakerSamples"):
-                    keep["speakerSamples"] = v["speakerSamples"]
+                for k in PRESERVE_KEYS:
+                    val = v.get(k)
+                    if val not in (None, "", [], {}):
+                        keep[k] = val
                 if keep:
                     preserved[vid] = keep
         except Exception:
@@ -673,9 +819,26 @@ def write_catalog(voices: list[Voice], output_path: str) -> None:
     rows: list[dict] = []
     for v in sorted(voices, key=lambda v: v.id):
         row = v.to_json()
-        carried = preserved.get(v.id)
-        if carried:
-            row.update(carried)
+        carried = preserved.get(v.id) or {}
+        # `speakers` needs special handling: the carried list may be
+        # richer (render-samples added named speakers + inferred
+        # gender) but the scraper's fresh list may also be authoritative
+        # for doc-scraped voices the upstream just expanded. Keep the
+        # one with more named speakers, falling back to the fresh
+        # version when they tie.
+        if carried.get("speakers") and row.get("speakers"):
+            new_named = sum(
+                1 for s in row["speakers"]
+                if s.get("name") and not s["name"].startswith("speaker_")
+            )
+            old_named = sum(
+                1 for s in carried["speakers"]
+                if s.get("name") and not s["name"].startswith("speaker_")
+            )
+            if old_named > new_named:
+                row["speakers"] = carried["speakers"]
+            del carried["speakers"]
+        row.update(carried)
         rows.append(row)
 
     payload = {"version": 1, "voices": rows}

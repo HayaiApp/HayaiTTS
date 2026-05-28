@@ -40,6 +40,7 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Female
+import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -117,6 +118,7 @@ fun VoiceDetailScreen(
     onBack: () -> Unit,
     onOpenQuickSwitch: () -> Unit,
     onOpenPlayground: () -> Unit = {},
+    onOpenCloning: () -> Unit = {},
 ) {
     val viewModel: VoiceDetailViewModel = koinViewModel { parametersOf(voiceId) }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -181,6 +183,28 @@ fun VoiceDetailScreen(
                             onOpenPlayground()
                         },
                     )
+                    // Cloning entry — only visible for voices whose family
+                    // supports reference-audio cloning AND that are already
+                    // installed (the screen needs the JNI engine loaded).
+                    if (state.isInstalled && (
+                            card?.modelFamily?.supportsCloning == true ||
+                                installed?.family?.supportsCloning == true
+                            )
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.cloning_open_action)) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Outlined.RecordVoiceOver,
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                overflowOpen = false
+                                onOpenCloning()
+                            },
+                        )
+                    }
                     if (state.isInstalled && installed != null && !installed.bundled) {
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.voice_detail_uninstall_action)) },
@@ -227,6 +251,7 @@ fun VoiceDetailScreen(
             PreviewSection(
                 enabled = state.isInstalled,
                 playing = state.previewing,
+                generating = state.generating,
                 amplitudes = amplitudes,
                 accent = accent,
                 onPlay = viewModel::play,
@@ -388,6 +413,7 @@ private fun HeroShape(
 private fun PreviewSection(
     enabled: Boolean,
     playing: Boolean,
+    generating: Boolean,
     amplitudes: FloatArray,
     accent: Color,
     onPlay: (String) -> Unit,
@@ -395,6 +421,7 @@ private fun PreviewSection(
 ) {
     val defaultText = stringResource(R.string.voice_detail_preview_text)
     var text by remember { mutableStateOf(defaultText) }
+    val active = playing || generating
 
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -428,22 +455,34 @@ private fun PreviewSection(
         ) {
             FilledTonalButton(
                 onClick = {
-                    if (playing) onStop() else onPlay(text)
+                    if (active) onStop() else onPlay(text)
                 },
-                enabled = enabled && text.isNotBlank(),
+                enabled = enabled && text.isNotBlank() && !generating,
             ) {
+                // Three labels in priority order: Generating… (synth in
+                // flight), Stop (playback in flight), Play (idle). Same
+                // affordance the Studio playground uses.
+                val labelRes = when {
+                    generating -> R.string.voice_detail_preview_generating
+                    playing -> R.string.action_stop
+                    else -> R.string.action_play
+                }
                 AnimatedContent(
-                    targetState = playing,
+                    targetState = labelRes,
                     transitionSpec = dev.ahmedmohamed.hayaitts.ui.theme.HayaiMotion.swap(),
                     label = "play-icon",
-                ) { isPlaying ->
+                ) { label ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = if (isPlaying) Icons.Outlined.Stop else Icons.Outlined.PlayArrow,
+                            imageVector = when (label) {
+                                R.string.action_stop -> Icons.Outlined.Stop
+                                R.string.voice_detail_preview_generating -> Icons.Outlined.HourglassEmpty
+                                else -> Icons.Outlined.PlayArrow
+                            },
                             contentDescription = null,
                         )
                         Spacer(Modifier.size(8.dp))
-                        Text(stringResource(if (isPlaying) R.string.action_stop else R.string.action_play))
+                        Text(stringResource(label))
                     }
                 }
             }

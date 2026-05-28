@@ -87,6 +87,41 @@ data class VoiceCard(
      */
     @SerialName("speakerSamples")
     val speakerSamples: List<VoiceSample> = emptyList(),
+
+    // ---------- bundle-probe enrichment ----------------------------
+    // The fields below come from `tools/samples/render_samples.py`'s
+    // `extract_voice_metadata` plus the matching merge step in
+    // `render-samples.yml`. All are optional so old catalog rows
+    // deserialize cleanly.
+
+    /** First non-trivial paragraph from MODEL_CARD / README. */
+    val description: String? = null,
+    /** Piper-style quality tag: "low" / "medium" / "high". */
+    val quality: String? = null,
+    /** Training corpus name as written on the model card (e.g. "VCTK"). */
+    val dataset: String? = null,
+    /** "espeak" or "text" — hints whether the espeak-ng data is required. */
+    val phonemeType: String? = null,
+    /** Number of phoneme symbols the model accepts. */
+    val vocabSize: Int? = null,
+    /** Model author / publishing organisation if stated in the card. */
+    val author: String? = null,
+    /** Upstream source (HF repo / GitHub) if linked in the card. */
+    val sourceUrl: String? = null,
+    /** Base model the bundle was fine-tuned from, if stated. */
+    val baseModel: String? = null,
+    /** Realtime-factor measured during the sample render (synth_s / audio_s). */
+    val renderRtf: Float? = null,
+    /** Audio duration of the sample we rendered, in milliseconds. */
+    val renderDurationMs: Long? = null,
+    /** Author-recommended default for the `length_scale` knob. */
+    val defaultLengthScale: Float? = null,
+    /** Author-recommended default for the `noise_scale` knob. */
+    val defaultNoiseScale: Float? = null,
+    /** Author-recommended default for the `noise_scale_w` knob. */
+    val defaultNoiseScaleW: Float? = null,
+    /** Bundle structure flags so Browse can render appropriate badges. */
+    val bundleStructure: BundleStructure? = null,
 ) {
     val modelFamily: ModelFamily get() = ModelFamily.fromCatalog(family)
     val tierEnum: Tier get() = Tier.fromCatalog(tier)
@@ -106,6 +141,20 @@ data class VoiceCard(
         return speakerSamples.firstOrNull()?.url ?: sampleAudioUrl
     }
 }
+
+/**
+ * Bundle-structure flags emitted by the render-samples bundle probe.
+ * Surfaced in Voice Detail as a "Bundle contents" disclosure so the
+ * user can tell at a glance which voices need the espeak-ng phoneme
+ * tables (10 MB extra), which ship a hand-written lexicon, etc.
+ */
+@Serializable
+data class BundleStructure(
+    val hasLexicon: Boolean = false,
+    val hasDictDir: Boolean = false,
+    val hasEspeakData: Boolean = false,
+    val hasRuleFsts: Boolean = false,
+)
 
 /**
  * Top-level wrapper for `catalog/v1/models.json` — only used for parsing.

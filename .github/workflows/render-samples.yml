@@ -316,19 +316,118 @@ jobs:
               with open(path, "r", encoding="utf-8") as fh:
                   patches.update(json.load(fh))
           by_id = {v["id"]: v for v in catalog.get("voices", [])}
+          # Lightweight gender heuristic so release-only voices get
+          # something better than "U" when the speaker name matches a
+          # well-known gendered first name or a Kokoro/Kitten prefix.
+          # The doc-scraper has a richer table and we never downgrade
+          # its output; this only fills bare placeholders.
+          KNOWN_FEMALE = {
+              "amy", "alba", "amelie", "anna", "ariana", "ava", "bella", "bel",
+              "carla", "cora", "daria", "ella", "emma", "eva", "freya", "gala",
+              "hannah", "irina", "iris", "isabel", "jenny", "joana", "katja",
+              "katie", "kim", "lena", "lila", "linda", "lola", "luna", "maja",
+              "maria", "marta", "mei", "mia", "nicole", "nina", "olga", "rachel",
+              "raquel", "ria", "rosa", "sara", "selena", "sky", "sofia", "sophia",
+              "stella", "thalia", "tina", "vera", "yumi", "zara",
+          }
+          KNOWN_MALE = {
+              "adam", "alan", "alex", "alfonso", "ali", "andre", "andrew",
+              "antton", "antonio", "ari", "arjun", "arman", "ben", "bryce",
+              "carl", "carlos", "chris", "daniel", "dario", "david", "dennis",
+              "diego", "eric", "felix", "frank", "george", "henry", "hugo",
+              "ivan", "jack", "james", "jesper", "joe", "john", "joseph",
+              "juan", "karen", "kenny", "kim", "kyle", "lee", "lessac",
+              "lukas", "luke", "marco", "mario", "mark", "martin", "matt",
+              "max", "miguel", "mike", "nick", "norman", "oleg", "oliver",
+              "pablo", "paul", "pavel", "pedro", "peter", "ravi", "ryan",
+              "sam", "samuel", "sergio", "simon", "stefan", "thomas", "tim",
+              "tom", "tony", "victor", "viktor", "william",
+          }
+          def infer_gender(name: str) -> tuple[str, str]:
+              first = name.lower().strip().split("_")[0].split("-")[0]
+              # Kokoro-style prefix codes: `af_…` American Female, etc.
+              if len(first) == 2 and first[1] in "fm":
+                  return ("F", "inferred") if first[1] == "f" else ("M", "inferred")
+              if first in KNOWN_FEMALE:
+                  return "F", "inferred"
+              if first in KNOWN_MALE:
+                  return "M", "inferred"
+              return "U", "unknown"
+
           touched = 0
+          enriched = 0
           for vid, patch in patches.items():
               v = by_id.get(vid)
               if v is None:
                   continue
+              # --- Sample / audition URLs ------------------------------
               v["sampleAudioUrl"] = patch.get("sampleAudioUrl", v.get("sampleAudioUrl"))
               if patch.get("speakerSamples"):
                   v["speakerSamples"] = patch["speakerSamples"]
+
+              # --- Authoritative runtime numbers ---------------------
+              if patch.get("sampleRateHz"):
+                  v["sampleRateHz"] = patch["sampleRateHz"]
+              if patch.get("languageHint") and not v.get("languages"):
+                  v["languages"] = [patch["languageHint"]]
+
+              # --- Free-form descriptive ----------------------------
+              for k_src, k_dst in (
+                  ("description", "description"),
+                  ("quality", "quality"),
+                  ("dataset", "dataset"),
+                  ("phonemeType", "phonemeType"),
+                  ("vocabSize", "vocabSize"),
+                  ("author", "author"),
+                  ("sourceUrl", "sourceUrl"),
+                  ("baseModel", "baseModel"),
+                  ("renderRtf", "renderRtf"),
+                  ("renderDurationMs", "renderDurationMs"),
+                  ("defaultLengthScale", "defaultLengthScale"),
+                  ("defaultNoiseScale", "defaultNoiseScale"),
+                  ("defaultNoiseScaleW", "defaultNoiseScaleW"),
+                  ("bundleStructure", "bundleStructure"),
+              ):
+                  if patch.get(k_src) is not None:
+                      v[k_dst] = patch[k_src]
+
+              # License hint: only overwrite the family default when
+              # the bundle ships an actual LICENSE / MODEL_CARD entry
+              # and we don't yet have something better.
+              if patch.get("licenseHint") and (v.get("license") in (None, "", "unknown")):
+                  v["license"] = patch["licenseHint"]
+
+              # --- Speakers -----------------------------------------
+              probe_speakers = patch.get("speakers")
+              if probe_speakers and len(v.get("speakers", [])) <= 1:
+                  enriched_speakers = []
+                  for sp in probe_speakers:
+                      name = sp.get("name") or f"speaker_{sp.get('id', 0)}"
+                      g, conf = infer_gender(name)
+                      enriched_speakers.append({
+                          "id": sp.get("id", 0),
+                          "name": name,
+                          "gender": g,
+                          "genderConfidence": conf,
+                      })
+                  v["speakers"] = enriched_speakers
+                  enriched += 1
+              probe_n = patch.get("numSpeakers")
+              if isinstance(probe_n, int) and probe_n > len(v.get("speakers", [])):
+                  existing = v.get("speakers") or []
+                  for i in range(len(existing), probe_n):
+                      existing.append({
+                          "id": i, "name": f"speaker_{i}",
+                          "gender": "U", "genderConfidence": "unknown",
+                      })
+                  v["speakers"] = existing
+                  enriched += 1
+
               touched += 1
           with open("catalog/v1/models.json", "w", encoding="utf-8", newline="\n") as fh:
               json.dump(catalog, fh, ensure_ascii=False, indent=2)
               fh.write("\n")
-          print(f"merged patches for {touched} of {len(patches)} voices into catalog ({len(catalog.get('voices', []))} total)")
+          print(f"merged patches for {touched} of {len(patches)} voices into catalog ({len(catalog.get('voices', []))} total); enriched speakers for {enriched}")
           PY
 
       - name: Summarise rendered samples

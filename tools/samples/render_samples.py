@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -529,12 +530,21 @@ def _render_inline(
     *,
     target_sid: int = 0,
     target_lang: str | None = None,
+    metadata_out: Path | None = None,
 ) -> bool:
     """Render one (voice, sid, language) combination inside the worker.
 
     Native ``exit(-1)`` here only kills the worker, not the parent.
     espeak-ng's global singleton state lives and dies inside the worker,
     so each combo gets a fresh data_dir.
+
+    When [metadata_out] is provided and does not already exist, the
+    worker also writes a JSON sidecar with rich bundle metadata
+    (numSpeakers, sampleRate, parsed speaker names, model card snippet).
+    The parent loop reads the sidecar and merges it into the patch
+    that ultimately lands in ``catalog/v1/models.json`` — so a single
+    render-samples run both produces audition MP3s *and* enriches the
+    catalog metadata that arrived from the bare release-asset scrape.
     """
     family = (voice.get("family") or "").lower()
     builder = FAMILY_BUILDERS.get(family)
@@ -564,12 +574,285 @@ def _render_inline(
             tts = builder(extract_root, lang_hint=lang_head)
         else:
             tts = builder(extract_root)
+
+        # Metadata sidecar — parent main loop assembles patches from
+        # these files. Only write once per voice (first combo wins).
+        meta_to_write: dict[str, Any] = {}
+        if metadata_out is not None and not metadata_out.exists():
+            try:
+                meta_to_write = extract_voice_metadata(extract_root, family, tts)
+            except Exception as e:
+                log(f"  ! metadata extraction failed for {voice['id']}: {e}")
+
+        synth_start = time.monotonic()
         audio = tts.generate(text, sid=target_sid, speed=1.0)
+        synth_seconds = time.monotonic() - synth_start
+
+        if meta_to_write is not None and metadata_out is not None and not metadata_out.exists():
+            try:
+                meta_to_write.update(
+                    measure_render_metrics(audio.samples, audio.sample_rate, synth_seconds),
+                )
+                metadata_out.parent.mkdir(parents=True, exist_ok=True)
+                with metadata_out.open("w", encoding="utf-8", newline="\n") as fh:
+                    json.dump(meta_to_write, fh, ensure_ascii=False, indent=2)
+                    fh.write("\n")
+            except Exception as e:
+                log(f"  ! metadata sidecar write failed for {voice['id']}: {e}")
         wav_out = tmp_path / "sample.wav"
         write_wav(audio.samples, audio.sample_rate, wav_out)
         encode_mp3(wav_out, out_mp3)
         log(f"  ✓ {out_mp3.name} ({out_mp3.stat().st_size // 1024} KB @ {audio.sample_rate} Hz)")
         return True
+
+
+def extract_voice_metadata(extract_root: Path, family: str, tts: Any) -> dict[str, Any]:
+    """Pull every shred of useful catalog metadata out of an already-extracted
+    sherpa-onnx voice bundle plus the live JNI runtime.
+
+    What we look at, by source:
+
+      Runtime (authoritative when present):
+        - ``tts.num_speakers`` → exact speaker count
+        - ``tts.sample_rate``  → exact native synthesis SR
+      Piper / VITS ``*.onnx.json``:
+        - ``speaker_id_map`` → ``{name: index}`` for every named speaker
+        - ``language`` / ``language_code`` → BCP-47 hint
+        - ``audio.quality`` → low/medium/high
+        - ``inference.{length_scale,noise_scale,noise_scale_w}`` → defaults
+        - ``phoneme_type`` → espeak / text
+        - ``num_symbols`` / ``phoneme_id_map`` → vocab size
+        - ``dataset`` / ``training_corpus``
+      ``tokens.txt``: vocab size fallback (one phoneme per line).
+      ``espeak-ng-data/`` / ``lexicon.txt`` / ``dict/`` / ``rule.fst`` →
+        bundle-structure flags so the app can render appropriate badges.
+      Kokoro / Kitten ``voices/*.pt`` filenames or a top-level
+        ``voices/index.json`` / ``speakers.txt``: derive speaker names.
+      ``MODEL_CARD`` / ``README.md`` (any case):
+        first paragraph kept verbatim as ``description`` (clipped); also
+        scan for ``Dataset:``, ``License:``, ``Author:`` style headers.
+      ``speakers.txt``: one name per line, ordered by sid.
+      ``LICENSE`` / ``LICENSE.md``: SPDX-ish first line.
+
+    The result is a dict with whichever fields could be filled; the
+    publish step merges it into the catalog row, only overwriting
+    fields the bare-release scraper had left as defaults.
+    """
+    out: dict[str, Any] = {}
+
+    # Runtime (authoritative).
+    try:
+        n = int(tts.num_speakers)
+        if n > 0:
+            out["numSpeakers"] = n
+    except Exception:
+        pass
+    try:
+        sr = int(tts.sample_rate)
+        if sr > 0:
+            out["sampleRateHz"] = sr
+    except Exception:
+        pass
+
+    # Piper / VITS config JSON — densest single source of metadata.
+    for p in extract_root.rglob("*.onnx.json"):
+        try:
+            cfg = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        # Speaker map (named).
+        speaker_id_map = (
+            cfg.get("speaker_id_map")
+            or cfg.get("speakers")
+            or (cfg.get("audio") or {}).get("speaker_id_map")
+        )
+        if isinstance(speaker_id_map, dict) and speaker_id_map:
+            inv: dict[int, str] = {}
+            for name, idx in speaker_id_map.items():
+                try:
+                    inv[int(idx)] = str(name)
+                except (TypeError, ValueError):
+                    continue
+            if inv:
+                out["speakerNames"] = [inv[i] for i in sorted(inv.keys())]
+        # Language hint.
+        lang_hint = (
+            cfg.get("language")
+            or cfg.get("lang")
+            or (cfg.get("espeak") or {}).get("voice")
+        )
+        if isinstance(lang_hint, str) and lang_hint:
+            out.setdefault("languageHint", lang_hint)
+        elif isinstance(lang_hint, dict):
+            code = lang_hint.get("code") or lang_hint.get("name_native")
+            if isinstance(code, str) and code:
+                out.setdefault("languageHint", code)
+        # Quality (Piper: low / medium / high).
+        audio = cfg.get("audio") or {}
+        quality = cfg.get("quality") or audio.get("quality")
+        if isinstance(quality, str) and quality:
+            out["quality"] = quality.lower()
+        # Default inference scales — surfaced in Voice Detail so the
+        # tuning knobs in Playground initialise to the model author's
+        # recommended values rather than our generic 0.667/0.8 defaults.
+        inf = cfg.get("inference") or {}
+        for key, dst in (
+            ("noise_scale", "defaultNoiseScale"),
+            ("length_scale", "defaultLengthScale"),
+            ("noise_w", "defaultNoiseScaleW"),
+        ):
+            val = inf.get(key)
+            if isinstance(val, (int, float)):
+                out[dst] = float(val)
+        # Phoneme type — espeak vs raw text — tells us if the model
+        # needs the espeak-ng-data sidecar.
+        ptype = cfg.get("phoneme_type")
+        if isinstance(ptype, str) and ptype:
+            out["phonemeType"] = ptype
+        # Vocab size from phoneme_id_map / num_symbols.
+        phoneme_map = cfg.get("phoneme_id_map")
+        if isinstance(phoneme_map, dict):
+            out["vocabSize"] = len(phoneme_map)
+        elif isinstance(cfg.get("num_symbols"), int):
+            out["vocabSize"] = int(cfg["num_symbols"])
+        # Dataset / training corpus.
+        dataset = (
+            cfg.get("dataset")
+            or cfg.get("training_corpus")
+            or (cfg.get("training") or {}).get("dataset")
+        )
+        if isinstance(dataset, str) and dataset:
+            out["dataset"] = dataset
+        break  # one config per bundle in practice
+
+    # tokens.txt vocab-size fallback (one phoneme per line).
+    if "vocabSize" not in out:
+        tokens_path = extract_root / "tokens.txt"
+        if tokens_path.is_file():
+            try:
+                lines = [
+                    ln for ln in tokens_path.read_text(
+                        encoding="utf-8", errors="replace",
+                    ).splitlines() if ln.strip()
+                ]
+                if lines:
+                    out["vocabSize"] = len(lines)
+            except Exception:
+                pass
+
+    # Bundle-structure flags. These map to the same files
+    # SherpaTtsRuntime looks for at install time, so the Voice Detail
+    # screen can render a "has lexicon" / "uses espeak" badge before
+    # the user installs.
+    structure = {
+        "hasLexicon": (extract_root / "lexicon.txt").is_file(),
+        "hasDictDir": (extract_root / "dict").is_dir(),
+        "hasEspeakData": (extract_root / "espeak-ng-data").is_dir(),
+        "hasRuleFsts": any(
+            (extract_root / name).is_file()
+            for name in ("date.fst", "number.fst", "phone.fst")
+        ),
+    }
+    out["bundleStructure"] = structure
+
+    # Kokoro / Kitten ship per-speaker files under voices/.
+    voices_dir = extract_root / "voices"
+    if voices_dir.is_dir():
+        speaker_names = sorted(
+            p.stem for p in voices_dir.iterdir()
+            if p.suffix in (".pt", ".bin") and not p.stem.startswith("_")
+        )
+        if speaker_names:
+            out["speakerNames"] = speaker_names
+
+    # Plain-text speakers.txt — one name per line in sid order.
+    speakers_txt = extract_root / "speakers.txt"
+    if speakers_txt.is_file():
+        lines = [
+            ln.strip() for ln in speakers_txt.read_text(encoding="utf-8").splitlines()
+            if ln.strip()
+        ]
+        if lines:
+            out["speakerNames"] = lines
+
+    # MODEL_CARD / README.md → keep first paragraph as description, plus
+    # scan for inline "Dataset: ...", "License: ...", "Author: ..." keys
+    # that some upstream cards include.
+    for candidate in ("MODEL_CARD", "MODEL_CARD.md", "README.md", "README", "README.txt"):
+        path = extract_root / candidate
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            continue
+        # Strip YAML frontmatter and markdown headings.
+        body = re.sub(r"^---\n.*?\n---\n", "", text, count=1, flags=re.S)
+        paragraphs = [p.strip() for p in re.split(r"\n\s*\n", body) if p.strip()]
+        if "description" not in out:
+            for para in paragraphs:
+                if para.startswith("#") or len(para) < 30:
+                    continue
+                snippet = para[:480].rstrip()
+                if len(para) > 480:
+                    snippet += "…"
+                out["description"] = snippet
+                break
+        # Inline key/value pairs.
+        for key, dst in (
+            ("dataset", "dataset"),
+            ("training data", "dataset"),
+            ("training corpus", "dataset"),
+            ("license", "licenseHint"),
+            ("author", "author"),
+            ("model author", "author"),
+            ("organization", "author"),
+            ("base model", "baseModel"),
+            ("source", "sourceUrl"),
+            ("upstream", "sourceUrl"),
+        ):
+            m = re.search(rf"^\s*[#-]*\s*{re.escape(key)}\s*:\s*(.+)$",
+                          body, re.IGNORECASE | re.MULTILINE)
+            if m and dst not in out:
+                out[dst] = m.group(1).strip().rstrip(",.")
+        break  # only read the first model card we find
+
+    # LICENSE / LICENSE.md → SPDX-ish first non-empty line.
+    for candidate in ("LICENSE", "LICENSE.md", "LICENSE.txt"):
+        path = extract_root / candidate
+        if not path.is_file():
+            continue
+        try:
+            for ln in path.read_text(encoding="utf-8", errors="replace").splitlines():
+                stripped = ln.strip()
+                if stripped:
+                    out.setdefault("licenseHint", stripped[:120])
+                    break
+        except Exception:
+            pass
+        break
+
+    return out
+
+
+def measure_render_metrics(samples: Any, sample_rate: int, synth_seconds: float) -> dict[str, Any]:
+    """Compute realtime-factor + audio duration for one synthesis pass.
+
+    RTF below 1.0 means the model synthesises faster than realtime; the
+    Voice Detail screen surfaces this so users on lower-end phones can
+    triage which voices are usable. ``samples`` is whatever sherpa-onnx
+    returned — a numpy array or a python list of floats.
+    """
+    try:
+        n = len(samples)
+    except TypeError:
+        n = 0
+    duration_ms = int(round((n / max(sample_rate, 1)) * 1000))
+    rtf = synth_seconds / max(n / max(sample_rate, 1), 1e-6)
+    return {
+        "renderRtf": round(rtf, 4),
+        "renderDurationMs": duration_ms,
+    }
 
 
 def render_one(
@@ -582,6 +865,7 @@ def render_one(
     target_lang: str,
     in_subprocess: bool = True,
     per_voice_timeout: float = 240.0,
+    metadata_out: Path | None = None,
 ) -> bool:
     """Render one (voice, sid, language) combination.
 
@@ -608,6 +892,7 @@ def render_one(
             return _render_inline(
                 voice, out_mp3, work_dir, cache_dir,
                 target_sid=target_sid, target_lang=target_lang,
+                metadata_out=metadata_out,
             )
         except Exception as e:
             log(f"  ✗ {voice_id}: {type(e).__name__}: {e}")
@@ -623,6 +908,8 @@ def render_one(
         "--target-sid", str(target_sid),
         "--target-lang", target_lang,
     ]
+    if metadata_out is not None:
+        cmd += ["--metadata-out", str(metadata_out)]
     try:
         proc = subprocess.run(
             cmd,
@@ -709,6 +996,15 @@ def main() -> int:
              "to the same file.",
     )
     ap.add_argument(
+        "--metadata-out",
+        default="",
+        help="Worker-mode only: path where the worker writes its bundle "
+             "metadata sidecar (numSpeakers / sampleRate / speakerNames / "
+             "MODEL_CARD snippet). Parent passes this so each voice gets a "
+             "deterministic filename it can read back; empty disables the "
+             "extraction.",
+    )
+    ap.add_argument(
         "--existing-assets",
         default="",
         help="Path to JSON file containing a flat list of asset filenames "
@@ -731,10 +1027,12 @@ def main() -> int:
         work_dir = Path(tempfile.gettempdir())
         target_lang = args.target_lang or (voice.get("languages") or ["en"])[0]
         out_mp3 = out_dir / combo_filename(voice["id"], args.target_sid, target_lang)
+        meta_out = Path(args.metadata_out) if args.metadata_out else None
         try:
             ok = _render_inline(
                 voice, out_mp3, work_dir, cache_dir,
                 target_sid=args.target_sid, target_lang=target_lang,
+                metadata_out=meta_out,
             )
         except Exception as e:
             log(f"  ✗ {voice['id']}: {type(e).__name__}: {e}")
@@ -769,6 +1067,12 @@ def main() -> int:
         log(f"existing-assets manifest: {len(existing_assets)} filenames")
 
     patches: dict[str, dict] = {}
+    # Metadata sidecars (one JSON per voice) land here. The first
+    # successful render for each voice drops a `<voice_id>.meta.json`
+    # next to the MP3s; we read them back after the loop and merge into
+    # the patch so the publish step can enrich the catalog.
+    meta_dir = out_dir / "_meta"
+    meta_dir.mkdir(parents=True, exist_ok=True)
 
     produced = 0
     skipped = 0
@@ -808,6 +1112,7 @@ def main() -> int:
                     target_sid=sid,
                     target_lang=lang,
                     in_subprocess=not args.no_subprocess,
+                    metadata_out=meta_dir / f"{voice_id}.json",
                 )
                 if ok:
                     combos.append({"speakerId": sid, "language": lang, "url": combo_url(voice_id, sid, lang)})
@@ -841,6 +1146,33 @@ def main() -> int:
                 "sampleAudioUrl": v["sampleAudioUrl"],
                 "speakerSamples": combos,
             }
+
+        # Merge any metadata sidecar the worker dropped. Done after the
+        # combo loop so we get it whether the first sid succeeded or a
+        # later one did; the worker only writes if no sidecar exists yet.
+        sidecar_path = meta_dir / f"{voice_id}.json"
+        if sidecar_path.is_file():
+            try:
+                sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+            except Exception:
+                sidecar = {}
+            if sidecar:
+                # Convert speakerNames (a list, sid-ordered) into the
+                # `speakers` schema the rest of the catalog uses. We
+                # never overwrite a richer existing speaker list — the
+                # doc-scraper-derived rows already have proper genders.
+                names = sidecar.pop("speakerNames", None)
+                if names and len(v.get("speakers", [])) <= 1:
+                    sidecar["speakers"] = [
+                        {
+                            "id": i,
+                            "name": name,
+                            "gender": "U",
+                            "genderConfidence": "unknown",
+                        }
+                        for i, name in enumerate(names)
+                    ]
+                patches.setdefault(voice_id, {}).update(sidecar)
 
         if any_produced_for_voice:
             voices_done += 1

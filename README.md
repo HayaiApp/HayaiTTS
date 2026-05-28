@@ -18,13 +18,23 @@ locally on the phone via [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)
 calls into `TextToSpeech` (TalkBack, navigation, reader apps, the browser's
 read-aloud) speaks with whichever voice you install.
 
-- **188 voices** across 5–7 model families, **73 languages**. Full
-  index at [`docs/MODELS.md`](docs/MODELS.md) (auto-regenerated weekly).
+- **600+ voices** across 7 model families (Piper, VITS, Matcha, Kokoro,
+  Kitten, Supertonic, ZipVoice, Pocket), tens of languages. Full index
+  at [`docs/MODELS.md`](docs/MODELS.md) (auto-regenerated weekly by the
+  [catalog-refresh](.github/workflows/catalog-refresh.yml) workflow,
+  which scrapes both the upstream docs and the
+  [`tts-models` release assets](https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models)).
 - **In-app catalog browser** with per-(speaker, language) audition clips
   rendered offline by `tools/samples/render_samples.py`, hosted at
   [HayaiTTS-samples](https://github.com/HayaiApp/HayaiTTS-samples).
-- **Streaming-capable runtime** — `SherpaTtsRuntime.synthesizeStreaming` and
-  `synthesizeCloned` are wired up; the cloning UI is in active development.
+- **Voice cloning** for ZipVoice / Pocket voices: in-app mic recorder,
+  file-import via SAF, reference transcript + target text, generate
+  through `SherpaTtsRuntime.synthesizeCloned`. Surfaced as "Clone this
+  voice" in the Voice Detail overflow menu whenever the installed voice's
+  family supports reference-audio cloning.
+- **Streaming runtime** — `SherpaTtsRuntime.synthesizeStreaming` invokes
+  `OfflineTts.generateWithCallback`, exposing FloatArray chunks as the
+  JNI layer produces them; the TTS service still buffers for now.
 - **System TTS engine**, `MANAGE_VOICES` activity-alias for system settings
   cog, foreground-service downloader, in-app update channel with auto-poll.
 
@@ -52,9 +62,20 @@ repo so the main Releases page stays focused on production builds.
 ## Features
 
 ### Catalog & install
-- 188 voices spanning Piper, Kokoro, Kitten, Matcha, Supertonic
-  (ZipVoice and Pocket families wired in the runtime; awaiting upstream
-  model releases — see [`docs/MODELS.md`](docs/MODELS.md))
+- Catalog scraper walks two upstream sources:
+  1. The
+     [sherpa-onnx docs index](https://k2-fsa.github.io/sherpa/onnx/tts/all-pretrained-models.html) —
+     rich per-voice metadata (named speakers, sample rate, license, demo
+     URL).
+  2. A direct walk of every `.tar.bz2` asset on the
+     [`tts-models` release](https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models) —
+     fills the gap for families k2-fsa publishes but hasn't documented
+     yet (currently the entire ZipVoice / Pocket cloning catalog plus
+     hundreds of Piper variants).
+- Result is **600+ voices** across the 7 runtime-supported families
+  (Piper, VITS, Matcha, Kokoro, Kitten, Supertonic, ZipVoice, Pocket).
+  Live count + per-family breakdown in
+  [`docs/MODELS.md`](docs/MODELS.md).
 - Catalog auto-refreshed weekly from the
   [sherpa-onnx TTS model index](https://k2-fsa.github.io/sherpa/onnx/tts/all-pretrained-models.html);
   see [`catalog-refresh.yml`](.github/workflows/catalog-refresh.yml).
@@ -136,21 +157,40 @@ The catalog is the source of truth for everything Browse shows.
 - Refresh cadence: weekly, every Monday 06:30 UTC. Hand-trigger via
   `Actions → catalog-refresh → Run workflow`.
 
-| Family | Voices | Cloning | Notes |
-|---|---:|:-:|---|
-| Piper | 174 | — | VITS, 10–60 MB, ~70 languages |
-| Kokoro | 3 | — | Higher-quality VITS, 80–360 MB, multi-speaker |
-| Kitten | 7 | — | Tiny English-only, fastest |
-| Matcha | 3 | — | Diffusion + side-vocoder |
-| Supertonic | 1 | — | 2026 model, 30 langs × 10 speakers in one bundle |
-| ZipVoice | 0 | ✓ | Reference-audio cloning, awaiting upstream release |
-| Pocket | 0 | ✓ | Voice-embedding cloning, awaiting upstream release |
+| Family | Cloning | Notes |
+|---|:-:|---|
+| Piper | — | VITS, 10–60 MB, ~70 languages, hundreds of named voices |
+| VITS | — | Bare VITS checkpoints (LJSpeech, VCTK, Coqui, etc.) |
+| Kokoro | — | Higher-quality VITS variant, 80–360 MB, multi-speaker |
+| Kitten | — | Tiny English-only, fastest synthesis |
+| Matcha | — | Diffusion + side-vocoder |
+| Supertonic | — | 2026 model, 30 languages × 10 speakers in one bundle |
+| ZipVoice | ✓ | Reference-audio cloning, flow-matching (Apache-2.0) |
+| Pocket | ✓ | Voice-embedding cloning, smaller weights (Apache-2.0) |
 
-Cloning support means
-[`OfflineTts.generateWithConfig`](https://github.com/k2-fsa/sherpa-onnx) is
-called with a reference clip + transcript in `GenerationConfig`. The runtime
-plumbing (`SherpaTtsRuntime.synthesizeCloned`) is in; the UI screen is on
-the roadmap.
+For exact counts and per-voice details (bundle URL, sample rate, license,
+speakers, languages, size) see [`docs/MODELS.md`](docs/MODELS.md) — that
+file is auto-generated from `catalog/v1/models.json` after every refresh.
+
+**Reference-audio cloning** maps to sherpa-onnx's
+[`OfflineTts.generateWithConfig(text, GenerationConfig)`](https://github.com/k2-fsa/sherpa-onnx),
+where `GenerationConfig` carries:
+
+- `referenceAudio: FloatArray` — mono clip in `[-1, 1]`
+- `referenceSampleRate: Int` — e.g. 16000
+- `referenceText: String` — exact transcript of what the reference says
+- `numSteps: Int` — flow-matching diffusion steps (8 by default)
+
+The runtime entry point is
+[`SherpaTtsRuntime.synthesizeCloned(...)`](app/src/main/java/dev/ahmedmohamed/hayaitts/tts/SherpaTtsRuntime.kt);
+the user-facing flow is the
+[Voice Cloning screen](app/src/main/java/dev/ahmedmohamed/hayaitts/ui/cloning/VoiceCloningScreen.kt)
+reached from any installed cloning-capable voice. Specific upstream
+bundles that will work as soon as the scraper sees them:
+
+- `sherpa-onnx-zipvoice-zh-en-emilia` (full precision)
+- `sherpa-onnx-zipvoice-distill-zh-en-emilia` / `-int8` / `-fp32`
+- `sherpa-onnx-pocket-tts-2026-01-26` / `-int8`
 
 ---
 
@@ -236,16 +276,20 @@ release workflow sets `HAYAITTS_VERSION_NAME=${VERSION_TAG}`), so the
 Tracked in this repo's [issues](https://github.com/HayaiApp/HayaiTTS/issues).
 Near-term:
 
-- **Voice cloning UI** (`zipvoice` / `pocket`). Runtime is wired; UI
-  needs a mic-record + file-upload screen, reference-transcript field,
-  and target-text generate flow.
-- **Streaming playback** in `HayaiTtsService`. Currently buffers full
-  synthesis before pushing PCM; the streaming runtime API
-  (`synthesizeStreaming`) is in place, the service callback wiring is
-  the next step.
+- **Catalog scraper: pick up ZipVoice + Pocket bundles** even when the
+  upstream documentation index doesn't list them. Currently the only
+  thing blocking voice cloning from being end-to-end useable is that
+  `build_catalog.py` discovers slugs from the docs `searchindex.js` and
+  the cloning models are only on the release page.
+- **Streaming playback** in `HayaiTtsService`. The runtime API
+  (`synthesizeStreaming`) is in place; the service still buffers the
+  full FloatArray before pushing PCM to the framework callback, which
+  blocks low-latency read-aloud apps. Wiring chunk-by-chunk
+  `callback.audioAvailable(...)` is the next step.
 - **Per-speaker metadata**: most upstream catalogs ship `speaker_0…N`
-  with no gender/age/style annotations; ingesting community-curated
-  metadata where it exists.
+  with no gender / age / style annotations. The display layer already
+  collapses anonymous placeholders to "Voice N"; ingesting
+  community-curated metadata where it exists is the upgrade path.
 - **More filter dimensions**: voice description, training corpus,
   release year, style tags.
 

@@ -43,6 +43,13 @@ jobs:
       - name: Regenerate catalog
         run: python tools/catalog/build_catalog.py --output catalog/v1/models.json
 
+      # Curated overlay (descriptions / source URLs / use cases). Runs
+      # after the scrape so family defaults can fill anything the
+      # scraper left blank; per-voice keys then override scrape output
+      # for the handful of voices we hand-tag.
+      - name: Apply curated overlay
+        run: python tools/catalog/apply_overlay.py
+
       # docs/MODELS.md is the human-readable view of catalog/v1/models.json
       # that the README points at. Rebuild it after every refresh so the
       # markdown table never lags behind the JSON the app actually consumes.

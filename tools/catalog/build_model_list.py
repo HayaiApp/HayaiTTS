@@ -162,14 +162,18 @@ def render(catalog_path: Path, output_path: Path) -> None:
             lines.append("")
             lines.append(FAMILY_BLURB[fam])
         lines.append("")
-        lines.append("| Title | Languages | Speakers | Size | Tier | License |")
-        lines.append("|---|---|---:|---:|---|---|")
+        lines.append("| Title | Languages | Speakers | Size | Tier | Quality | RTF | License |")
+        lines.append("|---|---|---:|---:|---|---|---:|---|")
         for v in rows:
             cloning = " · 🎤 cloning" if supports_cloning(v["family"]) else ""
+            quality = v.get("quality") or "—"
+            rtf = v.get("renderRtf")
+            rtf_cell = f"{rtf:.2f}" if isinstance(rtf, (int, float)) else "—"
             lines.append(
                 f"| {v['title']}{cloning} | {fmt_languages(v['languages'])} | "
                 f"{fmt_speakers(v['speakers'])} | {fmt_size_mb(int(v.get('approxSizeMb') or 0))} | "
-                f"{v.get('tier', '—')} | {fmt_license(v.get('license'))} |"
+                f"{v.get('tier', '—')} | {quality} | {rtf_cell} | "
+                f"{fmt_license(v.get('license'))} |"
             )
         lines.append("")
 
