@@ -24,6 +24,17 @@
     <string name="browse_empty_title">Ни один голос не подходит под фильтры</string>
     <string name="browse_empty_subtitle">Попробуйте расширить фильтры по языку или уровню.</string>
     <string name="browse_search_placeholder_count">Поиск среди %1$d голосов</string>
+    <string name="topbar_search_library">Поиск в библиотеке</string>
+    <string name="topbar_search_browse">Поиск голосов</string>
+    <string name="topbar_search_activity">Поиск в активности</string>
+    <string name="topbar_search_settings">Поиск в настройках</string>
+    <string name="browse_filter_language_search">Поиск языков</string>
+    <string name="settings_allowed_languages">Показанные языки</string>
+    <string name="settings_allowed_languages_all">Все языки</string>
+    <string name="settings_allowed_languages_count">%1$d языков</string>
+    <string name="settings_allowed_languages_subtitle">Ограничивает языки, показанные в обзоре. Пусто = показывать все.</string>
+    <string name="settings_allowed_languages_sheet_title">Показанные языки</string>
+    <string name="settings_allowed_languages_select_all">Выбрать все</string>
     <string name="browse_open_filters">Открыть фильтры</string>
     <string name="browse_filter_sheet_title">Фильтры</string>
     <string name="browse_filter_reset">Сбросить</string>
@@ -81,6 +92,7 @@
 
     <string name="download_in_progress">Загрузка нейросетевого голоса…</string>
     <string name="download_extracting">Распаковка…</string>
+    <string name="download_extracting_progress">Распаковка · %1$d%%</string>
     <string name="download_active_channel_name">Загрузки голосов (активные)</string>
     <string name="download_active_channel_description">Прогресс активных загрузок голосов.</string>
     <string name="download_complete_channel_name">Загрузки голосов (завершённые)</string>
@@ -147,7 +159,7 @@
     <string name="settings_clear_cache_subtitle">Удаляет недокачанные архивы после отменённых загрузок.</string>
     <string name="settings_clear_cache_done">Освобождено: %1$s</string>
     <string name="settings_section_about">О приложении</string>
-    <string name="settings_version">Версия %1$s (%2$d)</string>
+    <string name="settings_version">%1$s · %2$s (%3$d)</string>
     <string name="settings_powered_by">Модели на базе sherpa-onnx</string>
     <string name="settings_powered_by_subtitle">Нажмите, чтобы открыть исходный проект</string>
     <string name="settings_license_label">Лицензия: GPL-3.0</string>
@@ -305,6 +317,7 @@
     <string name="studio_title">Студия</string>
     <string name="studio_subtitle">Настройка · A/B · Экспорт</string>
     <string name="studio_no_voices">Установите голос в «Обзоре», чтобы использовать Студию.</string>
+    <string name="studio_swap_voice">Сменить голос</string>
     <string name="activity_title">Активность</string>
     <string name="activity_subtitle">Загрузки · Генерации · Кэш</string>
     <string name="activity_pane_downloads">Загрузки</string>

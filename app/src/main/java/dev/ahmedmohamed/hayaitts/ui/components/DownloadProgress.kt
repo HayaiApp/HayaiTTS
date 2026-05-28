@@ -4,17 +4,14 @@ package dev.ahmedmohamed.hayaitts.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -70,19 +67,23 @@ fun DownloadProgress(
             }
 
             is DownloadState.Extracting -> {
-                Row(
+                // Determinate progress matches the Activity tab's renderer
+                // so the user sees the same percentage in both places. The
+                // worker emits `pct` for both download and extraction
+                // phases — keeping the UI consistent avoids the impression
+                // that extraction is "stuck".
+                LinearWavyProgressIndicator(
+                    progress = { state.pct.coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    ContainedLoadingIndicator(
-                        modifier = Modifier.padding(end = 4.dp),
-                    )
-                    Text(
-                        stringResource(R.string.download_extracting),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                )
+                Text(
+                    text = stringResource(
+                        R.string.download_extracting_progress,
+                        (state.pct * 100f).roundToInt().coerceIn(0, 100),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
 
             else -> {

@@ -6,18 +6,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.GraphicEq
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
@@ -25,6 +27,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiEmpty
+import dev.ahmedmohamed.hayaitts.ui.components.HayaiEmptyMode
 import dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -42,71 +47,123 @@ import dev.ahmedmohamed.hayaitts.data.telemetry.SynthesisTelemetryRepository
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import org.koin.androidx.compose.koinViewModel
 
-private enum class Pane(val labelRes: Int) {
-    Downloads(R.string.activity_pane_downloads),
-    Extractions(R.string.activity_pane_extractions),
-    Generations(R.string.activity_pane_generations),
-    RequestLog(R.string.activity_pane_log),
-    Cache(R.string.activity_pane_cache),
+private enum class Pane(val labelRes: Int, val icon: ImageVector) {
+    Downloads(R.string.activity_pane_downloads, Icons.Outlined.CloudDownload),
+    Extractions(R.string.activity_pane_extractions, Icons.Outlined.Inventory2),
+    Generations(R.string.activity_pane_generations, Icons.Outlined.GraphicEq),
+    RequestLog(R.string.activity_pane_log, Icons.Outlined.History),
+    Cache(R.string.activity_pane_cache, Icons.Outlined.Folder),
 }
 
 @Composable
 fun ActivityScreen(onBack: () -> Unit) {
     val vm: ActivityViewModel = koinViewModel()
     val state by vm.uiState.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var selected by remember { mutableStateOf(Pane.Downloads) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            Column {
-                HayaiTopBar(
-                    title = stringResource(R.string.activity_title),
-                    scrollBehavior = scrollBehavior,
-                )
+    dev.ahmedmohamed.hayaitts.ui.components.HayaiScreenChrome(
+        title = stringResource(R.string.activity_title),
+        searchable = dev.ahmedmohamed.hayaitts.ui.components.HayaiSearchable(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            placeholder = stringResource(R.string.topbar_search_activity),
+        ),
+        barOverlay = {
+            // Primary scrollable tabs sit just below the floating top bar.
+            // Tabs use the content slot so the icon + label render side by
+            // side rather than stacked vertically.
+            androidx.compose.material3.Surface(
+                color = MaterialTheme.colorScheme.background,
+            ) {
                 PrimaryScrollableTabRow(
                     selectedTabIndex = Pane.entries.indexOf(selected),
                     edgePadding = 16.dp,
                 ) {
-                    Pane.entries.forEachIndexed { i, pane ->
+                    Pane.entries.forEach { pane ->
                         Tab(
                             selected = selected == pane,
                             onClick = { selected = pane },
-                            text = { Text(stringResource(pane.labelRes), maxLines = 1) },
-                        )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                            ) {
+                                Icon(pane.icon, contentDescription = null)
+                                Text(stringResource(pane.labelRes), maxLines = 1)
+                            }
+                        }
                     }
                 }
             }
         },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            when (selected) {
-                Pane.Downloads -> DownloadsPane(state.downloads.filter {
-                    it.state is DownloadState.Queued || it.state is DownloadState.Running
-                })
-                Pane.Extractions -> DownloadsPane(state.downloads.filter {
-                    it.state is DownloadState.Extracting
-                })
-                Pane.Generations -> GenerationsPane(state.telemetry)
-                Pane.RequestLog -> RequestLogPane(state.telemetry)
-                Pane.Cache -> CachePane(installedCount = state.installedCount, bytes = state.cacheBytes)
+    ) { topInset ->
+        // The tab strip is part of the floating chrome, so add its measured
+        // height (~48dp tab + 1dp divider) to the inset so content scrolls
+        // behind both bar and tabs.
+        val chromeInset = topInset + 49.dp
+        val q = searchQuery.trim()
+        val downloadsFiltered = remember(state.downloads, q) {
+            state.downloads.filter { row ->
+                q.isEmpty() || row.title.contains(q, ignoreCase = true) ||
+                    row.voiceId.contains(q, ignoreCase = true)
             }
+        }
+        val telemetryFiltered = remember(state.telemetry, q) {
+            state.telemetry.filter { ev ->
+                q.isEmpty() ||
+                    ev.voiceId.contains(q, ignoreCase = true) ||
+                    ev.locale?.contains(q, ignoreCase = true) == true ||
+                    ev.callerPackage?.contains(q, ignoreCase = true) == true
+            }
+        }
+        when (selected) {
+            Pane.Downloads -> DownloadsPane(downloadsFiltered.filter {
+                it.state is DownloadState.Queued || it.state is DownloadState.Running
+            }, topInset = chromeInset)
+            Pane.Extractions -> ExtractionsPane(downloadsFiltered.filter {
+                it.state is DownloadState.Extracting
+            }, topInset = chromeInset)
+            Pane.Generations -> GenerationsPane(telemetryFiltered, topInset = chromeInset)
+            Pane.RequestLog -> RequestLogPane(telemetryFiltered, topInset = chromeInset)
+            Pane.Cache -> CachePane(
+                installedCount = state.installedCount,
+                bytes = state.cacheBytes,
+                topInset = chromeInset,
+            )
         }
     }
 }
 
 @Composable
-private fun DownloadsPane(rows: List<ActivityViewModel.DownloadRow>) {
+private fun DownloadsPane(rows: List<ActivityViewModel.DownloadRow>, topInset: androidx.compose.ui.unit.Dp) {
     if (rows.isEmpty()) {
-        EmptyPane(text = stringResource(R.string.empty_section))
+        EmptyHero(
+            icon = Icons.Outlined.CloudDownload,
+            title = stringResource(R.string.activity_pane_downloads),
+            subtitle = stringResource(R.string.empty_section),
+            topInset = topInset,
+        )
         return
     }
-    LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
+    LazyColumn(contentPadding = PaddingValues(top = topInset, bottom = 8.dp)) {
+        items(rows, key = { it.voiceId }) { row -> DownloadRowItem(row) }
+    }
+}
+
+@Composable
+private fun ExtractionsPane(rows: List<ActivityViewModel.DownloadRow>, topInset: androidx.compose.ui.unit.Dp) {
+    if (rows.isEmpty()) {
+        EmptyHero(
+            icon = Icons.Outlined.Inventory2,
+            title = stringResource(R.string.activity_pane_extractions),
+            subtitle = stringResource(R.string.empty_section),
+            topInset = topInset,
+        )
+        return
+    }
+    LazyColumn(contentPadding = PaddingValues(top = topInset, bottom = 8.dp)) {
         items(rows, key = { it.voiceId }) { row -> DownloadRowItem(row) }
     }
 }
@@ -149,13 +206,18 @@ private fun DownloadRowItem(row: ActivityViewModel.DownloadRow) {
 }
 
 @Composable
-private fun GenerationsPane(events: List<SynthesisTelemetryRepository.Event>) {
+private fun GenerationsPane(events: List<SynthesisTelemetryRepository.Event>, topInset: androidx.compose.ui.unit.Dp) {
     if (events.isEmpty()) {
-        EmptyPane(text = stringResource(R.string.activity_no_live_generations))
+        EmptyHero(
+            icon = Icons.Outlined.GraphicEq,
+            title = stringResource(R.string.activity_pane_generations),
+            subtitle = stringResource(R.string.activity_no_live_generations),
+            topInset = topInset,
+        )
         return
     }
     LazyColumn(
-        contentPadding = PaddingValues(12.dp),
+        contentPadding = PaddingValues(top = topInset, start = 12.dp, end = 12.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(events, key = { it.timestamp }) { event ->
@@ -184,13 +246,18 @@ private fun GenerationsPane(events: List<SynthesisTelemetryRepository.Event>) {
 }
 
 @Composable
-private fun RequestLogPane(events: List<SynthesisTelemetryRepository.Event>) {
+private fun RequestLogPane(events: List<SynthesisTelemetryRepository.Event>, topInset: androidx.compose.ui.unit.Dp) {
     if (events.isEmpty()) {
-        EmptyPane(text = stringResource(R.string.activity_no_request_log))
+        EmptyHero(
+            icon = Icons.Outlined.History,
+            title = stringResource(R.string.activity_pane_log),
+            subtitle = stringResource(R.string.activity_no_request_log),
+            topInset = topInset,
+        )
         return
     }
     LazyColumn(
-        contentPadding = PaddingValues(12.dp),
+        contentPadding = PaddingValues(top = topInset, start = 12.dp, end = 12.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         items(events, key = { it.timestamp }) { event ->
@@ -218,10 +285,11 @@ private fun RequestLogPane(events: List<SynthesisTelemetryRepository.Event>) {
 }
 
 @Composable
-private fun CachePane(installedCount: Int, bytes: Long) {
+private fun CachePane(installedCount: Int, bytes: Long, topInset: androidx.compose.ui.unit.Dp) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(top = topInset)
             .padding(horizontal = 24.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -236,12 +304,11 @@ private fun CachePane(installedCount: Int, bytes: Long) {
 }
 
 @Composable
-private fun EmptyPane(text: String) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(text, style = MaterialTheme.typography.bodyLarge)
-        Spacer(Modifier.height(8.dp))
-    }
+private fun EmptyHero(icon: ImageVector, title: String, subtitle: String, topInset: androidx.compose.ui.unit.Dp) {
+    HayaiEmpty(
+        mode = HayaiEmptyMode.Empty(icon = icon, title = title, subtitle = subtitle),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = topInset),
+    )
 }

@@ -24,6 +24,17 @@
     <string name="browse_empty_title">필터에 맞는 음성이 없습니다</string>
     <string name="browse_empty_subtitle">언어나 품질 필터를 넓혀 보세요.</string>
     <string name="browse_search_placeholder_count">음성 %1$d개에서 검색</string>
+    <string name="topbar_search_library">라이브러리 검색</string>
+    <string name="topbar_search_browse">음성 검색</string>
+    <string name="topbar_search_activity">활동 검색</string>
+    <string name="topbar_search_settings">설정 검색</string>
+    <string name="browse_filter_language_search">언어 검색</string>
+    <string name="settings_allowed_languages">표시할 언어</string>
+    <string name="settings_allowed_languages_all">모든 언어</string>
+    <string name="settings_allowed_languages_count">%1$d개 언어</string>
+    <string name="settings_allowed_languages_subtitle">찾아보기에 표시되는 언어를 제한합니다. 비어 있으면 모두 표시.</string>
+    <string name="settings_allowed_languages_sheet_title">표시할 언어</string>
+    <string name="settings_allowed_languages_select_all">모두 선택</string>
     <string name="browse_open_filters">필터 열기</string>
     <string name="browse_filter_sheet_title">필터</string>
     <string name="browse_filter_reset">초기화</string>
@@ -81,6 +92,7 @@
 
     <string name="download_in_progress">뉴럴 음성 다운로드 중…</string>
     <string name="download_extracting">압축 해제 중…</string>
+    <string name="download_extracting_progress">압축 해제 · %1$d%%</string>
     <string name="download_active_channel_name">음성 다운로드(진행)</string>
     <string name="download_active_channel_description">진행 중인 음성 다운로드의 진행률.</string>
     <string name="download_complete_channel_name">음성 다운로드(완료)</string>
@@ -147,7 +159,7 @@
     <string name="settings_clear_cache_subtitle">취소된 다운로드의 미완성 아카이브를 제거합니다.</string>
     <string name="settings_clear_cache_done">%1$s 확보</string>
     <string name="settings_section_about">정보</string>
-    <string name="settings_version">버전 %1$s (%2$d)</string>
+    <string name="settings_version">%1$s · %2$s (%3$d)</string>
     <string name="settings_powered_by">sherpa-onnx 기반 모델</string>
     <string name="settings_powered_by_subtitle">탭하여 원본 프로젝트 열기</string>
     <string name="settings_license_label">라이선스: GPL-3.0</string>
@@ -305,6 +317,7 @@
     <string name="studio_title">스튜디오</string>
     <string name="studio_subtitle">조정 · A/B · 내보내기</string>
     <string name="studio_no_voices">탐색에서 음성을 설치하면 스튜디오를 사용할 수 있어요.</string>
+    <string name="studio_swap_voice">음성 전환</string>
     <string name="activity_title">활동</string>
     <string name="activity_subtitle">다운로드 · 생성 · 캐시</string>
     <string name="activity_pane_downloads">다운로드</string>

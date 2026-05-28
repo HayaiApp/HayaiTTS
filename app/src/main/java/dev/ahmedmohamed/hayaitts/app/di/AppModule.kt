@@ -171,7 +171,7 @@ val appModule = module {
     factory { SynthesizeUseCase(gateway = get()) }
 
     viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
-    viewModel { BrowseViewModel(androidContext(), get(), get(), get()) }
+    viewModel { BrowseViewModel(androidContext(), get(), get(), get(), get()) }
     viewModel { (voiceId: String) ->
         VoiceDetailViewModel(
             voiceId = voiceId,
@@ -209,6 +209,7 @@ val appModule = module {
             defaults = get(),
             migrator = get(),
             dispatchers = get(),
+            catalog = get(),
         )
     }
     viewModel {

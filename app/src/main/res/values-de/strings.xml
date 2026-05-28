@@ -27,6 +27,17 @@
     <string name="browse_empty_title">Keine Stimme entspricht diesen Filtern</string>
     <string name="browse_empty_subtitle">Versuche, die Sprach- oder Qualitätsfilter zu erweitern.</string>
     <string name="browse_search_placeholder_count">In %1$d Stimmen suchen</string>
+    <string name="topbar_search_library">Bibliothek durchsuchen</string>
+    <string name="topbar_search_browse">Stimmen suchen</string>
+    <string name="topbar_search_activity">Aktivität durchsuchen</string>
+    <string name="topbar_search_settings">Einstellungen durchsuchen</string>
+    <string name="browse_filter_language_search">Sprachen suchen</string>
+    <string name="settings_allowed_languages">Angezeigte Sprachen</string>
+    <string name="settings_allowed_languages_all">Alle Sprachen</string>
+    <string name="settings_allowed_languages_count">%1$d Sprachen</string>
+    <string name="settings_allowed_languages_subtitle">Beschränkt welche Sprachen in Durchsuchen erscheinen. Leer = alle anzeigen.</string>
+    <string name="settings_allowed_languages_sheet_title">Angezeigte Sprachen</string>
+    <string name="settings_allowed_languages_select_all">Alle auswählen</string>
     <string name="browse_open_filters">Filter öffnen</string>
     <string name="browse_filter_sheet_title">Filter</string>
     <string name="browse_filter_reset">Zurücksetzen</string>
@@ -88,6 +99,7 @@
     <!-- Download -->
     <string name="download_in_progress">Neuronale Stimme wird heruntergeladen…</string>
     <string name="download_extracting">Wird entpackt…</string>
+    <string name="download_extracting_progress">Wird entpackt · %1$d%%</string>
     <string name="download_active_channel_name">Stimmen-Downloads (aktiv)</string>
     <string name="download_active_channel_description">Fortschritt laufender Stimmen-Downloads.</string>
     <string name="download_complete_channel_name">Stimmen-Downloads (abgeschlossen)</string>
@@ -158,7 +170,7 @@
     <string name="settings_clear_cache_subtitle">Entfernt unvollständige Archive aus abgebrochenen Downloads.</string>
     <string name="settings_clear_cache_done">%1$s freigegeben</string>
     <string name="settings_section_about">Über</string>
-    <string name="settings_version">Version %1$s (%2$d)</string>
+    <string name="settings_version">%1$s · %2$s (%3$d)</string>
     <string name="settings_powered_by">Modelle basierend auf sherpa-onnx</string>
     <string name="settings_powered_by_subtitle">Tippen, um das Originalprojekt zu öffnen</string>
     <string name="settings_license_label">Lizenz: GPL-3.0</string>
@@ -322,6 +334,7 @@
     <string name="studio_title">Studio</string>
     <string name="studio_subtitle">Feinjustieren · A/B · Export</string>
     <string name="studio_no_voices">Installiere eine Stimme aus „Stöbern", um Studio zu nutzen.</string>
+    <string name="studio_swap_voice">Stimme wechseln</string>
     <string name="activity_title">Aktivität</string>
     <string name="activity_subtitle">Downloads · Generierungen · Cache</string>
     <string name="activity_pane_downloads">Downloads</string>

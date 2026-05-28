@@ -64,7 +64,22 @@ class SherpaTtsRuntime private constructor(
         noiseScaleW: Float = 0.8f,
     ): SynthesisOutput {
         val tts = engine(voiceId, lengthScale, noiseScale, noiseScaleW)
-        val audio = tts.generate(text = text, sid = sid, speed = speed)
+        // The JNI `generate` call can throw RuntimeException from sherpa-onnx
+        // for bad sid/text combos (Kokoro is particularly strict about sid
+        // bounds). Catch broadly here so callers up the stack — Playground,
+        // VoiceDetail preview, the TTS service — can surface a friendly
+        // error instead of letting the JVM tear down the process. A true
+        // native SIGSEGV inside the .so is still unrecoverable, but anything
+        // raised as a Java throwable will land here.
+        val audio = try {
+            tts.generate(text = text, sid = sid, speed = speed)
+        } catch (t: Throwable) {
+            log.e(t) { "tts.generate failed for $voiceId sid=$sid (${text.length} chars)" }
+            throw SynthesisFailure(
+                "Synthesis failed for $voiceId (sid=$sid): ${t.message ?: t::class.simpleName}",
+                t,
+            )
+        }
         val shifted = if (kotlin.math.abs(pitch - 1f) < 0.001f) {
             audio.samples
         } else {
@@ -72,6 +87,14 @@ class SherpaTtsRuntime private constructor(
         }
         return SynthesisOutput(sampleRate = audio.sampleRate, samples = shifted)
     }
+
+    /**
+     * Wraps any exception bubbling out of the sherpa-onnx JNI layer. The
+     * runtime catches at the boundary so every caller sees a single
+     * Java-level exception type instead of a grab-bag of RuntimeExceptions,
+     * IllegalArgumentExceptions, etc., from the native code.
+     */
+    class SynthesisFailure(message: String, cause: Throwable) : RuntimeException(message, cause)
 
     /**
      * Phase 9b: Kokoro 1.1 multi-speaker blending. Synthesizes once per

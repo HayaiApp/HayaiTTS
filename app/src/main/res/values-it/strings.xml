@@ -25,6 +25,17 @@
     <string name="browse_empty_title">Nessuna voce corrisponde ai filtri</string>
     <string name="browse_empty_subtitle">Prova ad ampliare i filtri di lingua o qualità.</string>
     <string name="browse_search_placeholder_count">Cerca tra %1$d voci</string>
+    <string name="topbar_search_library">Cerca nella libreria</string>
+    <string name="topbar_search_browse">Cerca voci</string>
+    <string name="topbar_search_activity">Cerca in attività</string>
+    <string name="topbar_search_settings">Cerca nelle impostazioni</string>
+    <string name="browse_filter_language_search">Cerca lingue</string>
+    <string name="settings_allowed_languages">Lingue mostrate</string>
+    <string name="settings_allowed_languages_all">Tutte le lingue</string>
+    <string name="settings_allowed_languages_count">%1$d lingue</string>
+    <string name="settings_allowed_languages_subtitle">Limita quali lingue compaiono in Sfoglia. Vuoto = mostra tutte.</string>
+    <string name="settings_allowed_languages_sheet_title">Lingue mostrate</string>
+    <string name="settings_allowed_languages_select_all">Seleziona tutto</string>
     <string name="browse_open_filters">Apri filtri</string>
     <string name="browse_filter_sheet_title">Filtri</string>
     <string name="browse_filter_reset">Reimposta</string>
@@ -82,6 +93,7 @@
 
     <string name="download_in_progress">Download della voce neurale in corso…</string>
     <string name="download_extracting">Estrazione…</string>
+    <string name="download_extracting_progress">Estrazione · %1$d%%</string>
     <string name="download_active_channel_name">Download voci (attivi)</string>
     <string name="download_active_channel_description">Avanzamento dei download voci in corso.</string>
     <string name="download_complete_channel_name">Download voci (completati)</string>
@@ -148,7 +160,7 @@
     <string name="settings_clear_cache_subtitle">Rimuove gli archivi parziali lasciati dai download annullati.</string>
     <string name="settings_clear_cache_done">Liberati %1$s</string>
     <string name="settings_section_about">Informazioni</string>
-    <string name="settings_version">Versione %1$s (%2$d)</string>
+    <string name="settings_version">%1$s · %2$s (%3$d)</string>
     <string name="settings_powered_by">Modelli basati su sherpa-onnx</string>
     <string name="settings_powered_by_subtitle">Tocca per aprire il progetto originale</string>
     <string name="settings_license_label">Licenza: GPL-3.0</string>
@@ -306,6 +318,7 @@
     <string name="studio_title">Studio</string>
     <string name="studio_subtitle">Regola · A/B · Esporta</string>
     <string name="studio_no_voices">Installa una voce da Esplora per usare lo Studio.</string>
+    <string name="studio_swap_voice">Cambia voce</string>
     <string name="activity_title">Attività</string>
     <string name="activity_subtitle">Download · Generazioni · Cache</string>
     <string name="activity_pane_downloads">Download</string>

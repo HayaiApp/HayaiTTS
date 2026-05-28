@@ -3,12 +3,18 @@
 package dev.ahmedmohamed.hayaitts.ui.settings
 
 import android.content.Intent
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Search
 import androidx.core.net.toUri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Button
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -94,7 +100,27 @@ class SettingsActivity : ComponentActivity() {
         setContent {
             HayaiTtsTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    SettingsScreen(onBack = { finish() })
+                    val updateVm: UpdateViewModel = koinViewModel()
+                    SettingsScreen(onBack = { finish() }, updateViewModel = updateVm)
+
+                    // Hayai's UpdateDialog is hosted in MainActivity for the
+                    // in-app Settings tab, but when SettingsActivity is opened
+                    // standalone (system TTS engine settings cog) MainActivity
+                    // is not running. Host the dialog here too so the install
+                    // flow remains reachable from either entry point.
+                    val status by updateVm.status.collectAsStateWithLifecycle()
+                    val download by updateVm.download.collectAsStateWithLifecycle()
+                    val dismissed by updateVm.dialogDismissed.collectAsStateWithLifecycle()
+                    val available = status as? UpdateStatus.Available
+                    if (available != null && !dismissed) {
+                        dev.ahmedmohamed.hayaitts.ui.update.UpdateDialog(
+                            available = available,
+                            download = download,
+                            onInstall = updateVm::startInstall,
+                            onCancelInstall = updateVm::cancelInstall,
+                            onDismiss = updateVm::dismissDialog,
+                        )
+                    }
                 }
             }
         }
@@ -115,6 +141,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val resources = LocalResources.current
     val upToDateMessage = stringResource(R.string.settings_update_uptodate)
+    val installActionLabel = stringResource(R.string.update_action_install)
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         state = rememberTopAppBarState(),
@@ -125,6 +152,76 @@ fun SettingsScreen(
     var channelPickerOpen by remember { mutableStateOf(false) }
     var threadsDialogOpen by remember { mutableStateOf(false) }
     var maxSentencesDialogOpen by remember { mutableStateOf(false) }
+    var languagePickerOpen by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    val allowedLanguages by viewModel.allowedLanguages.collectAsStateWithLifecycle()
+    val catalogLanguages by viewModel.catalogLanguages.collectAsStateWithLifecycle()
+
+    // Section + item labels resolved up front so search can match against them
+    // outside of @Composable-scope inside the LazyColumn item lambdas. Each
+    // label set is the headline + supporting text of one ListItem; the
+    // section-header check just folds across its items' labels.
+    val labelDownloadsSection = stringResource(R.string.settings_section_downloads)
+    val labelWifi = stringResource(R.string.settings_wifi_only) +
+        " " + stringResource(R.string.settings_wifi_only_subtitle)
+    val labelStorageLoc = stringResource(R.string.settings_storage_location)
+    val labelStorageInternal = stringResource(R.string.settings_storage_internal)
+    val labelStorageExternal =
+        if (state.hasExternalStorage) stringResource(R.string.settings_storage_external)
+        else stringResource(R.string.settings_storage_external_unavailable)
+
+    val labelDefaultsSection = stringResource(R.string.settings_section_defaults)
+    val labelDefaultsEmpty = stringResource(R.string.settings_defaults_empty)
+    val labelAllowedLanguages = stringResource(R.string.settings_allowed_languages) +
+        " " + stringResource(R.string.settings_allowed_languages_subtitle)
+
+    val labelStorageSection = stringResource(R.string.settings_section_storage)
+    val labelTotalSize = stringResource(
+        R.string.settings_total_models_size,
+        formatBytes(state.totalInstalledBytes),
+    )
+    val labelClearCache = stringResource(R.string.settings_clear_cache) +
+        " " + stringResource(R.string.settings_clear_cache_subtitle)
+
+    val labelPerfSection = stringResource(R.string.settings_section_performance)
+    val labelNnapi = stringResource(R.string.settings_nnapi) +
+        " " + stringResource(R.string.settings_nnapi_subtitle)
+    val labelThreads = stringResource(R.string.settings_threads) +
+        " " + stringResource(R.string.settings_threads_subtitle)
+    val labelMaxSentences = stringResource(R.string.settings_max_sentences) +
+        " " + stringResource(R.string.settings_max_sentences_subtitle)
+
+    val labelUpdatesSection = stringResource(R.string.settings_section_updates)
+    val labelUpdateChannel = stringResource(R.string.settings_update_channel)
+    val labelCurrentVersion = stringResource(R.string.settings_current_version) +
+        " " + BuildConfig.VERSION_NAME
+    val labelCheckUpdates = stringResource(R.string.settings_check_for_updates) +
+        " " + stringResource(R.string.settings_check_for_updates_subtitle)
+    val labelLastChecked = stringResource(R.string.settings_last_checked)
+
+    val labelAboutSection = stringResource(R.string.settings_section_about)
+    val labelAppName = stringResource(R.string.app_name)
+    val labelHelp = stringResource(R.string.settings_help_label) +
+        " " + stringResource(R.string.settings_help_subtitle)
+    val labelLicense = stringResource(R.string.settings_license_label) +
+        " " + stringResource(R.string.settings_license_subtitle)
+    val labelPoweredBy = stringResource(R.string.settings_powered_by) +
+        " " + stringResource(R.string.settings_powered_by_subtitle)
+
+    val q = searchQuery.trim()
+    fun matches(vararg parts: String): Boolean =
+        q.isEmpty() || parts.any { it.contains(q, ignoreCase = true) }
+
+    val showDownloadsSection = matches(labelWifi, labelStorageLoc, labelStorageInternal, labelStorageExternal)
+    val showDefaultsSection = matches(
+        labelDefaultsEmpty,
+        labelAllowedLanguages,
+        *state.installedLocales.toTypedArray(),
+    )
+    val showStorageSection = matches(labelTotalSize, labelClearCache)
+    val showPerfSection = matches(labelNnapi, labelThreads, labelMaxSentences)
+    val showUpdatesSection = matches(labelUpdateChannel, labelCurrentVersion, labelCheckUpdates, labelLastChecked)
+    val showAboutSection = matches(labelAppName, labelHelp, labelLicense, labelPoweredBy)
 
     // Surface a snackbar for every terminal update-status transition kicked off
     // from this screen. The launch-time auto-check is handled in MainActivity.
@@ -135,10 +232,16 @@ fun SettingsScreen(
                 updateViewModel.consumeStatus()
             }
             is UpdateStatus.Available -> {
-                snackbarHostState.showSnackbar(
-                    resources.getString(R.string.settings_update_available, s.tag),
+                val result = snackbarHostState.showSnackbar(
+                    message = resources.getString(R.string.settings_update_available, s.tag),
+                    actionLabel = installActionLabel,
+                    withDismissAction = true,
                 )
-                // Do NOT consume — MainActivity's dialog observes the same state.
+                if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                    updateViewModel.startInstall()
+                }
+                // Do NOT consume — the hosted UpdateDialog observes the same state
+                // and will surface install progress.
             }
             is UpdateStatus.Failed -> {
                 snackbarHostState.showSnackbar(
@@ -159,32 +262,29 @@ fun SettingsScreen(
         viewModel.consumeCacheClearedEvent()
     }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar(
-                title = stringResource(R.string.settings_title),
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+    dev.ahmedmohamed.hayaitts.ui.components.HayaiScreenChrome(
+        title = stringResource(R.string.settings_title),
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back),
+                )
+            }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { padding ->
+        searchable = dev.ahmedmohamed.hayaitts.ui.components.HayaiSearchable(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            placeholder = stringResource(R.string.topbar_search_settings),
+        ),
+        snackbarHostState = snackbarHostState,
+    ) { topInset ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(vertical = 8.dp),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(top = topInset, bottom = 16.dp),
         ) {
-            item("downloads_header") { SectionHeader(stringResource(R.string.settings_section_downloads)) }
-            item("wifi_only") {
+            if (showDownloadsSection) item("downloads_header") { SectionHeader(labelDownloadsSection) }
+            if (showDownloadsSection && matches(labelWifi)) item("wifi_only") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Wifi, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_wifi_only)) },
@@ -197,7 +297,7 @@ fun SettingsScreen(
                     },
                 )
             }
-            item("storage_location_header") {
+            if (showDownloadsSection && matches(labelStorageLoc)) item("storage_location_header") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.SdStorage, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_storage_location)) },
@@ -235,7 +335,7 @@ fun SettingsScreen(
                     )
                 }
             }
-            item("storage_internal") {
+            if (showDownloadsSection && matches(labelStorageInternal, labelStorageLoc)) item("storage_internal") {
                 StorageRadioRow(
                     label = stringResource(R.string.settings_storage_internal),
                     selected = state.storageLocation == StorageLocation.INTERNAL,
@@ -243,7 +343,7 @@ fun SettingsScreen(
                     onSelect = { viewModel.setStorageLocation(StorageLocation.INTERNAL) },
                 )
             }
-            item("storage_external") {
+            if (showDownloadsSection && matches(labelStorageExternal, labelStorageLoc)) item("storage_external") {
                 StorageRadioRow(
                     label = if (state.hasExternalStorage) {
                         stringResource(R.string.settings_storage_external)
@@ -256,13 +356,32 @@ fun SettingsScreen(
                 )
             }
 
-            item("defaults_header") { SectionHeader(stringResource(R.string.settings_section_defaults)) }
-            if (state.installedLocales.isEmpty()) {
+            if (showDefaultsSection) item("defaults_header") { SectionHeader(labelDefaultsSection) }
+            if (showDefaultsSection && matches(labelAllowedLanguages)) item("allowed_languages") {
+                ListItem(
+                    leadingContent = {
+                        Icon(
+                            androidx.compose.material.icons.Icons.Outlined.Language,
+                            contentDescription = null,
+                        )
+                    },
+                    headlineContent = { Text(stringResource(R.string.settings_allowed_languages)) },
+                    supportingContent = {
+                        val n = allowedLanguages.size
+                        Text(
+                            if (n == 0) stringResource(R.string.settings_allowed_languages_all)
+                            else stringResource(R.string.settings_allowed_languages_count, n),
+                        )
+                    },
+                    modifier = Modifier.clickableRow { languagePickerOpen = true },
+                )
+            }
+            if (showDefaultsSection && state.installedLocales.isEmpty()) {
                 item("defaults_empty") {
                     ListItem(headlineContent = { Text(stringResource(R.string.settings_defaults_empty)) })
                 }
-            } else {
-                items(state.installedLocales) { locale ->
+            } else if (showDefaultsSection) {
+                items(state.installedLocales.filter { matches(it) }) { locale ->
                     val currentVoice = state.defaultsByLocale[locale]
                     val voiceTitle = state.installed.firstOrNull { it.voiceId == currentVoice }?.title
                     ListItem(
@@ -278,8 +397,8 @@ fun SettingsScreen(
                 }
             }
 
-            item("storage_header") { SectionHeader(stringResource(R.string.settings_section_storage)) }
-            item("total_size") {
+            if (showStorageSection) item("storage_header") { SectionHeader(labelStorageSection) }
+            if (showStorageSection && matches(labelTotalSize)) item("total_size") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Folder, contentDescription = null) },
                     headlineContent = {
@@ -293,7 +412,7 @@ fun SettingsScreen(
                     modifier = Modifier.clickableRow { viewModel.refreshInstalledSize() },
                 )
             }
-            item("clear_cache") {
+            if (showStorageSection && matches(labelClearCache)) item("clear_cache") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.CleaningServices, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_clear_cache)) },
@@ -302,8 +421,8 @@ fun SettingsScreen(
                 )
             }
 
-            item("performance_header") { SectionHeader(stringResource(R.string.settings_section_performance)) }
-            item("nnapi") {
+            if (showPerfSection) item("performance_header") { SectionHeader(labelPerfSection) }
+            if (showPerfSection && matches(labelNnapi)) item("nnapi") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Bolt, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_nnapi)) },
@@ -316,7 +435,7 @@ fun SettingsScreen(
                     },
                 )
             }
-            item("threads") {
+            if (showPerfSection && matches(labelThreads)) item("threads") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Tune, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_threads)) },
@@ -331,7 +450,7 @@ fun SettingsScreen(
                     modifier = Modifier.clickableRow { threadsDialogOpen = true },
                 )
             }
-            item("max_sentences") {
+            if (showPerfSection && matches(labelMaxSentences)) item("max_sentences") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_max_sentences)) },
@@ -347,8 +466,8 @@ fun SettingsScreen(
                 )
             }
 
-            item("updates_header") { SectionHeader(stringResource(R.string.settings_section_updates)) }
-            item("update_channel") {
+            if (showUpdatesSection) item("updates_header") { SectionHeader(labelUpdatesSection) }
+            if (showUpdatesSection && matches(labelUpdateChannel)) item("update_channel") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Update, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_update_channel)) },
@@ -356,7 +475,7 @@ fun SettingsScreen(
                     modifier = Modifier.clickableRow { channelPickerOpen = true },
                 )
             }
-            item("update_current_version") {
+            if (showUpdatesSection && matches(labelCurrentVersion)) item("update_current_version") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_current_version)) },
@@ -364,6 +483,7 @@ fun SettingsScreen(
                         Text(
                             stringResource(
                                 R.string.settings_current_version_value,
+                                buildChannelLabel(BuildConfig.VERSION_NAME),
                                 BuildConfig.VERSION_NAME,
                                 BuildConfig.VERSION_CODE,
                             ),
@@ -371,7 +491,7 @@ fun SettingsScreen(
                     },
                 )
             }
-            item("update_check_now") {
+            if (showUpdatesSection && matches(labelCheckUpdates)) item("update_check_now") {
                 val isChecking = updateStatus is UpdateStatus.Checking
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Refresh, contentDescription = null) },
@@ -389,7 +509,7 @@ fun SettingsScreen(
                     },
                 )
             }
-            item("update_last_checked") {
+            if (showUpdatesSection && matches(labelLastChecked)) item("update_last_checked") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Schedule, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_last_checked)) },
@@ -397,8 +517,8 @@ fun SettingsScreen(
                 )
             }
 
-            item("about_header") { SectionHeader(stringResource(R.string.settings_section_about)) }
-            item("version") {
+            if (showAboutSection) item("about_header") { SectionHeader(labelAboutSection) }
+            if (showAboutSection && matches(labelAppName)) item("version") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.app_name)) },
@@ -406,6 +526,7 @@ fun SettingsScreen(
                         Text(
                             stringResource(
                                 R.string.settings_version,
+                                buildChannelLabel(BuildConfig.VERSION_NAME),
                                 BuildConfig.VERSION_NAME,
                                 BuildConfig.VERSION_CODE,
                             ),
@@ -413,7 +534,7 @@ fun SettingsScreen(
                     },
                 )
             }
-            item("help") {
+            if (showAboutSection && matches(labelHelp)) item("help") {
                 ListItem(
                     leadingContent = { Icon(Icons.AutoMirrored.Outlined.Help, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_help_label)) },
@@ -423,7 +544,7 @@ fun SettingsScreen(
                     },
                 )
             }
-            item("license") {
+            if (showAboutSection && matches(labelLicense)) item("license") {
                 ListItem(
                     leadingContent = { Icon(Icons.Outlined.Gavel, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_license_label)) },
@@ -431,7 +552,7 @@ fun SettingsScreen(
                     modifier = Modifier.clickableRow { licenseDialogOpen = true },
                 )
             }
-            item("powered_by") {
+            if (showAboutSection && matches(labelPoweredBy)) item("powered_by") {
                 ListItem(
                     leadingContent = { Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null) },
                     headlineContent = { Text(stringResource(R.string.settings_powered_by)) },
@@ -493,6 +614,18 @@ fun SettingsScreen(
                 maxSentencesDialogOpen = false
             },
             onDismiss = { maxSentencesDialogOpen = false },
+        )
+    }
+
+    if (languagePickerOpen) {
+        AllowedLanguagesSheet(
+            available = catalogLanguages,
+            selected = allowedLanguages,
+            onCommit = { next ->
+                viewModel.setAllowedLanguages(next)
+                languagePickerOpen = false
+            },
+            onDismiss = { languagePickerOpen = false },
         )
     }
 }
@@ -682,6 +815,28 @@ private fun Modifier.clickableRow(onClick: () -> Unit): Modifier =
 
 private const val SHERPA_REPO_URL = "https://github.com/k2-fsa/sherpa-onnx"
 
+/**
+ * Map [BuildConfig.VERSION_NAME] to one of "Stable" / "Beta" / "Nightly".
+ *
+ * The release workflow exports the git tag as `HAYAITTS_VERSION_NAME`, which
+ * the gradle build strips of its leading `v` before baking into the APK. So
+ * the patterns we look at here are:
+ *   - `2.0.0` → Stable
+ *   - `2.0.0-b3` → Beta
+ *   - `r142` → Nightly (the nightly tag scheme used by build_push.yml)
+ * Anything we can't classify falls back to "Stable" so the row never shows
+ * a blank pill.
+ */
+@Composable
+private fun buildChannelLabel(versionName: String): String = when {
+    versionName.startsWith("r") && versionName.removePrefix("r").all { it.isDigit() } ->
+        stringResource(R.string.settings_update_channel_nightly)
+    versionName.contains("-b") ->
+        stringResource(R.string.settings_update_channel_beta)
+    else ->
+        stringResource(R.string.settings_update_channel_stable)
+}
+
 private fun formatBytes(bytes: Long): String {
     val mb = bytes.toDouble() / (1024.0 * 1024.0)
     return if (mb >= 1024.0) {
@@ -757,4 +912,102 @@ private fun MaxSentencesDialog(
             }
         },
     )
+}
+
+/**
+ * Modal bottom sheet for picking the global allowed-language set. The list is
+ * a search-filtered FlowRow of FilterChips with a "Select all" / "Clear"
+ * toggle in the action row. Empty selection persists as "no restriction".
+ */
+@Composable
+private fun AllowedLanguagesSheet(
+    available: List<String>,
+    selected: Set<String>,
+    onCommit: (Set<String>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var draft by remember(selected) { mutableStateOf(selected) }
+    var query by remember { mutableStateOf("") }
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.settings_allowed_languages_sheet_title),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            androidx.compose.material3.OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = { query = "" }) {
+                            Icon(Icons.Outlined.Close, contentDescription = null)
+                        }
+                    }
+                },
+                placeholder = {
+                    Text(stringResource(R.string.browse_filter_language_search))
+                },
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+            )
+            val q = query.trim()
+            val matching = remember(available, q, draft) {
+                if (q.isEmpty()) available
+                else available.filter { lang ->
+                    lang.contains(q, ignoreCase = true) ||
+                        dev.ahmedmohamed.hayaitts.ui.components.displayName(lang)
+                            .contains(q, ignoreCase = true)
+                }
+            }
+            androidx.compose.foundation.layout.FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                matching.forEach { lang ->
+                    val isOn = lang in draft
+                    androidx.compose.material3.FilterChip(
+                        selected = isOn,
+                        onClick = {
+                            draft = if (isOn) draft - lang else draft + lang
+                        },
+                        label = {
+                            Text(
+                                dev.ahmedmohamed.hayaitts.ui.components.displayName(lang),
+                            )
+                        },
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(
+                    onClick = {
+                        draft = if (draft.size == available.size) emptySet()
+                            else available.toSet()
+                    },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.settings_allowed_languages_select_all))
+                }
+                Button(
+                    onClick = { onCommit(draft) },
+                    modifier = Modifier.weight(2f),
+                ) {
+                    Text(stringResource(R.string.browse_filter_show_results, draft.size))
+                }
+            }
+        }
+    }
 }

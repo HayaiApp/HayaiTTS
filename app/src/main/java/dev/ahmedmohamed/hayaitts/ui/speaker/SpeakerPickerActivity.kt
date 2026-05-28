@@ -126,7 +126,8 @@ private fun SpeakerPickerScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topBarState)
 
     Scaffold(
-        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar(
                 title = stringResource(R.string.speaker_picker_title),

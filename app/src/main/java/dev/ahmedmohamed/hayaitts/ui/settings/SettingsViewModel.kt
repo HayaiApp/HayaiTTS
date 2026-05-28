@@ -9,9 +9,11 @@ import dev.ahmedmohamed.hayaitts.data.storage.StorageMigrator
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
 import dev.ahmedmohamed.hayaitts.domain.model.MoveProgress
 import dev.ahmedmohamed.hayaitts.domain.model.StorageLocation
+import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DefaultsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -41,6 +43,7 @@ class SettingsViewModel(
     private val defaults: DefaultsRepository,
     private val migrator: StorageMigrator,
     private val dispatchers: DispatcherProvider,
+    private val catalog: CatalogRepository,
 ) : ViewModel() {
 
     data class SettingsUiState(
@@ -101,6 +104,18 @@ class SettingsViewModel(
 
     private val cacheClearedEvents = MutableStateFlow<Long?>(null)
     val cacheClearedBytes: StateFlow<Long?> = cacheClearedEvents.asStateFlow()
+
+    /** Every BCP-47 language tag present anywhere in the catalog, alpha-sorted. */
+    val catalogLanguages: StateFlow<List<String>> = catalog.catalog
+        .map { c -> c.flatMap { it.languages }.distinct().sorted() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), emptyList())
+
+    val allowedLanguages: StateFlow<Set<String>> = settings.allowedLanguages
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000L), emptySet())
+
+    fun setAllowedLanguages(value: Set<String>) {
+        viewModelScope.launch { settings.setAllowedLanguages(value) }
+    }
 
     init {
         refreshInstalledSize()

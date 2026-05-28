@@ -11,7 +11,9 @@ import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
 import dev.ahmedmohamed.hayaitts.data.device.recommendedTier
 import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.DownloadRepository
+import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +39,7 @@ class BrowseViewModel(
     private val catalogRepository: CatalogRepository,
     private val voiceRepository: VoiceRepository,
     private val downloadRepository: DownloadRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     /**
@@ -90,9 +93,18 @@ class BrowseViewModel(
         voiceRepository.installed,
         downloadRepository.states,
         filters,
-    ) { catalog, installed, downloads, f ->
+        settingsRepository.allowedLanguages,
+    ) { catalog, installed, downloads, f, allowed ->
+        // Global allowed-language gate. Empty allowed set = no restriction
+        // (default). Any non-empty set hides voices that don't speak at
+        // least one of the selected tags. The gate runs *before* the
+        // per-screen filters so the Languages chip-strip and the result
+        // count both reflect what the user has globally enabled.
+        val scoped = if (allowed.isEmpty()) catalog
+            else catalog.filter { card -> card.languages.any { it in allowed } }
+
         val installedIds = installed.mapTo(mutableSetOf()) { it.voiceId }
-        val filtered = catalog.applyFilters(f)
+        val filtered = scoped.applyFilters(f)
         val sorted = filtered.sortedWith(
             // Installed > recommended-tier > alphabetical. The
             // recommended-tier tier-break keeps the user's existing voices
@@ -106,9 +118,9 @@ class BrowseViewModel(
             cards = sorted,
             installedIds = installedIds,
             downloads = downloads,
-            availableLanguages = catalog.flatMap { it.languages }.distinct().sorted(),
-            availableFamilies = catalog.map { it.modelFamily }.distinct(),
-            availableGenders = catalog
+            availableLanguages = scoped.flatMap { it.languages }.distinct().sorted(),
+            availableFamilies = scoped.map { it.modelFamily }.distinct(),
+            availableGenders = scoped
                 .flatMap { card -> card.speakers.map { normaliseGender(it.gender) } }
                 .distinct()
                 // Stable order: F, M, then unknown last.

@@ -15,6 +15,17 @@
     <string name="browse_empty_title">No voices match these filters</string>
     <string name="browse_empty_subtitle">Try widening your language or tier filters.</string>
     <string name="browse_search_placeholder_count">Search %1$d voices</string>
+    <string name="topbar_search_library">Search library</string>
+    <string name="topbar_search_browse">Search voices</string>
+    <string name="topbar_search_activity">Search activity</string>
+    <string name="topbar_search_settings">Search settings</string>
+    <string name="browse_filter_language_search">Search languages</string>
+    <string name="settings_allowed_languages">Languages shown</string>
+    <string name="settings_allowed_languages_all">All languages</string>
+    <string name="settings_allowed_languages_count">%1$d languages</string>
+    <string name="settings_allowed_languages_subtitle">Limit which languages appear in Browse and the filter list. Empty = show every language.</string>
+    <string name="settings_allowed_languages_sheet_title">Languages shown</string>
+    <string name="settings_allowed_languages_select_all">Select all</string>
     <string name="browse_open_filters">Open filters</string>
     <string name="browse_filter_sheet_title">Filters</string>
     <string name="browse_filter_reset">Reset</string>
@@ -53,6 +64,7 @@
     <string name="bundled_not_uninstallable">Bundled voices can\'t be uninstalled.</string>
     <string name="download_progress_running" translatable="false">%1$d MB / %2$d MB · %3$d%%</string>
     <string name="download_extracting">Extracting…</string>
+    <string name="download_extracting_progress">Extracting · %1$d%%</string>
     <string name="family_piper" translatable="false">Piper</string>
     <string name="family_kokoro" translatable="false">Kokoro</string>
     <string name="family_vits" translatable="false">VITS</string>
@@ -109,7 +121,7 @@
     <string name="settings_clear_cache_subtitle">Removes incomplete tarballs left over from cancelled downloads.</string>
     <string name="settings_clear_cache_done">Cleared %1$s</string>
     <string name="settings_section_about">About</string>
-    <string name="settings_version">Version %1$s (%2$d)</string>
+    <string name="settings_version">%1$s · %2$s (%3$d)</string>
     <string name="settings_powered_by">Models powered by sherpa-onnx</string>
     <string name="settings_powered_by_subtitle">Tap to open the upstream project</string>
     <string name="settings_license_label">License: GPL-3.0</string>
@@ -174,7 +186,7 @@
     <string name="settings_update_channel_beta_subtitle">Stable plus tagged betas (vX.Y.Z-bN).</string>
     <string name="settings_update_channel_nightly_subtitle">All builds including ad-hoc nightlies. May be unstable.</string>
     <string name="settings_current_version">Current version</string>
-    <string name="settings_current_version_value" translatable="false">%1$s (%2$d)</string>
+    <string name="settings_current_version_value" translatable="false">%1$s · %2$s (%3$d)</string>
     <string name="settings_check_for_updates">Check for updates</string>
     <string name="settings_check_for_updates_subtitle">Look for a newer release on this channel now.</string>
     <string name="settings_checking_for_updates">Checking for updates…</string>
@@ -335,6 +347,7 @@
     <string name="studio_title">Studio</string>
     <string name="studio_subtitle">Tune, A/B, export</string>
     <string name="studio_no_voices">Install a voice from Browse to use Studio.</string>
+    <string name="studio_swap_voice">Switch voice</string>
 
     <!-- v2 Activity tab. -->
     <string name="activity_title">Activity</string>

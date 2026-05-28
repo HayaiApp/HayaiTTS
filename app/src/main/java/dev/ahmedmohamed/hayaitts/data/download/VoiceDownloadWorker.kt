@@ -7,18 +7,19 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import co.touchlab.kermit.Logger
-import dev.ahmedmohamed.hayaitts.data.catalog.catalogJson
 import dev.ahmedmohamed.hayaitts.data.db.dao.DownloadStateDao
 import dev.ahmedmohamed.hayaitts.data.db.entities.DownloadStateEntity
 import dev.ahmedmohamed.hayaitts.data.storage.StorageMigrator
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
+import dev.ahmedmohamed.hayaitts.domain.repo.CatalogRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.VoiceRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
@@ -61,6 +62,7 @@ class VoiceDownloadWorker(
     private val koin get() = GlobalContext.get()
     private val downloadStateDao: DownloadStateDao by lazy { koin.get() }
     private val voiceRepository: VoiceRepository by lazy { koin.get() }
+    private val catalogRepository: CatalogRepository by lazy { koin.get() }
     private val okHttp: OkHttpClient by lazy { koin.get() }
     private val storageMigrator: StorageMigrator by lazy { koin.get() }
 
@@ -86,10 +88,17 @@ class VoiceDownloadWorker(
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        val voiceCardJson = inputData.getString(KEY_VOICE_JSON)
-            ?: return@withContext failed("voiceCard JSON missing")
-        val voice = runCatching { catalogJson.decodeFromString<VoiceCard>(voiceCardJson) }
-            .getOrElse { return@withContext failed("Bad voiceCard JSON: ${it.message}") }
+        // Voice cards used to ride in the input Data as JSON, but Kokoro's
+        // hundreds-of-speakers card blows through WorkManager's 10 KB Data
+        // cap. Look the card up by id in CatalogRepository instead. The
+        // catalog StateFlow seeds eagerly from the bundled JSON so this
+        // resolves immediately on a cold worker.
+        val voiceId = inputData.getString(KEY_VOICE_ID)
+            ?: return@withContext failed("voiceId missing")
+        val voice = withTimeoutOrNull(CATALOG_RESOLVE_TIMEOUT_MS) {
+            catalogRepository.catalog.first { catalog -> catalog.any { it.id == voiceId } }
+                .first { it.id == voiceId }
+        } ?: return@withContext failed("Catalog has no entry for $voiceId")
 
         DownloadNotifications.ensureChannel(applicationContext)
         setForegroundSafely(voice.id, voice.title, progressBytes = 0L, totalBytes = 0L)
@@ -614,10 +623,14 @@ class VoiceDownloadWorker(
     companion object {
         const val KEY_VOICE_ID = "voiceId"
         const val KEY_TITLE = "title"
-        const val KEY_VOICE_JSON = "voiceJson"
 
         private const val PROGRESS_PCT_STEP = 5
         private const val PROGRESS_TIME_STEP_MS = 250L
+        // The catalog StateFlow seeds from the bundled asset on construction,
+        // so the look-up is normally instant. The timeout is only there for
+        // the pathological case where the worker fires before Koin's catalog
+        // singleton has been initialised at all.
+        private const val CATALOG_RESOLVE_TIMEOUT_MS = 10_000L
 
         /** Shared embedding bank shipped by Kokoro and Kitten releases. */
         private const val KOKORO_VOICES_FILE = "voices.bin"

@@ -134,7 +134,20 @@ fun InstalledVoiceCard(
                         icon = { Icon(Icons.Outlined.Tune, contentDescription = null) },
                     )
                 }
-                voice.languages.forEach { LanguageChip(it) }
+                // Mirror the catalog card: cap language chips at 3 so
+                // multilingual voices (Supertonic, multilingual Kokoros)
+                // don't shove the rest of the chip strip off-screen.
+                val maxLangChips = 3
+                voice.languages.take(maxLangChips).forEach { LanguageChip(it) }
+                if (voice.languages.size > maxLangChips) {
+                    AssistChip(
+                        onClick = {},
+                        enabled = false,
+                        label = {
+                            Text("+${voice.languages.size - maxLangChips}")
+                        },
+                    )
+                }
                 FamilyChip(voice.effectiveFamily ?: voice.family)
                 TierChip(tier = voice.tier, sizeMb = null)
             }
@@ -187,6 +200,23 @@ fun CatalogVoiceCard(
     }
     val sampleUrl = card.sampleFor(selectedSid, selectedLang.ifBlank { null })
 
+    // Redesigned per-row card. The previous layout buried the install button
+    // at the bottom and kept the sample/pickers up top, making the primary
+    // action awkward to reach. New layout (top → bottom):
+    //   1. Row: badge | title + chip strip | primary action (install / cancel
+    //      / open). Selection state is implicit in the action.
+    //   2. Row: play sample + speaker + language pickers (only the controls
+    //      that apply to *this* voice).
+    //   3. Download progress bar (only when downloading).
+    val running = downloadState is DownloadState.Running ||
+        downloadState is DownloadState.Extracting ||
+        downloadState is DownloadState.Queued
+    val actionState = when {
+        !card.available -> ActionState.Unavailable
+        isInstalled -> ActionState.Installed
+        running -> ActionState.Running
+        else -> ActionState.Idle
+    }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -197,23 +227,38 @@ fun CatalogVoiceCard(
             FamilyBadge(family = card.modelFamily, downloadState = downloadState)
             Spacer(Modifier.size(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(card.title, style = MaterialTheme.typography.titleMedium)
+                Text(card.title, style = MaterialTheme.typography.titleMedium, maxLines = 1)
                 Text(
                     text = card.subtitle(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
                 )
             }
-            // Inline play button — auditions the currently-selected (sid, lang)
-            // sample without leaving the list.
-            HayaiSampleAuditionButton(
-                url = sampleUrl,
-                style = AuditionStyle.IconOnly,
+            Spacer(Modifier.size(8.dp))
+            PrimaryActionButton(
+                state = actionState,
+                onInstall = onInstall,
+                onCancel = onCancel,
+                onOpen = onOpen,
             )
         }
         Spacer(Modifier.height(Spacing.chipSpacing))
         ChipStrip {
-            card.languages.forEach { LanguageChip(it) }
+            // Cap the language chips at 3 to keep multi-lingual voices from
+            // running the row off-screen. The full list is still reachable
+            // via VoiceDetail, which lays languages out vertically.
+            val maxLangChips = 3
+            card.languages.take(maxLangChips).forEach { LanguageChip(it) }
+            if (card.languages.size > maxLangChips) {
+                AssistChip(
+                    onClick = {},
+                    enabled = false,
+                    label = {
+                        Text("+${card.languages.size - maxLangChips}")
+                    },
+                )
+            }
             FamilyChip(card.modelFamily)
             TierChip(tier = card.tierEnum, sizeMb = card.approxSizeMb)
             val showRecommended = recommendedTier != null &&
@@ -232,27 +277,27 @@ fun CatalogVoiceCard(
                     },
                 )
             }
-            if (!card.available) {
-                AssistChip(
-                    onClick = {},
-                    enabled = false,
-                    label = { Text(stringResource(R.string.voice_chip_coming_soon)) },
-                )
-            }
         }
-        // Per-(sid, lang) pickers only appear when the voice ships variants —
-        // single-speaker, single-language voices render zero rows here.
-        if (card.speakers.size > 1 || card.languages.size > 1) {
-            Spacer(Modifier.height(Spacing.chipSpacing))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(Spacing.chipSpacing),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+        // Sample row: play button + speaker/language pickers when the voice
+        // ships variants. Single-speaker, single-language voices get just the
+        // play icon.
+        Spacer(Modifier.height(Spacing.chipSpacing))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(Spacing.chipSpacing),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            HayaiSampleAuditionButton(
+                url = sampleUrl,
+                style = AuditionStyle.IconOnly,
+            )
+            if (card.speakers.size > 1) {
                 HayaiSpeakerPickerInline(
                     speakers = card.speakers,
                     selectedSid = selectedSid,
                     onPick = { selectedSid = it },
                 )
+            }
+            if (card.languages.size > 1) {
                 HayaiLanguagePickerInline(
                     languages = card.languages,
                     selected = selectedLang,
@@ -260,56 +305,47 @@ fun CatalogVoiceCard(
                 )
             }
         }
-        Spacer(Modifier.height(12.dp))
-
-        val running = downloadState is DownloadState.Running ||
-            downloadState is DownloadState.Extracting ||
-            downloadState is DownloadState.Queued
-        AnimatedContent(
-            targetState = when {
-                !card.available -> ActionState.Unavailable
-                isInstalled -> ActionState.Installed
-                running -> ActionState.Running
-                else -> ActionState.Idle
-            },
-            transitionSpec = {
-                (fadeIn(spring()) togetherWith fadeOut(tween(200)))
-            },
-            label = "catalog-action",
-        ) { actionState ->
-            when (actionState) {
-                ActionState.Unavailable -> OutlinedButton(
-                    onClick = {},
-                    enabled = false,
-                ) { Text(stringResource(R.string.voice_chip_coming_soon)) }
-
-                ActionState.Installed -> OutlinedButton(onClick = onOpen) {
-                    Icon(Icons.Outlined.CheckCircle, contentDescription = null)
-                    Spacer(Modifier.size(8.dp))
-                    Text(stringResource(R.string.action_installed))
-                }
-
-                ActionState.Running -> Column {
-                    DownloadProgress(state = downloadState)
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedButton(onClick = onCancel) {
-                        Icon(Icons.Outlined.Cancel, contentDescription = null)
-                        Spacer(Modifier.size(8.dp))
-                        Text(stringResource(R.string.action_cancel))
-                    }
-                }
-
-                ActionState.Idle -> FilledTonalButton(onClick = onInstall) {
-                    Icon(Icons.Outlined.CloudDownload, contentDescription = null)
-                    Spacer(Modifier.size(8.dp))
-                    Text(stringResource(R.string.action_install))
-                }
-            }
+        if (actionState == ActionState.Running) {
+            Spacer(Modifier.height(8.dp))
+            DownloadProgress(state = downloadState)
         }
     }
     androidx.compose.material3.HorizontalDivider(
         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
     )
+}
+
+@Composable
+private fun PrimaryActionButton(
+    state: ActionState,
+    onInstall: () -> Unit,
+    onCancel: () -> Unit,
+    onOpen: () -> Unit,
+) {
+    AnimatedContent(
+        targetState = state,
+        transitionSpec = dev.ahmedmohamed.hayaitts.ui.theme.HayaiMotion.slideForward(),
+        label = "catalog-action",
+    ) { s ->
+        when (s) {
+            ActionState.Unavailable -> OutlinedButton(onClick = {}, enabled = false) {
+                Text(stringResource(R.string.voice_chip_coming_soon))
+            }
+            ActionState.Installed -> OutlinedButton(onClick = onOpen) {
+                Icon(Icons.Outlined.CheckCircle, contentDescription = null)
+                Spacer(Modifier.size(8.dp))
+                Text(stringResource(R.string.action_installed))
+            }
+            ActionState.Running -> OutlinedButton(onClick = onCancel) {
+                Icon(Icons.Outlined.Cancel, contentDescription = null)
+            }
+            ActionState.Idle -> FilledTonalButton(onClick = onInstall) {
+                Icon(Icons.Outlined.CloudDownload, contentDescription = null)
+                Spacer(Modifier.size(8.dp))
+                Text(stringResource(R.string.action_install))
+            }
+        }
+    }
 }
 
 private enum class ActionState { Idle, Running, Installed, Unavailable }
@@ -392,7 +428,11 @@ fun FeaturedVoiceCard(
             Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = voice.languages.firstOrNull() ?: "—",
+                    text = when {
+                        voice.languages.isEmpty() -> "—"
+                        voice.languages.size >= 4 -> "${voice.languages.size} languages"
+                        else -> voice.languages.joinToString(" · ")
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
@@ -426,7 +466,7 @@ private fun FavoriteToggle(isFavorite: Boolean, onToggle: () -> Unit) {
     IconButton(onClick = onToggle) {
         AnimatedContent(
             targetState = isFavorite,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            transitionSpec = dev.ahmedmohamed.hayaitts.ui.theme.HayaiMotion.swap(),
             label = "fav-toggle",
         ) { fav ->
             Icon(
@@ -488,15 +528,29 @@ private fun MoreMenu(
 }
 
 private fun VoiceCard.subtitle(): String {
-    val lang = languages.firstOrNull() ?: "—"
+    // Multi-language models (Supertonic, the multilingual Kokoros) ship one
+    // model file covering 20–30 BCP-47 tags. Showing only `languages.first()`
+    // makes them read like single-locale voices ("ar · Supertonic"), which
+    // is exactly the confusion the user reported. Collapse to a count once
+    // we cross the threshold where individual chips would dominate the row.
+    val lang = when {
+        languages.isEmpty() -> "—"
+        languages.size >= 4 -> "${languages.size} languages"
+        else -> languages.joinToString(" · ")
+    }
     val family = family.replaceFirstChar { it.uppercase() }
     val speakers = if (speakers.size > 1) " · ${speakers.size} voices" else ""
     return "$lang · $family$speakers · $license"
 }
 
 private fun subtitleFor(voice: InstalledVoice): String {
-    val lang = voice.languages.firstOrNull() ?: "—"
+    val lang = when {
+        voice.languages.isEmpty() -> "—"
+        voice.languages.size >= 4 -> "${voice.languages.size} languages"
+        else -> voice.languages.joinToString(" · ")
+    }
     val fam = voice.family.name.lowercase().replaceFirstChar { it.uppercase() }
     val tier = voice.tier.name.lowercase().replaceFirstChar { it.uppercase() }
-    return "$lang · $fam · $tier"
+    val speakers = if (voice.speakers.size > 1) " · ${voice.speakers.size} voices" else ""
+    return "$lang · $fam · $tier$speakers"
 }

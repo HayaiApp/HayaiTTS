@@ -102,6 +102,18 @@ class SettingsRepositoryImpl(
         }
     }
 
+    override val allowedLanguages: Flow<Set<String>> = store.data.map { prefs ->
+        val raw = prefs[KEY_ALLOWED_LANGUAGES] ?: return@map emptySet()
+        raw.split(',').asSequence().map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    }
+
+    override suspend fun setAllowedLanguages(value: Set<String>) {
+        store.edit { prefs ->
+            if (value.isEmpty()) prefs.remove(KEY_ALLOWED_LANGUAGES)
+            else prefs[KEY_ALLOWED_LANGUAGES] = value.joinToString(",")
+        }
+    }
+
     private companion object {
         // wifi-only defaults to true so first-time users on metered cell never
         // burn 85 MB without an explicit opt-in.
@@ -114,5 +126,6 @@ class SettingsRepositoryImpl(
         val KEY_SYNTHESIS_THREADS = intPreferencesKey("synthesis_threads")
         val KEY_MAX_NUM_SENTENCES = intPreferencesKey("max_num_sentences")
         val KEY_DEFAULT_SPEAKERS = stringPreferencesKey("default_speakers_json")
+        val KEY_ALLOWED_LANGUAGES = stringPreferencesKey("allowed_languages_csv")
     }
 }

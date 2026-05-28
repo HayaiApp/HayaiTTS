@@ -86,7 +86,8 @@ fun DownloadsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
+        modifier = Modifier,
         topBar = {
             HayaiTopBar(
                 title = stringResource(R.string.downloads_title),

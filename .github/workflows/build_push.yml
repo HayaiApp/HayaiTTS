@@ -100,6 +100,11 @@ jobs:
           echo "COMMIT_SHORT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Build
+        # Export VERSION_TAG into the build so `BuildConfig.VERSION_NAME` matches
+        # the release tag (`v2.0.0`, `v2.0.0-b3`, `r142`). The settings screen
+        # derives the channel pill (Stable / Beta / Nightly) from this value.
+        env:
+          HAYAITTS_VERSION_NAME: ${{ env.VERSION_TAG }}
         run: ./gradlew assembleRelease
 
       - name: Upload R8 mapping
@@ -196,15 +201,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Nightly auto-publish to the SAME repo, tagged `r-NN`. The leading
-      # `r-` (vs `v` for stable/beta) is the discriminator the in-app
-      # auto-updater filters on — see README. Nightlies are published (not
-      # draft) and always flagged as prerelease, so the GitHub UI separates
-      # them visually from stable.
+      # Nightly auto-publish to the dedicated nightly repo (HayaiApp/HayaiTTS-nightly),
+      # tagged `r-NN`. Keeping nightlies out of the main HayaiApp/HayaiTTS repo
+      # means:
+      #   1. Releases / Issues / Discussions on the main repo only show
+      #      production-ready stable + beta builds — much friendlier for new
+      #      users browsing GitHub.
+      #   2. The in-app auto-updater can poll the nightly repo only when the
+      #      user has explicitly opted into the Nightly channel; Stable / Beta
+      #      users never see a nightly tag in their update dialog.
+      #   3. CI for the nightly repo never re-runs source builds — it only
+      #      hosts release assets uploaded here.
+      #
+      # Requires `NIGHTLY_REPO_TOKEN` (a GitHub PAT with `repo` scope on
+      # HayaiApp/HayaiTTS-nightly) configured in the main repo's Actions
+      # secrets. Falls back to GITHUB_TOKEN if you only ever publish nightlies
+      # in the same repo.
       - name: Create Nightly
         if: startsWith(env.VERSION_TAG, 'r')
         uses: softprops/action-gh-release@v2
         with:
+          repository: HayaiApp/HayaiTTS-nightly
           tag_name: ${{ env.VERSION_TAG }}
           name: HayaiTTS Nightly ${{ env.VERSION_TAG }}
           body: |
@@ -230,4 +247,4 @@ jobs:
           draft: false
           prerelease: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.NIGHTLY_REPO_TOKEN || secrets.GITHUB_TOKEN }}

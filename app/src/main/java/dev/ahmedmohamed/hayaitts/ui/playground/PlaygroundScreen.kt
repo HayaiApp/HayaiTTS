@@ -88,6 +88,7 @@ import kotlin.math.roundToInt
 fun PlaygroundScreen(
     voiceId: String,
     onBack: () -> Unit,
+    extraTopBarActions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {},
 ) {
     val viewModel: PlaygroundViewModel = koinViewModel { parametersOf(voiceId) }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -109,7 +110,8 @@ fun PlaygroundScreen(
     val accent = MaterialTheme.colorScheme.primary
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
+        modifier = Modifier,
         topBar = {
             dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar(
                 title = state.title,
@@ -118,6 +120,7 @@ fun PlaygroundScreen(
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
+                actions = extraTopBarActions,
                 scrollBehavior = scrollBehavior,
             )
         },

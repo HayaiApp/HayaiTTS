@@ -65,6 +65,17 @@
             android:name=".ui.help.HelpActivity"
             android:exported="false" />
 
+        <!-- Crash-report screen. Launched from a fresh task by
+             CrashHandler when the previous task crashed; runs in its own
+             process so it survives the dying app. -->
+        <activity
+            android:name=".ui.crash.CrashActivity"
+            android:process=":crash"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:launchMode="singleInstance" />
+
         <activity
             android:name=".ui.speaker.SpeakerPickerActivity"
             android:exported="false" />

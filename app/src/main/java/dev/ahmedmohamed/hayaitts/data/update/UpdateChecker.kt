@@ -64,8 +64,16 @@ class UpdateChecker(
             }
         }
 
+        // Stable/Beta releases live on the main repo; nightlies were split
+        // out to HayaiApp/HayaiTTS-nightly so the main repo's Releases page
+        // stays focused on production-ready builds. Pick the URL based on
+        // the user's configured channel.
+        val url = when (channel) {
+            UpdateChannel.NIGHTLY -> NIGHTLY_RELEASES_URL
+            UpdateChannel.STABLE, UpdateChannel.BETA -> RELEASES_URL
+        }
         val request = Request.Builder()
-            .url(RELEASES_URL)
+            .url(url)
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", "HayaiTTS/${BuildConfig.VERSION_NAME}")
             .build()
@@ -132,6 +140,14 @@ class UpdateChecker(
     companion object {
         const val RELEASES_URL =
             "https://api.github.com/repos/HayaiApp/HayaiTTS/releases?per_page=30"
+
+        /**
+         * Dedicated nightly repo. The main repo now only hosts stable + beta
+         * releases (see `.github/workflows/build_push.yml`); nightly `r###`
+         * tags land here so users on the Nightly channel still get pinged.
+         */
+        const val NIGHTLY_RELEASES_URL =
+            "https://api.github.com/repos/HayaiApp/HayaiTTS-nightly/releases?per_page=30"
 
         // Matches the per-tag universal-ABI asset produced by build_push.yml:
         // `hayaitts-v<tag>.apk` (no ABI infix). The per-ABI files

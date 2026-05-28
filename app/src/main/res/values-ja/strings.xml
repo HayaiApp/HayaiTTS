@@ -24,6 +24,17 @@
     <string name="browse_empty_title">条件に合う音声はありません</string>
     <string name="browse_empty_subtitle">言語や品質のフィルターを広げてみてください。</string>
     <string name="browse_search_placeholder_count">%1$d 個の音声から検索</string>
+    <string name="topbar_search_library">ライブラリを検索</string>
+    <string name="topbar_search_browse">音声を検索</string>
+    <string name="topbar_search_activity">アクティビティを検索</string>
+    <string name="topbar_search_settings">設定を検索</string>
+    <string name="browse_filter_language_search">言語を検索</string>
+    <string name="settings_allowed_languages">表示する言語</string>
+    <string name="settings_allowed_languages_all">すべての言語</string>
+    <string name="settings_allowed_languages_count">%1$d 言語</string>
+    <string name="settings_allowed_languages_subtitle">参照に表示する言語を制限します。空 = すべて表示。</string>
+    <string name="settings_allowed_languages_sheet_title">表示する言語</string>
+    <string name="settings_allowed_languages_select_all">すべて選択</string>
     <string name="browse_open_filters">フィルターを開く</string>
     <string name="browse_filter_sheet_title">フィルター</string>
     <string name="browse_filter_reset">リセット</string>
@@ -81,6 +92,7 @@
 
     <string name="download_in_progress">ニューラル音声をダウンロード中…</string>
     <string name="download_extracting">展開中…</string>
+    <string name="download_extracting_progress">展開中 · %1$d%%</string>
     <string name="download_active_channel_name">音声ダウンロード（進行中）</string>
     <string name="download_active_channel_description">進行中の音声ダウンロードの進捗。</string>
     <string name="download_complete_channel_name">音声ダウンロード（完了）</string>
@@ -147,7 +159,7 @@
     <string name="settings_clear_cache_subtitle">キャンセルされたダウンロードの残骸を削除します。</string>
     <string name="settings_clear_cache_done">%1$s を解放しました</string>
     <string name="settings_section_about">アプリ情報</string>
-    <string name="settings_version">バージョン %1$s (%2$d)</string>
+    <string name="settings_version">%1$s · %2$s (%3$d)</string>
     <string name="settings_powered_by">モデルは sherpa-onnx により駆動</string>
     <string name="settings_powered_by_subtitle">タップで元プロジェクトを開く</string>
     <string name="settings_license_label">ライセンス: GPL-3.0</string>
@@ -305,6 +317,7 @@
     <string name="studio_title">スタジオ</string>
     <string name="studio_subtitle">調整 · A/B · 書き出し</string>
     <string name="studio_no_voices">「探す」から音声をインストールしてください。</string>
+    <string name="studio_swap_voice">音声を切り替え</string>
     <string name="activity_title">アクティビティ</string>
     <string name="activity_subtitle">ダウンロード · 生成 · キャッシュ</string>
     <string name="activity_pane_downloads">ダウンロード</string>

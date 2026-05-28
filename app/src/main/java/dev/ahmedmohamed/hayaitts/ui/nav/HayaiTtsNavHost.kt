@@ -1,6 +1,8 @@
 package dev.ahmedmohamed.hayaitts.ui.nav
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bolt
@@ -62,6 +64,14 @@ fun HayaiTtsNavHost(
     val showBottomBar = currentRoute in BOTTOM_BAR_ROUTES
 
     Scaffold(
+        // Each screen's `HayaiScreenChrome` (the floating pill bar) handles
+        // its own status-bar inset. If we leave the default systemBars on
+        // this outer Scaffold, the inner bar gets pushed down by the inset
+        // *twice* and the area between the system status bar and the pill
+        // reads as a filled "top app bar background". Restrict the outer
+        // inset to the navigation bars so the bottom NavigationBar still
+        // floats above the system nav.
+        contentWindowInsets = WindowInsets.navigationBars,
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {

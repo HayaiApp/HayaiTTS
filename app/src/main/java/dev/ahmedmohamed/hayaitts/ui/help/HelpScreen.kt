@@ -98,7 +98,8 @@ fun HelpScreen(onBack: () -> Unit) {
         state = rememberTopAppBarState(),
     )
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
+        modifier = Modifier,
         topBar = {
             HayaiTopBar(
                 title = stringResource(R.string.help_title),

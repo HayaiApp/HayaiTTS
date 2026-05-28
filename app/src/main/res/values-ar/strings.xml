@@ -24,6 +24,17 @@
     <string name="browse_empty_title">لا يوجد صوت يطابق هذه المرشّحات</string>
     <string name="browse_empty_subtitle">جرّب توسيع مرشّحات اللغة أو الجودة.</string>
     <string name="browse_search_placeholder_count">ابحث ضمن %1$d صوت</string>
+    <string name="topbar_search_library">ابحث في المكتبة</string>
+    <string name="topbar_search_browse">ابحث عن الأصوات</string>
+    <string name="topbar_search_activity">ابحث في النشاط</string>
+    <string name="topbar_search_settings">ابحث في الإعدادات</string>
+    <string name="browse_filter_language_search">ابحث عن اللغات</string>
+    <string name="settings_allowed_languages">اللغات المعروضة</string>
+    <string name="settings_allowed_languages_all">كل اللغات</string>
+    <string name="settings_allowed_languages_count">%1$d لغة</string>
+    <string name="settings_allowed_languages_subtitle">حدد اللغات التي تظهر في التصفح. اتركها فارغة لإظهار كل اللغات.</string>
+    <string name="settings_allowed_languages_sheet_title">اللغات المعروضة</string>
+    <string name="settings_allowed_languages_select_all">تحديد الكل</string>
     <string name="browse_open_filters">فتح المرشّحات</string>
     <string name="browse_filter_sheet_title">المرشّحات</string>
     <string name="browse_filter_reset">إعادة تعيين</string>
@@ -81,6 +92,7 @@
 
     <string name="download_in_progress">جارٍ تنزيل الصوت العصبي…</string>
     <string name="download_extracting">جارٍ فكّ الضغط…</string>
+    <string name="download_extracting_progress">جارٍ الاستخراج · %1$d%%</string>
     <string name="download_active_channel_name">تنزيلات الأصوات (نشطة)</string>
     <string name="download_active_channel_description">تقدّم التنزيلات الجارية للأصوات.</string>
     <string name="download_complete_channel_name">تنزيلات الأصوات (مكتملة)</string>
@@ -147,7 +159,7 @@
     <string name="settings_clear_cache_subtitle">يحذف الأرشيفات الجزئية المتبقّية من التنزيلات الملغاة.</string>
     <string name="settings_clear_cache_done">تم تحرير %1$s</string>
     <string name="settings_section_about">حول</string>
-    <string name="settings_version">الإصدار %1$s (%2$d)</string>
+    <string name="settings_version">%1$s · %2$s (%3$d)</string>
     <string name="settings_powered_by">النماذج مدعومة بواسطة sherpa-onnx</string>
     <string name="settings_powered_by_subtitle">انقر لفتح المشروع الأصلي</string>
     <string name="settings_license_label">الترخيص: GPL-3.0</string>
@@ -305,6 +317,7 @@
     <string name="studio_title">الاستوديو</string>
     <string name="studio_subtitle">ضبط · مقارنة · تصدير</string>
     <string name="studio_no_voices">ثبّت صوتًا من قسم الاستعراض لاستخدام الاستوديو.</string>
+    <string name="studio_swap_voice">تبديل الصوت</string>
     <string name="activity_title">النشاط</string>
     <string name="activity_subtitle">التنزيلات · التوليد · الذاكرة المؤقتة</string>
     <string name="activity_pane_downloads">التنزيلات</string>

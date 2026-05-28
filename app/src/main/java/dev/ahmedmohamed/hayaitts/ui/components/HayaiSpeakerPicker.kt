@@ -67,7 +67,7 @@ fun HayaiSpeakerPickerInline(
                 modifier = Modifier.size(18.dp),
             )
             Spacer(Modifier.size(8.dp))
-            Text(selected.name, maxLines = 1)
+            Text(speakerLabel(selected), maxLines = 1)
             Spacer(Modifier.size(4.dp))
             Icon(
                 imageVector = Icons.Outlined.KeyboardArrowDown,
@@ -81,7 +81,7 @@ fun HayaiSpeakerPickerInline(
         ) {
             speakers.forEach { sp ->
                 DropdownMenuItem(
-                    text = { Text(sp.name) },
+                    text = { Text(speakerLabel(sp)) },
                     leadingIcon = {
                         Icon(
                             imageVector = iconFor(sp.gender),
@@ -163,7 +163,7 @@ private fun SpeakerAvatar(
         }
         Spacer(Modifier.height(4.dp))
         Text(
-            text = speaker.name,
+            text = speakerLabel(speaker),
             style = MaterialTheme.typography.labelMedium,
             color = if (selected) {
                 MaterialTheme.colorScheme.onSurface
@@ -178,4 +178,19 @@ private fun iconFor(gender: String): ImageVector = when (gender.lowercase()) {
     "f", "female" -> Icons.Outlined.Female
     "m", "male" -> Icons.Outlined.Person
     else -> Icons.Outlined.RecordVoiceOver
+}
+
+/**
+ * Friendly display name for a speaker. Sherpa-onnx packages many multi-speaker
+ * models (Supertonic, some Kokoro variants) with anonymous placeholder names
+ * like `speaker_0`, `speaker_1`, …. Those reveal model internals and aren't
+ * useful as a label; collapse them to "Voice 1", "Voice 2", … so the picker
+ * stays readable.
+ */
+internal fun speakerLabel(speaker: dev.ahmedmohamed.hayaitts.domain.model.Speaker): String {
+    val name = speaker.name.trim()
+    val placeholder = name.isEmpty() ||
+        name.matches(Regex("(?i)speaker[_-]?\\d+")) ||
+        name.matches(Regex("\\d+"))
+    return if (placeholder) "Voice ${speaker.id + 1}" else name
 }

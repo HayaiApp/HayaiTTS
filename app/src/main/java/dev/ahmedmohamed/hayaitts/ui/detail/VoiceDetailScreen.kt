@@ -131,86 +131,80 @@ fun VoiceDetailScreen(
     val card = state.card
     var overflowOpen by remember { mutableStateOf(false) }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            val subtitle = buildString {
-                val firstLang = (installed?.languages ?: card?.languages.orEmpty()).firstOrNull()
-                val fam = card?.modelFamily?.name?.lowercase()?.replaceFirstChar { it.uppercase() }
-                    ?: installed?.family?.name?.lowercase()?.replaceFirstChar { it.uppercase() }
-                if (firstLang != null) append(firstLang)
-                if (fam != null) {
-                    if (isNotEmpty()) append("  ·  ")
-                    append(fam)
-                }
-            }.ifBlank { null }
-            HayaiTopBar(
-                title = installed?.title ?: card?.title ?: voiceId,
-                subtitle = subtitle,
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onOpenQuickSwitch) {
-                        Icon(
-                            Icons.Outlined.RecordVoiceOver,
-                            contentDescription = stringResource(R.string.quick_switch_title),
-                        )
-                    }
-                    Box {
-                        IconButton(onClick = { overflowOpen = true }) {
-                            Icon(
-                                Icons.Outlined.MoreVert,
-                                contentDescription = stringResource(R.string.voice_detail_actions_overflow),
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = overflowOpen,
-                            onDismissRequest = { overflowOpen = false },
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.voice_detail_open_playground)) },
-                                leadingIcon = {
-                                    Icon(Icons.Outlined.Tune, contentDescription = null)
-                                },
-                                enabled = state.isInstalled,
-                                onClick = {
-                                    overflowOpen = false
-                                    onOpenPlayground()
-                                },
-                            )
-                            if (state.isInstalled && installed != null && !installed.bundled) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.voice_detail_uninstall_action)) },
-                                    leadingIcon = {
-                                        Icon(Icons.Outlined.Delete, contentDescription = null)
-                                    },
-                                    onClick = {
-                                        overflowOpen = false
-                                        viewModel.uninstall()
-                                    },
-                                )
-                            }
-                        }
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+    val subtitle = buildString {
+        val firstLang = (installed?.languages ?: card?.languages.orEmpty()).firstOrNull()
+        val fam = card?.modelFamily?.name?.lowercase()?.replaceFirstChar { it.uppercase() }
+            ?: installed?.family?.name?.lowercase()?.replaceFirstChar { it.uppercase() }
+        if (firstLang != null) append(firstLang)
+        if (fam != null) {
+            if (isNotEmpty()) append("  ·  ")
+            append(fam)
+        }
+    }.ifBlank { null }
+    dev.ahmedmohamed.hayaitts.ui.components.HayaiScreenChrome(
+        title = installed?.title ?: card?.title ?: voiceId,
+        subtitle = subtitle,
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back),
+                )
+            }
         },
-    ) { padding ->
+        actions = {
+            IconButton(onClick = onOpenQuickSwitch) {
+                Icon(
+                    Icons.Outlined.RecordVoiceOver,
+                    contentDescription = stringResource(R.string.quick_switch_title),
+                )
+            }
+            Box {
+                IconButton(onClick = { overflowOpen = true }) {
+                    Icon(
+                        Icons.Outlined.MoreVert,
+                        contentDescription = stringResource(R.string.voice_detail_actions_overflow),
+                    )
+                }
+                DropdownMenu(
+                    expanded = overflowOpen,
+                    onDismissRequest = { overflowOpen = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.voice_detail_open_playground)) },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.Tune, contentDescription = null)
+                        },
+                        enabled = state.isInstalled,
+                        onClick = {
+                            overflowOpen = false
+                            onOpenPlayground()
+                        },
+                    )
+                    if (state.isInstalled && installed != null && !installed.bundled) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.voice_detail_uninstall_action)) },
+                            leadingIcon = {
+                                Icon(Icons.Outlined.Delete, contentDescription = null)
+                            },
+                            onClick = {
+                                overflowOpen = false
+                                viewModel.uninstall()
+                            },
+                        )
+                    }
+                }
+            }
+        },
+    ) { topInset ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(horizontal = dev.ahmedmohamed.hayaitts.ui.theme.Spacing.screenHorizontal)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(dev.ahmedmohamed.hayaitts.ui.theme.Spacing.itemSpacing),
         ) {
+            Spacer(Modifier.height(topInset))
             HeroBlock(state = state)
             // Audition block: streams the upstream-rendered MP3 sample so the
             // user can hear the voice *before* downloading the model. When the
@@ -258,7 +252,7 @@ fun VoiceDetailScreen(
 @Composable
 private fun AuditionBlock(
     state: VoiceDetailViewModel.UiState,
-    context: android.content.Context,
+    @Suppress("UNUSED_PARAMETER") context: android.content.Context,
 ) {
     val card = state.card
     val speakers = card?.speakers.orEmpty()
@@ -269,10 +263,13 @@ private fun AuditionBlock(
     var selectedLang by remember(card?.id) {
         mutableStateOf(languages.firstOrNull() ?: "")
     }
-    val sampleUrl = card?.sampleFor(selectedSid, selectedLang.ifBlank { null })
-    val demoUrl = card?.demoUrl
-    if (sampleUrl == null && demoUrl == null) return
+    val sampleUrl = card?.sampleFor(selectedSid, selectedLang.ifBlank { null }) ?: return
 
+    // Compact audition block: the Play button is the primary affordance and
+    // sits inline with the speaker / language pickers on a single row when
+    // they're needed. The web-demo "Try in browser" link has been removed —
+    // it was a duplicate of the audition (and most upstream demo pages are
+    // dead links anyway).
     Column(
         verticalArrangement = Arrangement.spacedBy(dev.ahmedmohamed.hayaitts.ui.theme.Spacing.chipSpacing),
     ) {
@@ -280,53 +277,27 @@ private fun AuditionBlock(
             text = stringResource(R.string.voice_detail_preview),
             style = MaterialTheme.typography.titleMedium,
         )
-        if (speakers.size > 1 || languages.size > 1) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(
-                    dev.ahmedmohamed.hayaitts.ui.theme.Spacing.chipSpacing,
-                ),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            dev.ahmedmohamed.hayaitts.ui.components.HayaiSampleAuditionButton(
+                url = sampleUrl,
+                style = dev.ahmedmohamed.hayaitts.ui.components.AuditionStyle.Filled,
+            )
+            if (speakers.size > 1) {
                 dev.ahmedmohamed.hayaitts.ui.components.HayaiSpeakerPickerInline(
                     speakers = speakers,
                     selectedSid = selectedSid,
                     onPick = { selectedSid = it },
                 )
+            }
+            if (languages.size > 1) {
                 dev.ahmedmohamed.hayaitts.ui.components.HayaiLanguagePickerInline(
                     languages = languages,
                     selected = selectedLang,
                     onPick = { selectedLang = it },
                 )
-            }
-        }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (sampleUrl != null) {
-                dev.ahmedmohamed.hayaitts.ui.components.HayaiSampleAuditionButton(
-                    url = sampleUrl,
-                    style = dev.ahmedmohamed.hayaitts.ui.components.AuditionStyle.Filled,
-                )
-            }
-            if (demoUrl != null) {
-                TextButton(
-                    onClick = {
-                        context.startActivity(
-                            android.content.Intent(
-                                android.content.Intent.ACTION_VIEW,
-                                android.net.Uri.parse(demoUrl),
-                            ),
-                        )
-                    },
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Outlined.OpenInNew,
-                        contentDescription = null,
-                    )
-                    Spacer(Modifier.size(8.dp))
-                    Text(stringResource(R.string.voice_detail_open_demo))
-                }
             }
         }
     }
@@ -463,7 +434,7 @@ private fun PreviewSection(
             ) {
                 AnimatedContent(
                     targetState = playing,
-                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    transitionSpec = dev.ahmedmohamed.hayaitts.ui.theme.HayaiMotion.swap(),
                     label = "play-icon",
                 ) { isPlaying ->
                     Row(verticalAlignment = Alignment.CenterVertically) {

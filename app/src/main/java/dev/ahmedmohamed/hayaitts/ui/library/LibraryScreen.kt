@@ -95,11 +95,22 @@ fun LibraryScreen(
 
     var pendingUninstall by remember { mutableStateOf<InstalledVoice?>(null) }
     var reorderMode by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    // Local reorder buffer. Reset whenever we exit reorder mode or the upstream
-    // list changes. Persisted via `viewModel.saveVoiceOrder` on commit.
-    val orderBuffer: SnapshotStateList<InstalledVoice> = remember(state.orderedInstalled, reorderMode) {
-        state.orderedInstalled.toMutableStateList()
+    // Local reorder buffer. Reset whenever we exit reorder mode, the upstream
+    // list changes, or the search query changes (so the buffer reflects what's
+    // actually visible). Persisted via `viewModel.saveVoiceOrder` on commit,
+    // which only fires when reorder mode is on — search-filtered runs short-
+    // circuit the reorder UI to avoid persisting partial orderings.
+    val filteredVoices = remember(state.orderedInstalled, searchQuery) {
+        if (searchQuery.isBlank()) state.orderedInstalled
+        else state.orderedInstalled.filter { voice ->
+            voice.title.contains(searchQuery, ignoreCase = true) ||
+                voice.languages.any { it.contains(searchQuery, ignoreCase = true) }
+        }
+    }
+    val orderBuffer: SnapshotStateList<InstalledVoice> = remember(filteredVoices, reorderMode) {
+        filteredVoices.toMutableStateList()
     }
 
     val pickFile = rememberLauncherForActivityResult(
@@ -108,61 +119,64 @@ fun LibraryScreen(
 
     val context = LocalContext.current
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            HayaiTopBar(
-                title = stringResource(R.string.library_title),
-                actions = {
-                    IconButton(onClick = onOpenQuickSwitch) {
-                        Icon(
-                            Icons.Outlined.SwapHoriz,
-                            contentDescription = stringResource(R.string.quick_switch_title),
-                        )
+    dev.ahmedmohamed.hayaitts.ui.components.HayaiScreenChrome(
+        title = stringResource(R.string.library_title),
+        searchable = dev.ahmedmohamed.hayaitts.ui.components.HayaiSearchable(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            placeholder = stringResource(R.string.topbar_search_library),
+        ),
+        actions = {
+            IconButton(onClick = onOpenQuickSwitch) {
+                Icon(
+                    Icons.Outlined.SwapHoriz,
+                    contentDescription = stringResource(R.string.quick_switch_title),
+                )
+            }
+            IconButton(onClick = { pickFile.launch(IMPORT_MIME_TYPES) }) {
+                Icon(
+                    Icons.Outlined.UploadFile,
+                    contentDescription = stringResource(R.string.library_import_action),
+                )
+            }
+            AnimatedVisibility(visible = state.installed.isNotEmpty() && searchQuery.isBlank()) {
+                IconButton(onClick = {
+                    if (reorderMode) {
+                        viewModel.saveVoiceOrder(orderBuffer.map { it.voiceId })
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     }
-                    IconButton(onClick = { pickFile.launch(IMPORT_MIME_TYPES) }) {
-                        Icon(
-                            Icons.Outlined.UploadFile,
-                            contentDescription = stringResource(R.string.library_import_action),
-                        )
-                    }
-                    AnimatedVisibility(visible = state.installed.isNotEmpty()) {
-                        IconButton(onClick = {
-                            if (reorderMode) {
-                                viewModel.saveVoiceOrder(orderBuffer.map { it.voiceId })
-                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            }
-                            reorderMode = !reorderMode
-                        }) {
-                            Icon(
-                                imageVector = if (reorderMode) Icons.Outlined.Done else Icons.Outlined.Reorder,
-                                contentDescription = stringResource(
-                                    if (reorderMode) R.string.action_done else R.string.action_reorder,
-                                ),
-                            )
-                        }
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+                    reorderMode = !reorderMode
+                }) {
+                    Icon(
+                        imageVector = if (reorderMode) Icons.Outlined.Done else Icons.Outlined.Reorder,
+                        contentDescription = stringResource(
+                            if (reorderMode) R.string.action_done else R.string.action_reorder,
+                        ),
+                    )
+                }
+            }
         },
-    ) { innerPadding ->
+    ) { topInset ->
         AnimatedContent(
-            targetState = state.installed.isEmpty(),
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            targetState = state.installed.isEmpty() || filteredVoices.isEmpty(),
+            transitionSpec = dev.ahmedmohamed.hayaitts.ui.theme.HayaiMotion.slideForward(),
             label = "library-empty",
         ) { isEmpty ->
             if (isEmpty) {
+                val noResults = state.installed.isNotEmpty() && filteredVoices.isEmpty()
                 HayaiEmpty(
                     mode = HayaiEmptyMode.Empty(
                         icon = Icons.Outlined.LibraryMusic,
-                        title = stringResource(R.string.library_empty_title),
-                        subtitle = stringResource(R.string.library_empty_subtitle),
-                        cta = stringResource(R.string.library_browse_action) to onBrowse,
+                        title = if (noResults) stringResource(R.string.topbar_search_library)
+                            else stringResource(R.string.library_empty_title),
+                        subtitle = if (noResults) "“$searchQuery”"
+                            else stringResource(R.string.library_empty_subtitle),
+                        cta = if (noResults) null
+                            else stringResource(R.string.library_browse_action) to onBrowse,
                     ),
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
+                        .padding(top = topInset),
                 )
             } else {
                 LibraryBody(
@@ -184,7 +198,7 @@ fun LibraryScreen(
                     },
                     onClickVoice = { onVoiceClick(it.voiceId) },
                     onPlayPreview = { onVoiceClick(it.voiceId) },
-                    contentPadding = innerPadding,
+                    contentPadding = PaddingValues(top = topInset, bottom = 16.dp),
                 )
             }
         }

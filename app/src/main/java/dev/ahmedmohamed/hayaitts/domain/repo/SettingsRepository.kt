@@ -44,4 +44,14 @@ interface SettingsRepository {
     val defaultSpeakerByVoice: Flow<Map<String, Int>>
     suspend fun setDefaultSpeaker(voiceId: String, speakerId: Int)
     suspend fun clearDefaultSpeaker(voiceId: String)
+
+    /**
+     * BCP-47 language tags the user wants to see in Browse / Library / the
+     * Filters sheet. An empty set means "no restriction" — every language in
+     * the catalog is visible (the default for first launch). Once the user
+     * picks at least one language, voices that don't speak any of those tags
+     * are hidden across the app.
+     */
+    val allowedLanguages: Flow<Set<String>>
+    suspend fun setAllowedLanguages(value: Set<String>)
 }

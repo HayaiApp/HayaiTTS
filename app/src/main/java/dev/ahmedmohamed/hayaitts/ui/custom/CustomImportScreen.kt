@@ -84,7 +84,8 @@ fun CustomImportScreen(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
+        modifier = Modifier,
         topBar = {
             dev.ahmedmohamed.hayaitts.ui.components.HayaiTopBar(
                 title = stringResource(R.string.import_title),
@@ -108,12 +109,7 @@ fun CustomImportScreen(
             ImportStepper(phase = phase)
             androidx.compose.animation.AnimatedContent(
                 targetState = phase,
-                transitionSpec = {
-                    androidx.compose.animation.slideInHorizontally { it / 4 } +
-                        androidx.compose.animation.fadeIn() togetherWith
-                        androidx.compose.animation.slideOutHorizontally { -it / 4 } +
-                        androidx.compose.animation.fadeOut()
-                },
+                transitionSpec = dev.ahmedmohamed.hayaitts.ui.theme.HayaiMotion.slideForward(),
                 label = "import-step",
             ) { p ->
                 Box(modifier = Modifier.fillMaxSize()) {

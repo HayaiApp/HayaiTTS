@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,7 +25,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -47,8 +48,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -69,7 +68,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.ahmedmohamed.hayaitts.R
@@ -89,12 +87,10 @@ import org.koin.androidx.compose.koinViewModel
  * Catalog browser.
  *
  * Layout (top → bottom):
- *  1. [HayaiTopBar] with back nav, title "Browse", subtitle showing result
- *     count, filter icon in actions.
- *  2. Inline [OutlinedTextField] search field — typing filters the list
- *     directly under it; no expanded suggestions mode.
- *  3. Active-filter chip row (only when filters are active).
- *  4. Either [HayaiEmpty] (with a Clear-Filters CTA when filters are active)
+ *  1. [HayaiTopBar] with back nav, integrated search pill placeholder showing
+ *     the current result count, and a filter icon in actions.
+ *  2. Active-filter chip row (only when filters are active).
+ *  3. Either [HayaiEmpty] (with a Clear-Filters CTA when filters are active)
  *     or the catalog list.
  *
  * The filter sheet is the only modal surface; everything else lives inline.
@@ -120,48 +116,43 @@ fun BrowseScreen(
         n
     }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            HayaiTopBar(
-                title = stringResource(R.string.nav_browse),
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back),
-                        )
-                    }
-                },
-                actions = {
-                    BadgedBox(
-                        badge = {
-                            if (activeFilterCount > 0) Badge { Text("$activeFilterCount") }
-                        },
-                    ) {
-                        IconButton(onClick = { filterSheetOpen = true }) {
-                            Icon(
-                                Icons.Outlined.FilterList,
-                                contentDescription = stringResource(R.string.browse_open_filters),
-                            )
-                        }
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+    dev.ahmedmohamed.hayaitts.ui.components.HayaiScreenChrome(
+        title = stringResource(R.string.nav_browse),
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back),
+                )
+            }
         },
-    ) { padding ->
+        searchable = dev.ahmedmohamed.hayaitts.ui.components.HayaiSearchable(
+            query = state.filters.query,
+            onQueryChange = viewModel::setQuery,
+            placeholder = stringResource(
+                R.string.browse_search_placeholder_count,
+                state.cards.size,
+            ),
+        ),
+        actions = {
+            BadgedBox(
+                badge = {
+                    if (activeFilterCount > 0) Badge { Text("$activeFilterCount") }
+                },
+            ) {
+                IconButton(onClick = { filterSheetOpen = true }) {
+                    Icon(
+                        Icons.Outlined.FilterList,
+                        contentDescription = stringResource(R.string.browse_open_filters),
+                    )
+                }
+            }
+        },
+    ) { topInset ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+            modifier = Modifier.fillMaxSize(),
         ) {
-            SearchField(
-                query = state.filters.query,
-                onQueryChange = viewModel::setQuery,
-                resultCount = state.cards.size,
-            )
-
+            Spacer(modifier = Modifier.height(topInset))
             ActiveFilterRow(
                 filters = state.filters,
                 onClearTier = { viewModel.setTier(null) },
@@ -173,7 +164,7 @@ fun BrowseScreen(
 
             AnimatedContent(
                 targetState = state.cards.isEmpty(),
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                transitionSpec = dev.ahmedmohamed.hayaitts.ui.theme.HayaiMotion.slideForward(),
                 label = "browse-empty",
             ) { empty ->
                 if (empty) {
@@ -231,44 +222,6 @@ fun BrowseScreen(
             onDismiss = { filterSheetOpen = false },
         )
     }
-}
-
-@Composable
-private fun SearchField(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    resultCount: Int,
-) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Spacing.screenHorizontal, vertical = 8.dp),
-        singleLine = true,
-        shape = CircleShape,
-        placeholder = {
-            Text(stringResource(R.string.browse_search_placeholder_count, resultCount))
-        },
-        leadingIcon = {
-            Icon(Icons.Outlined.Search, contentDescription = null)
-        },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(
-                        Icons.Outlined.Close,
-                        contentDescription = stringResource(R.string.action_clear),
-                    )
-                }
-            }
-        },
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.outline,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-        ),
-    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -434,23 +387,6 @@ private fun FilterSheet(
 
             HorizontalDivider()
 
-            FilterGroup(stringResource(R.string.browse_filter_language)) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.chipSpacing),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    availableLanguages.forEach { lang ->
-                        FilterChip(
-                            selected = lang in filters.languages,
-                            onClick = { onToggleLanguage(lang) },
-                            label = { Text(displayName(lang)) },
-                        )
-                    }
-                }
-            }
-
-            HorizontalDivider()
-
             FilterGroup(stringResource(R.string.browse_filter_family)) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(Spacing.chipSpacing),
@@ -461,6 +397,71 @@ private fun FilterSheet(
                             selected = fam in filters.families,
                             onClick = { onToggleFamily(fam) },
                             label = { Text(stringResource(fam.displayRes())) },
+                        )
+                    }
+                }
+            }
+
+            HorizontalDivider()
+
+            FilterGroup(stringResource(R.string.browse_filter_language)) {
+                var langQuery by remember { mutableStateOf("") }
+                androidx.compose.material3.OutlinedTextField(
+                    value = langQuery,
+                    onValueChange = { langQuery = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Search, contentDescription = null)
+                    },
+                    trailingIcon = {
+                        if (langQuery.isNotEmpty()) {
+                            IconButton(onClick = { langQuery = "" }) {
+                                Icon(
+                                    Icons.Outlined.Close,
+                                    contentDescription = stringResource(R.string.action_clear),
+                                )
+                            }
+                        }
+                    },
+                    placeholder = {
+                        Text(stringResource(R.string.browse_filter_language_search))
+                    },
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                )
+                Spacer(Modifier.height(8.dp))
+                // Selected languages always render at the top, regardless of
+                // the query, so the user can deselect them when filtering by
+                // an unrelated query string. Non-selected results are
+                // filtered by case-insensitive substring on either the BCP-47
+                // code or the localized display name.
+                val q = langQuery.trim()
+                val selected = filters.languages
+                val matching = remember(availableLanguages, q, selected) {
+                    if (q.isEmpty()) availableLanguages.filter { it !in selected }
+                    else availableLanguages.filter { lang ->
+                        lang !in selected && (
+                            lang.contains(q, ignoreCase = true) ||
+                                displayName(lang).contains(q, ignoreCase = true)
+                            )
+                    }
+                }
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.chipSpacing),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    selected.forEach { lang ->
+                        FilterChip(
+                            selected = true,
+                            onClick = { onToggleLanguage(lang) },
+                            label = { Text(displayName(lang)) },
+                        )
+                    }
+                    matching.forEach { lang ->
+                        FilterChip(
+                            selected = false,
+                            onClick = { onToggleLanguage(lang) },
+                            label = { Text(displayName(lang)) },
                         )
                     }
                 }

@@ -27,6 +27,17 @@
     <string name="browse_empty_title">Aucune voix ne correspond aux filtres</string>
     <string name="browse_empty_subtitle">Essayez d\'élargir les filtres de langue ou de qualité.</string>
     <string name="browse_search_placeholder_count">Rechercher parmi %1$d voix</string>
+    <string name="topbar_search_library">Rechercher dans la bibliothèque</string>
+    <string name="topbar_search_browse">Rechercher des voix</string>
+    <string name="topbar_search_activity">Rechercher dans l\'activité</string>
+    <string name="topbar_search_settings">Rechercher dans les paramètres</string>
+    <string name="browse_filter_language_search">Rechercher des langues</string>
+    <string name="settings_allowed_languages">Langues affichées</string>
+    <string name="settings_allowed_languages_all">Toutes les langues</string>
+    <string name="settings_allowed_languages_count">%1$d langues</string>
+    <string name="settings_allowed_languages_subtitle">Limite les langues affichées dans Parcourir. Vide = tout afficher.</string>
+    <string name="settings_allowed_languages_sheet_title">Langues affichées</string>
+    <string name="settings_allowed_languages_select_all">Tout sélectionner</string>
     <string name="browse_open_filters">Ouvrir les filtres</string>
     <string name="browse_filter_sheet_title">Filtres</string>
     <string name="browse_filter_reset">Réinitialiser</string>
@@ -88,6 +99,7 @@
     <!-- Download -->
     <string name="download_in_progress">Téléchargement de la voix neuronale…</string>
     <string name="download_extracting">Extraction…</string>
+    <string name="download_extracting_progress">Extraction · %1$d%%</string>
     <string name="download_active_channel_name">Téléchargements de voix (actifs)</string>
     <string name="download_active_channel_description">Progression des téléchargements de voix en cours.</string>
     <string name="download_complete_channel_name">Téléchargements de voix (terminés)</string>
@@ -158,7 +170,7 @@
     <string name="settings_clear_cache_subtitle">Supprime les archives partielles laissées par les téléchargements annulés.</string>
     <string name="settings_clear_cache_done">%1$s libérés</string>
     <string name="settings_section_about">À propos</string>
-    <string name="settings_version">Version %1$s (%2$d)</string>
+    <string name="settings_version">%1$s · %2$s (%3$d)</string>
     <string name="settings_powered_by">Modèles propulsés par sherpa-onnx</string>
     <string name="settings_powered_by_subtitle">Appuyez pour ouvrir le projet original</string>
     <string name="settings_license_label">Licence : GPL-3.0</string>
@@ -322,6 +334,7 @@
     <string name="studio_title">Studio</string>
     <string name="studio_subtitle">Réglage · A/B · Export</string>
     <string name="studio_no_voices">Installe une voix depuis Parcourir pour utiliser le Studio.</string>
+    <string name="studio_swap_voice">Changer de voix</string>
     <string name="activity_title">Activité</string>
     <string name="activity_subtitle">Téléchargements · Générations · Cache</string>
     <string name="activity_pane_downloads">Téléchargements</string>

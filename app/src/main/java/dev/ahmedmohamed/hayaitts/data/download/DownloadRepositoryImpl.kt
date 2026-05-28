@@ -11,7 +11,6 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import co.touchlab.kermit.Logger
 import dev.ahmedmohamed.hayaitts.core.dispatchers.DispatcherProvider
-import dev.ahmedmohamed.hayaitts.data.catalog.catalogJson
 import dev.ahmedmohamed.hayaitts.data.db.dao.DownloadStateDao
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
@@ -84,13 +83,13 @@ class DownloadRepositoryImpl(
             .setRequiredNetworkType(if (wifiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED)
             .build()
 
+        // Pass only the id + title — WorkManager's Data is capped at 10 KB
+        // and voice cards with large speaker lists (Kokoro: hundreds of
+        // speakers) blow past that as JSON. The worker resolves the full
+        // VoiceCard from CatalogRepository at start-of-work.
         val input = Data.Builder()
             .putString(VoiceDownloadWorker.KEY_VOICE_ID, voiceCard.id)
             .putString(VoiceDownloadWorker.KEY_TITLE, voiceCard.title)
-            .putString(
-                VoiceDownloadWorker.KEY_VOICE_JSON,
-                catalogJson.encodeToString(VoiceCard.serializer(), voiceCard),
-            )
             .build()
 
         val builder = OneTimeWorkRequestBuilder<VoiceDownloadWorker>()
