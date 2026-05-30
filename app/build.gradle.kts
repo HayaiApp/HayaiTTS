@@ -36,13 +36,13 @@ android {
         // git tag (`v2.0.0`, `v2.0.0-b3`, or `r142`) so the installed APK's
         // `BuildConfig.VERSION_NAME` matches the release the user downloaded.
         // Without it a locally-built or workflow-built nightly would always
-        // read "2.0.0-b2", which is what the Settings channel pill used to
+        // read "2.5.0", which is what the Settings channel pill used to
         // show regardless of which build the user was actually running.
         versionName = System.getenv("HAYAITTS_VERSION_NAME")
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
             ?.removePrefix("v")
-            ?: "2.0.0-b2"
+            ?: "2.5.0"
 
         // Room schema export. KSP picks this up via the `room` argument and
         // writes JSON snapshots of each entity into app/schemas/. Schemas are

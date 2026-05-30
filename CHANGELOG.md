@@ -5,7 +5,7 @@ All notable changes to HayaiTTS land here. Format loosely follows
 
 ## [Unreleased]
 
-## [v2.5.0-b1] — 2026-05-28
+## [v2.5.0] — 2026-05-30
 
 ### Added
 
@@ -200,8 +200,8 @@ First public beta — full feature list documented in the commit
 history and the
 [release notes](https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.0.0-b1).
 
-[Unreleased]: https://github.com/HayaiApp/HayaiTTS/compare/v2.5.0-b1...HEAD
-[v2.5.0-b1]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v2.5.0-b1
+[Unreleased]: https://github.com/HayaiApp/HayaiTTS/compare/v2.5.0...HEAD
+[v2.5.0]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v2.5.0
 [v2.0.0-b1]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v2.0.0-b1
 [v1.1.1]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.1.1
 [v1.1.0]: https://github.com/HayaiApp/HayaiTTS/releases/tag/v1.1.0
