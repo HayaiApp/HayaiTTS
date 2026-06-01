@@ -241,7 +241,7 @@
       "family": "kitten",
       "id": "kitten-mini-en-v0_8",
       "languages": [
-        "en-US"
+        "en"
       ],
       "license": "Apache-2.0",
       "recommendedUseCases": [
@@ -345,7 +345,7 @@
         }
       ],
       "tier": "low",
-      "title": "Kitten (8 speakers)"
+      "title": "Speaker_0"
     },
     {
       "approxSizeMb": 27,
@@ -3915,8 +3915,8 @@
         "da",
         "nl",
         "en-US",
-        "fi",
         "et",
+        "fi",
         "fr-FR",
         "de-DE",
         "el",
@@ -3936,8 +3936,8 @@
         "sl",
         "es-ES",
         "sv",
-        "tr",
         "uk",
+        "tr",
         "vi"
       ],
       "license": "openrail",
