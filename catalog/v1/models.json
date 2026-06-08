@@ -241,7 +241,7 @@
       "family": "kitten",
       "id": "kitten-mini-en-v0_8",
       "languages": [
-        "en"
+        "en-US"
       ],
       "license": "Apache-2.0",
       "recommendedUseCases": [
@@ -345,7 +345,7 @@
         }
       ],
       "tier": "low",
-      "title": "Speaker_0"
+      "title": "Kitten (8 speakers)"
     },
     {
       "approxSizeMb": 27,
@@ -3661,7 +3661,7 @@
       ],
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/matcha-icefall-en_US-ljspeech.mp3",
       "sampleRateHz": 22050,
-      "sha256": "b99890f89fec86d214beb74caaa5bd1ce0afd09660a24dc286ea7e703eaab9c1",
+      "sha256": "bc0d41e728aa1ec50c3dee8f57c6ce7244d8864b42f5fde8c6e109bd4b29b7f1",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3706,7 +3706,7 @@
       "license": "MIT",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/matcha-icefall-zh-baker.mp3",
       "sampleRateHz": 22050,
-      "sha256": "c2c420480dee329fd3fdb8d89e4664d8fd2894a03b93b7728c2800879bf22d64",
+      "sha256": "729e8516c4d7f5ffcebac174a3935e6ee1764e2c4e60fd0bd911253241abc153",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3911,8 +3911,8 @@
         "ar",
         "bg",
         "hr",
-        "cs",
         "da",
+        "cs",
         "nl",
         "en-US",
         "et",
@@ -3926,8 +3926,8 @@
         "it-IT",
         "ja-JP",
         "ko-KR",
-        "lv",
         "lt",
+        "lv",
         "pl",
         "pt",
         "ro",
@@ -3936,8 +3936,8 @@
         "sl",
         "es-ES",
         "sv",
-        "uk",
         "tr",
+        "uk",
         "vi"
       ],
       "license": "openrail",
@@ -6384,7 +6384,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "5e0e52d5b55af11999f6e28f775e107ed8ee20f66c360a6e6f9d89f3783b319f",
+      "sha256": "5e938cfff6452f4b96d32751ba84b935e5c0be95cc146ba4c81c865b425d1481",
       "speakers": [
         {
           "gender": "U",
@@ -6409,7 +6409,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "794c580c0cf13279ffe83445af5378bfc778a7117b2c024741332a7a58192f8d",
+      "sha256": "76c28ecd1727ae2762b5872a8e9cbabd99f14ce8b666ddb69cb510629143cb78",
       "speakers": [
         {
           "gender": "U",

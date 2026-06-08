@@ -1,6 +1,6 @@
 # Voice catalog
 
-*Auto-generated from `catalog/v1/models.json` on 2026-06-01 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
+*Auto-generated from `catalog/v1/models.json` on 2026-06-08 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
 
 ## Summary
 
@@ -586,11 +586,11 @@ Tiny English-only VITS distillations tuned for low-end phones. <60 MB, fastest s
 |---|---|---:|---:|---|---|---:|---|
 | Kitten (8 speakers) | en-US | 8 | 44 MB | low | — | — | Apache-2.0 |
 | Kitten (8 speakers) | en-US | 8 | 157 MB | low | — | — | Apache-2.0 |
+| Kitten (8 speakers) | en-US | 8 | 68 MB | low | — | — | Apache-2.0 |
 | Kitten (8 speakers) | en-US | 8 | 27 MB | low | — | — | Apache-2.0 |
 | Kitten (8 speakers) | en-US | 8 | 27 MB | low | — | — | Apache-2.0 |
 | Kitten (8 speakers) | en-US | 8 | 64 MB | low | — | — | Apache-2.0 |
 | Kitten (8 speakers) | en-US | 8 | 31 MB | low | — | — | Apache-2.0 |
-| Speaker_0 | en | 8 | 68 MB | low | — | — | Apache-2.0 |
 
 ## matcha (5)
 
