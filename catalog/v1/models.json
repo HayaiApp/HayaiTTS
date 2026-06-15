@@ -3661,7 +3661,7 @@
       ],
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/matcha-icefall-en_US-ljspeech.mp3",
       "sampleRateHz": 22050,
-      "sha256": "bc0d41e728aa1ec50c3dee8f57c6ce7244d8864b42f5fde8c6e109bd4b29b7f1",
+      "sha256": "44174b93f66de2fca3bde30ae3e7248c891080ffde874b2e8092f5d50f329f62",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3706,7 +3706,7 @@
       "license": "MIT",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/matcha-icefall-zh-baker.mp3",
       "sampleRateHz": 22050,
-      "sha256": "729e8516c4d7f5ffcebac174a3935e6ee1764e2c4e60fd0bd911253241abc153",
+      "sha256": "ef66607c3f889495054cf771a0d02cba7323eecd49ba0816d3d40b2f6352467f",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3910,28 +3910,28 @@
       "languages": [
         "ar",
         "bg",
-        "hr",
-        "da",
-        "cs",
         "nl",
+        "da",
+        "hr",
+        "cs",
         "en-US",
         "et",
         "fi",
         "fr-FR",
         "de-DE",
         "el",
-        "hi",
         "hu",
+        "hi",
         "id",
         "it-IT",
         "ja-JP",
-        "ko-KR",
-        "lt",
         "lv",
+        "lt",
+        "ko-KR",
         "pl",
         "pt",
-        "ro",
         "ru",
+        "ro",
         "sk",
         "sl",
         "es-ES",
@@ -6384,7 +6384,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "5e938cfff6452f4b96d32751ba84b935e5c0be95cc146ba4c81c865b425d1481",
+      "sha256": "52c509f6f451b61779a00fb35f455a953c3fa4908d2568633e41eb530f0f42d8",
       "speakers": [
         {
           "gender": "U",
@@ -6409,7 +6409,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "76c28ecd1727ae2762b5872a8e9cbabd99f14ce8b666ddb69cb510629143cb78",
+      "sha256": "5d945157072a891a643a4afbe063ad0363791850d3ecaa52365c227f0e48e7a0",
       "speakers": [
         {
           "gender": "U",
