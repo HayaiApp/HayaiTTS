@@ -138,6 +138,11 @@ class HayaiTtsService : TextToSpeechService() {
         }
 
         val requestVoiceName = request.voiceName ?: lastSelectedVoiceId
+        val requestLanguageHint = buildBcp47(
+            request.language,
+            request.country,
+            request.variant,
+        ).ifBlank { null }
         val (selectedVoiceId, selectedSpeakerId) = parseVoiceName(requestVoiceName)
         val (fallbackVoiceId, _) = parseVoiceName(lastSelectedVoiceId)
 
@@ -179,7 +184,7 @@ class HayaiTtsService : TextToSpeechService() {
             ?: 0
 
         val sampleRate = try {
-            runtime.sampleRateOf(voice.voiceId)
+            runtime.sampleRateOf(voice.voiceId, languageHint = requestLanguageHint)
         } catch (t: Throwable) {
             log.e(t) { "Could not load voice ${voice.voiceId}" }
             callback.error()
@@ -202,6 +207,7 @@ class HayaiTtsService : TextToSpeechService() {
                 lengthScale = tuning.lengthScale,
                 noiseScale = tuning.noiseScale,
                 noiseScaleW = tuning.noiseScaleW,
+                languageHint = requestLanguageHint,
             )
         } catch (t: Throwable) {
             log.e(t) { "sherpa-onnx synthesis failed" }

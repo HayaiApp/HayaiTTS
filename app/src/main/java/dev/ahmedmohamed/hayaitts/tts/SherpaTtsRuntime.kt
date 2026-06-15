@@ -40,6 +40,7 @@ class SherpaTtsRuntime private constructor(
 
     private data class EngineKey(
         val voiceId: String,
+        val kokoroLanguage: String,
         val lengthBucket: Int,
         val noiseBucket: Int,
         val noiseWBucket: Int,
@@ -52,7 +53,8 @@ class SherpaTtsRuntime private constructor(
 
     data class SynthesisOutput(val sampleRate: Int, val samples: FloatArray)
 
-    fun sampleRateOf(voiceId: String): Int = engine(voiceId, 1f).sampleRate()
+    fun sampleRateOf(voiceId: String, languageHint: String? = null): Int =
+        engine(voiceId, 1f, languageHint = languageHint).sampleRate()
 
     fun synthesize(
         voiceId: String,
@@ -63,8 +65,9 @@ class SherpaTtsRuntime private constructor(
         lengthScale: Float = 1.0f,
         noiseScale: Float = 0.667f,
         noiseScaleW: Float = 0.8f,
+        languageHint: String? = null,
     ): SynthesisOutput {
-        val tts = engine(voiceId, lengthScale, noiseScale, noiseScaleW)
+        val tts = engine(voiceId, lengthScale, noiseScale, noiseScaleW, text, languageHint)
         // Clamp the speaker id to the model's actual range before
         // crossing the JNI boundary. Kokoro 1.1 ships ~50–100 named
         // speakers, but the catalog occasionally over-counts (placeholder
@@ -129,9 +132,10 @@ class SherpaTtsRuntime private constructor(
         lengthScale: Float = 1.0f,
         noiseScale: Float = 0.667f,
         noiseScaleW: Float = 0.8f,
+        languageHint: String? = null,
         onChunk: (FloatArray) -> Int,
     ): SynthesisOutput {
-        val tts = engine(voiceId, lengthScale, noiseScale, noiseScaleW)
+        val tts = engine(voiceId, lengthScale, noiseScale, noiseScaleW, text, languageHint)
         val nSpeakers = runCatching { tts.numSpeakers() }.getOrDefault(0)
         val safeSid = if (nSpeakers > 0) sid.coerceIn(0, nSpeakers - 1) else 0
         val audio = try {
@@ -284,19 +288,40 @@ class SherpaTtsRuntime private constructor(
         lengthScale: Float,
         noiseScale: Float = 0.667f,
         noiseScaleW: Float = 0.8f,
+        text: String? = null,
+        languageHint: String? = null,
     ): OfflineTts = synchronized(this) {
         val settings = runCatching { GlobalContext.get().get<SettingsRepository>() }.getOrNull()
         val useNnapi = runCatching { runBlocking { settings?.useNnapi?.first() } }.getOrNull() ?: false
         val numThreads = runCatching { runBlocking { settings?.synthesisThreads?.first() } }.getOrNull() ?: 2
         val maxNumSentences = runCatching { runBlocking { settings?.maxNumSentences?.first() } }.getOrNull() ?: 2
+        val voice = installedVoiceOf(voiceId)
+            ?: error("Voice $voiceId is not installed; reinstall the bundle.")
+        val family = runtimeFamily(voice)
+        val kokoroLanguage = kokoroLanguageFor(
+            voice = voice,
+            family = family,
+            languageHint = languageHint,
+            text = text,
+        )
 
         val lengthB = lengthBucket(lengthScale)
         val noiseB = noiseBucket(noiseScale)
         val noiseWB = noiseBucket(noiseScaleW)
 
-        val key = EngineKey(voiceId, lengthB, noiseB, noiseWB, useNnapi, numThreads, maxNumSentences)
+        val key = EngineKey(voiceId, kokoroLanguage, lengthB, noiseB, noiseWB, useNnapi, numThreads, maxNumSentences)
         loaded[key]?.let { return@synchronized it }
-        val tts = buildEngine(voiceId, lengthScale, noiseScale, noiseScaleW, useNnapi, numThreads, maxNumSentences)
+        val tts = buildEngine(
+            voice = voice,
+            family = family,
+            kokoroLanguage = kokoroLanguage,
+            lengthScale = lengthScale,
+            noiseScale = noiseScale,
+            noiseScaleW = noiseScaleW,
+            useNnapi = useNnapi,
+            numThreads = numThreads,
+            maxNumSentences = maxNumSentences,
+        )
         loaded[key] = tts
         evictIfNeeded(voiceId)
         tts
@@ -327,7 +352,9 @@ class SherpaTtsRuntime private constructor(
         (noiseScale.coerceIn(0.0f, 2.0f) * 100f).toInt()
 
     private fun buildEngine(
-        voiceId: String,
+        voice: InstalledVoice,
+        family: ModelFamily,
+        kokoroLanguage: String,
         lengthScale: Float,
         noiseScale: Float,
         noiseScaleW: Float,
@@ -335,29 +362,23 @@ class SherpaTtsRuntime private constructor(
         numThreads: Int,
         maxNumSentences: Int
     ): OfflineTts {
-        val voice = installedVoiceOf(voiceId)
-        val path = voice?.installedPath?.takeIf { it.isNotBlank() }
-            ?: error("Voice $voiceId has no installedPath; reinstall the bundle.")
+        val path = voice.installedPath.takeIf { it.isNotBlank() }
+            ?: error("Voice ${voice.voiceId} has no installedPath; reinstall the bundle.")
         val voiceDir = File(path).also { dir ->
-            require(dir.isDirectory) { "Voice $voiceId not installed at $dir" }
+            require(dir.isDirectory) { "Voice ${voice.voiceId} not installed at $dir" }
         }
-        val family = if (voice?.family == ModelFamily.CUSTOM) {
-            voice.effectiveFamily ?: error(
-                "Custom voice $voiceId is missing effectiveFamily — re-import the bundle.",
-            )
-        } else {
-            voice?.family ?: ModelFamily.PIPER
-        }
-        log.i { "Loading voice $voiceId (family=$family, lengthScale=$lengthScale, noiseScale=$noiseScale, noiseScaleW=$noiseScaleW) from $voiceDir" }
-        val config = buildConfig(family, voiceDir, lengthScale, noiseScale, noiseScaleW, useNnapi, numThreads, maxNumSentences)
+        val languageLog = if (kokoroLanguage.isNotBlank()) ", lang=$kokoroLanguage" else ""
+        log.i { "Loading voice ${voice.voiceId} (family=$family$languageLog, lengthScale=$lengthScale, noiseScale=$noiseScale, noiseScaleW=$noiseScaleW) from $voiceDir" }
+        val config = buildConfig(family, voiceDir, kokoroLanguage, lengthScale, noiseScale, noiseScaleW, useNnapi, numThreads, maxNumSentences)
         val tts = OfflineTts(assetManager = null, config = config)
-        log.i { "OfflineTts ready for $voiceId (sampleRate=${tts.sampleRate()})" }
+        log.i { "OfflineTts ready for ${voice.voiceId} (sampleRate=${tts.sampleRate()})" }
         return tts
     }
 
     private fun buildConfig(
         family: ModelFamily,
         dir: File,
+        kokoroLanguage: String,
         lengthScale: Float,
         noiseScale: Float,
         noiseScaleW: Float,
@@ -367,7 +388,7 @@ class SherpaTtsRuntime private constructor(
     ): OfflineTtsConfig = when (family) {
         ModelFamily.PIPER, ModelFamily.VITS -> buildVitsConfig(dir, lengthScale, noiseScale, noiseScaleW, useNnapi, numThreads, maxNumSentences)
         ModelFamily.MATCHA -> buildMatchaConfig(dir, lengthScale, useNnapi, numThreads, maxNumSentences)
-        ModelFamily.KOKORO -> buildKokoroConfig(dir, lengthScale, useNnapi, numThreads, maxNumSentences)
+        ModelFamily.KOKORO -> buildKokoroConfig(dir, kokoroLanguage, lengthScale, useNnapi, numThreads, maxNumSentences)
         ModelFamily.KITTEN -> buildKittenConfig(dir, lengthScale, useNnapi, numThreads, maxNumSentences)
         ModelFamily.ZIPVOICE -> buildZipVoiceConfig(dir, useNnapi, numThreads, maxNumSentences)
         ModelFamily.POCKET -> buildPocketConfig(dir, useNnapi, numThreads, maxNumSentences)
@@ -416,8 +437,7 @@ class SherpaTtsRuntime private constructor(
         maxNumSentences: Int
     ): OfflineTtsConfig {
         val acoustic = resolveModelFile(dir, MATCHA_ACOUSTIC_CANDIDATES)
-        val vocoder = File(dir, VOCODER_FILE)
-        check(vocoder.isFile) { "Matcha voice at $dir is missing $VOCODER_FILE" }
+        val vocoder = resolveVocoderFile(dir, MATCHA_VOCODER_CANDIDATES)
         val tokensPath = File(dir, TOKENS_FILE).absolutePath
         val dataDir = File(dir, ESPEAK_DIR)
         val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
@@ -428,7 +448,7 @@ class SherpaTtsRuntime private constructor(
         return OfflineTtsConfig(
             model = OfflineTtsModelConfig(
                 matcha = OfflineTtsMatchaModelConfig(
-                    acousticModel = acoustic, vocoder = vocoder.absolutePath,
+                    acousticModel = acoustic, vocoder = vocoder,
                     lexicon = lexiconPath, tokens = tokensPath,
                     dataDir = dataDirPath, dictDir = dictDirPath, lengthScale = lengthScale,
                 ),
@@ -441,6 +461,7 @@ class SherpaTtsRuntime private constructor(
 
     private fun buildKokoroConfig(
         dir: File,
+        languageHint: String,
         lengthScale: Float,
         useNnapi: Boolean,
         numThreads: Int,
@@ -453,14 +474,27 @@ class SherpaTtsRuntime private constructor(
         val dataDir = File(dir, ESPEAK_DIR)
         val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
         val lexicon = File(dir, LEXICON_FILE)
-        val lexiconPath = if (lexicon.isFile) lexicon.absolutePath else ""
+        val multiLexicons = dir.listFiles()
+            ?.filter { it.isFile && it.name.startsWith(KOKORO_LEXICON_PREFIX) && it.name.endsWith(".txt") }
+            ?.sortedBy { it.name }
+            .orEmpty()
+        val isMultiLanguage = multiLexicons.isNotEmpty() ||
+            dir.name.contains("multi-lang", ignoreCase = true) ||
+            dir.name.contains("v1_", ignoreCase = true)
+        val lexiconPath = when {
+            isMultiLanguage && multiLexicons.isNotEmpty() ->
+                multiLexicons.joinToString(",") { it.absolutePath }
+            lexicon.isFile -> lexicon.absolutePath
+            else -> ""
+        }
+        val lang = if (isMultiLanguage) languageHint.ifBlank { DEFAULT_KOKORO_LANGUAGE } else ""
         val dictDir = File(dir, DICT_DIR)
         val dictDirPath = if (dictDir.isDirectory) dictDir.absolutePath else ""
         return OfflineTtsConfig(
             model = OfflineTtsModelConfig(
                 kokoro = OfflineTtsKokoroModelConfig(
                     model = modelPath, voices = voices.absolutePath, tokens = tokensPath,
-                    dataDir = dataDirPath, lexicon = lexiconPath, dictDir = dictDirPath,
+                    dataDir = dataDirPath, lexicon = lexiconPath, lang = lang, dictDir = dictDirPath,
                     lengthScale = lengthScale,
                 ),
                 numThreads = numThreads, debug = false,
@@ -594,6 +628,23 @@ class SherpaTtsRuntime private constructor(
         error("No .onnx weight file found in $dir (tried $candidates)")
     }
 
+    private fun resolveVocoderFile(dir: File, candidates: List<String>): String {
+        candidates.forEach { name ->
+            val candidate = File(dir, name)
+            if (candidate.isFile) return candidate.absolutePath
+        }
+        val fallback = dir.listFiles()?.firstOrNull { file ->
+            file.isFile &&
+                file.extension == "onnx" &&
+                (file.name.startsWith("vocos-") || file.name.contains("vocoder"))
+        }
+        if (fallback != null) {
+            log.w { "Unknown Matcha vocoder layout at $dir, falling back to ${fallback.name}" }
+            return fallback.absolutePath
+        }
+        error("No Matcha vocoder file found in $dir (tried $candidates)")
+    }
+
     private fun collectRuleFsts(dir: File): String {
         val present = RULE_FST_FILES.mapNotNull { name ->
             val f = File(dir, name)
@@ -610,10 +661,45 @@ class SherpaTtsRuntime private constructor(
         return snapshot.firstOrNull { it.voiceId == voiceId }
     }
 
+    private fun runtimeFamily(voice: InstalledVoice): ModelFamily = if (voice.family == ModelFamily.CUSTOM) {
+        voice.effectiveFamily ?: error(
+            "Custom voice ${voice.voiceId} is missing effectiveFamily; re-import the bundle.",
+        )
+    } else {
+        voice.family
+    }
+
+    private fun kokoroLanguageFor(
+        voice: InstalledVoice,
+        family: ModelFamily,
+        languageHint: String?,
+        text: String?,
+    ): String {
+        if (family != ModelFamily.KOKORO) return ""
+        val supported = voice.languages.mapNotNull { it.languageHead().takeIf(String::isNotBlank) }
+        val explicit = languageHint?.languageHead()?.takeIf { it.isNotBlank() }
+        if (explicit != null && (supported.isEmpty() || explicit in supported)) return explicit
+        val inferred = text?.let { inferLanguageFromText(it, supported) }
+        return inferred ?: supported.firstOrNull() ?: explicit.orEmpty()
+    }
+
+    private fun inferLanguageFromText(text: String, supported: List<String>): String? {
+        fun supports(lang: String): Boolean = supported.isEmpty() || lang in supported
+        return when {
+            text.any { it in '\u3040'..'\u30FF' } && supports("ja") -> "ja"
+            text.any { it in '\uAC00'..'\uD7AF' } && supports("ko") -> "ko"
+            text.any { it in '\u4E00'..'\u9FFF' } && supports("zh") -> "zh"
+            text.any { it in 'A'..'Z' || it in 'a'..'z' } && supports("en") -> "en"
+            else -> null
+        }
+    }
+
+    private fun String.languageHead(): String =
+        trim().replace('_', '-').substringBefore('-').lowercase()
+
     companion object {
         private const val TOKENS_FILE = "tokens.txt"
         private const val LEXICON_FILE = "lexicon.txt"
-        private const val VOCODER_FILE = "vocos-22khz-univ.onnx"
         private const val ESPEAK_DIR = "espeak-ng-data"
         private const val DICT_DIR = "dict"
         private const val MAX_LOADED_VOICES = 2
@@ -627,9 +713,19 @@ class SherpaTtsRuntime private constructor(
 
         private val VITS_MODEL_CANDIDATES = listOf("model.onnx", "vits-vctk.onnx", "vits-vctk.int8.onnx")
         private val MATCHA_ACOUSTIC_CANDIDATES = listOf("model-steps-3.onnx", "model-steps-6.onnx", "acoustic.onnx")
-        private val KOKORO_MODEL_CANDIDATES = listOf("model.onnx", "kokoro-multi-lang-v1_0.onnx", "kokoro-en-v0_19.onnx")
+        private val MATCHA_VOCODER_CANDIDATES = listOf("vocos-22khz-univ.onnx", "vocos-16khz-univ.onnx", "vocoder.onnx")
+        private val KOKORO_MODEL_CANDIDATES = listOf(
+            "model.onnx",
+            "kokoro-multi-lang-v1_1.onnx",
+            "kokoro-multi-lang-v1_0.onnx",
+            "kokoro-int8-multi-lang-v1_1.onnx",
+            "kokoro-int8-multi-lang-v1_0.onnx",
+            "kokoro-en-v0_19.onnx",
+        )
         private val KITTEN_MODEL_CANDIDATES = listOf("model.onnx", "model.int8.onnx")
         private const val KOKORO_VOICES_FILE = "voices.bin"
+        private const val KOKORO_LEXICON_PREFIX = "lexicon-"
+        private const val DEFAULT_KOKORO_LANGUAGE = "en"
         private val ZIPVOICE_ENCODER_CANDIDATES = listOf("encoder.int8.onnx", "encoder.onnx")
         private val ZIPVOICE_DECODER_CANDIDATES = listOf("decoder.int8.onnx", "decoder.onnx")
         private val ZIPVOICE_VOCODER_CANDIDATES = listOf("vocos_24khz.onnx", "vocos_22khz.onnx", "vocoder.onnx")

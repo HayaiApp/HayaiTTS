@@ -396,15 +396,17 @@ class VoiceDownloadWorker(
                 requireOneOf(voice.modelFileName ?: "model-steps-3.onnx", acoustic)
                 if (!File(dir, tokens).isFile) missing += tokens
                 // Vocoder is downloaded as a sidecar — fail if it didn't land.
-                val vocoderName = voice.vocoderFileName ?: "vocos-22khz-univ.onnx"
-                if (!File(dir, vocoderName).isFile) missing += vocoderName
+                val vocoderCandidates = listOfNotNull(voice.vocoderFileName) + MATCHA_VOCODER_CANDIDATES
+                requireOneOf(voice.vocoderFileName ?: "vocos-22khz-univ.onnx", vocoderCandidates)
             }
             ModelFamily.KOKORO -> {
                 // Kokoro bundles ship `model.onnx` for the English release and
-                // `kokoro-multi-lang-v1_0.onnx` for the multilingual one.
+                // `kokoro-multi-lang-v1_*.onnx` for multilingual releases.
                 val candidates = listOfNotNull(
                     voice.modelFileName, "model.onnx",
-                    "kokoro-multi-lang-v1_0.onnx", "kokoro-en-v0_19.onnx",
+                    "kokoro-multi-lang-v1_1.onnx", "kokoro-multi-lang-v1_0.onnx",
+                    "kokoro-int8-multi-lang-v1_1.onnx", "kokoro-int8-multi-lang-v1_0.onnx",
+                    "kokoro-en-v0_19.onnx",
                 )
                 requireOneOf(voice.modelFileName ?: "model.onnx", candidates)
                 if (!File(dir, tokens).isFile) missing += tokens
@@ -634,6 +636,12 @@ class VoiceDownloadWorker(
 
         /** Shared embedding bank shipped by Kokoro and Kitten releases. */
         private const val KOKORO_VOICES_FILE = "voices.bin"
+
+        private val MATCHA_VOCODER_CANDIDATES = listOf(
+            "vocos-22khz-univ.onnx",
+            "vocos-16khz-univ.onnx",
+            "vocoder.onnx",
+        )
 
         /** Max WorkManager attempts (counting from 0). */
         private const val MAX_RETRIES = 3

@@ -116,7 +116,15 @@ PHRASES: dict[str, str] = {
 # first match wins.
 VITS_MODEL_CANDIDATES = ("model.onnx", "vits-vctk.onnx", "vits-vctk.int8.onnx")
 MATCHA_ACOUSTIC_CANDIDATES = ("model-steps-3.onnx", "model-steps-6.onnx", "acoustic.onnx")
-KOKORO_MODEL_CANDIDATES = ("model.onnx", "kokoro-multi-lang-v1_0.onnx", "kokoro-en-v0_19.onnx")
+MATCHA_VOCODER_CANDIDATES = ("vocos-22khz-univ.onnx", "vocos-16khz-univ.onnx", "vocoder.onnx")
+KOKORO_MODEL_CANDIDATES = (
+    "model.onnx",
+    "kokoro-multi-lang-v1_1.onnx",
+    "kokoro-multi-lang-v1_0.onnx",
+    "kokoro-int8-multi-lang-v1_1.onnx",
+    "kokoro-int8-multi-lang-v1_0.onnx",
+    "kokoro-en-v0_19.onnx",
+)
 KITTEN_MODEL_CANDIDATES = ("model.onnx", "model.int8.onnx")
 ZIPVOICE_ENCODER_CANDIDATES = ("encoder.int8.onnx", "encoder.onnx")
 ZIPVOICE_DECODER_CANDIDATES = ("decoder.int8.onnx", "decoder.onnx")
@@ -125,7 +133,6 @@ RULE_FST_FILES = ("date.fst", "number.fst", "phone.fst")
 
 TOKENS_FILE = "tokens.txt"
 LEXICON_FILE = "lexicon.txt"
-MATCHA_VOCODER_FILE = "vocos-22khz-univ.onnx"
 KOKORO_VOICES_FILE = "voices.bin"
 ESPEAK_DIR = "espeak-ng-data"
 DICT_DIR = "dict"
@@ -243,6 +250,19 @@ def resolve_model_file(voice_dir: Path, candidates: tuple[str, ...]) -> str:
     raise RuntimeError(f"No .onnx weight in {voice_dir} (tried {candidates})")
 
 
+def resolve_vocoder_file(voice_dir: Path, candidates: tuple[str, ...]) -> str:
+    for name in candidates:
+        c = voice_dir / name
+        if c.is_file():
+            return str(c)
+    for f in voice_dir.iterdir():
+        if f.is_file() and f.suffix == ".onnx" and (
+            f.name.startswith("vocos-") or "vocoder" in f.name
+        ):
+            return str(f)
+    raise RuntimeError(f"No Matcha vocoder in {voice_dir} (tried {candidates})")
+
+
 def optional_path(p: Path) -> str:
     return str(p) if p.exists() else ""
 
@@ -289,16 +309,14 @@ def tts_vits(voice_dir: Path):
 def tts_matcha(voice_dir: Path):
     import sherpa_onnx  # type: ignore
     acoustic = resolve_model_file(voice_dir, MATCHA_ACOUSTIC_CANDIDATES)
-    vocoder = voice_dir / MATCHA_VOCODER_FILE
-    if not vocoder.is_file():
-        raise RuntimeError(f"Matcha voice at {voice_dir} is missing {MATCHA_VOCODER_FILE}")
+    vocoder = resolve_vocoder_file(voice_dir, MATCHA_VOCODER_CANDIDATES)
     tokens = str(voice_dir / TOKENS_FILE)
     return sherpa_onnx.OfflineTts(
         sherpa_onnx.OfflineTtsConfig(
             model=sherpa_onnx.OfflineTtsModelConfig(
                 matcha=sherpa_onnx.OfflineTtsMatchaModelConfig(
                     acoustic_model=acoustic,
-                    vocoder=str(vocoder),
+                    vocoder=vocoder,
                     tokens=tokens,
                     lexicon=optional_path(voice_dir / LEXICON_FILE),
                     data_dir=optional_path(voice_dir / ESPEAK_DIR),
@@ -564,10 +582,17 @@ def _render_inline(
         extract_root = extract_tar_bz2(archive, tmp_path / "unpacked")
 
         # Matcha bundles ship the vocoder as a sibling URL, not bundled.
-        if family == "matcha" and not (extract_root / MATCHA_VOCODER_FILE).is_file():
+        if family == "matcha" and not any(
+            (extract_root / name).is_file() for name in MATCHA_VOCODER_CANDIDATES
+        ):
             vocoder_url = voice.get("vocoderUrl")
             if vocoder_url:
-                download(vocoder_url, extract_root / MATCHA_VOCODER_FILE, cache_dir=cache_dir)
+                vocoder_name = (
+                    voice.get("vocoderFileName")
+                    or vocoder_url.rstrip("/").split("/")[-1]
+                    or MATCHA_VOCODER_CANDIDATES[0]
+                )
+                download(vocoder_url, extract_root / vocoder_name, cache_dir=cache_dir)
 
         lang_head = target_lang.split("-")[0].lower()
         if family == "kokoro":
