@@ -3661,7 +3661,7 @@
       ],
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/matcha-icefall-en_US-ljspeech.mp3",
       "sampleRateHz": 22050,
-      "sha256": "44174b93f66de2fca3bde30ae3e7248c891080ffde874b2e8092f5d50f329f62",
+      "sha256": "7bed3d67f562965f1c5f7c97629e0acb3f11e8a184333ff490da18fe94b6eaa6",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3706,7 +3706,7 @@
       "license": "MIT",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/matcha-icefall-zh-baker.mp3",
       "sampleRateHz": 22050,
-      "sha256": "ef66607c3f889495054cf771a0d02cba7323eecd49ba0816d3d40b2f6352467f",
+      "sha256": "7d79e384a70cdf9628716afdb3290c04e3fffd297812d72a5d6b1da2589a1a51",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3910,24 +3910,24 @@
       "languages": [
         "ar",
         "bg",
+        "hr",
         "cs",
         "da",
-        "hr",
         "nl",
         "en-US",
-        "fi",
         "et",
+        "fi",
         "fr-FR",
         "de-DE",
         "el",
         "hi",
         "hu",
-        "it-IT",
         "id",
+        "it-IT",
         "ja-JP",
         "ko-KR",
-        "lv",
         "lt",
+        "lv",
         "pl",
         "pt",
         "ro",
@@ -6384,7 +6384,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "52c509f6f451b61779a00fb35f455a953c3fa4908d2568633e41eb530f0f42d8",
+      "sha256": "f2272dc1bad14bc08d19b0b8e1984b13ca90d3bfd9e63a3e4962cf512181ca2d",
       "speakers": [
         {
           "gender": "U",
@@ -6409,7 +6409,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "5d945157072a891a643a4afbe063ad0363791850d3ecaa52365c227f0e48e7a0",
+      "sha256": "63c4a89f01c94430babe8299465caca5c1d680f6735ed444ca2c57ba3262eab8",
       "speakers": [
         {
           "gender": "U",
