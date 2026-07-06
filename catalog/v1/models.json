@@ -3915,8 +3915,8 @@
         "da",
         "nl",
         "en-US",
-        "et",
         "fi",
+        "et",
         "fr-FR",
         "de-DE",
         "el",
@@ -3926,18 +3926,18 @@
         "it-IT",
         "ja-JP",
         "ko-KR",
-        "lt",
         "lv",
+        "lt",
         "pl",
         "pt",
         "ro",
         "ru",
         "sk",
-        "sl",
         "es-ES",
+        "sl",
         "sv",
-        "tr",
         "uk",
+        "tr",
         "vi"
       ],
       "license": "openrail",
@@ -37832,33 +37832,6 @@
       ],
       "tier": "high",
       "title": "Miro"
-    },
-    {
-      "approxSizeMb": 36,
-      "author": "Rhasspy / Mike Hansen",
-      "available": true,
-      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-fr_FR-miro-high-fp16.tar.bz2",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "family": "piper",
-      "id": "vits-piper-fr_FR-miro-high-fp16",
-      "languages": [
-        "fr",
-        "fr"
-      ],
-      "license": "MIT",
-      "sampleRateHz": 24000,
-      "sha256": "343c3447b7a508d67f24a0c44cfc061a8667d4112b8377cd663ee1bf8ae84c16",
-      "sourceUrl": "https://github.com/rhasspy/piper",
-      "speakers": [
-        {
-          "gender": "U",
-          "genderConfidence": "unknown",
-          "id": 0,
-          "name": "speaker_0"
-        }
-      ],
-      "tier": "mid",
-      "title": "Speaker_0"
     },
     {
       "approxSizeMb": 21,
