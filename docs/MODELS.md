@@ -1,10 +1,10 @@
 # Voice catalog
 
-*Auto-generated from `catalog/v1/models.json` on 2026-07-06 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
+*Auto-generated from `catalog/v1/models.json` on 2026-07-13 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
 
 ## Summary
 
-- **629 voices** across **8 model families**
+- **630 voices** across **8 model families**
 - **136 languages** covered
 - Bundle size: 13–635 MB (median 36 MB)
 - **6 voices** support reference-audio cloning
@@ -13,7 +13,7 @@
 
 | Family | Voices | Notes |
 |---|---:|---|
-| **piper** | 535 | Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, sub-second on a 2020+ phone, ~70 languages covered. |
+| **piper** | 536 | Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, sub-second on a 2020+ phone, ~70 languages covered. |
 | **kokoro** | 6 | Higher-quality multilingual VITS variant (Kokoro-82M). 80–360 MB per voice; English bundles ship 1–50 speakers in a single model. |
 | **kitten** | 7 | Tiny English-only VITS distillations tuned for low-end phones. <60 MB, fastest synthesis on the catalog. |
 | **matcha** | 5 | Diffusion-based Matcha-TTS voices. Ships a vocoder side-asset alongside the main weights — Browse handles the dual download. |
@@ -22,7 +22,7 @@
 | **pocket** | 2 | Compact voice-cloning model. Same reference-audio API as ZipVoice but with a smaller voice-embedding cache and lighter weights. |
 | **vits** | 68 | _(family blurb pending — add to `FAMILY_BLURB`)_ |
 
-## piper (535)
+## piper (536)
 
 Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, sub-second on a 2020+ phone, ~70 languages covered.
 
@@ -464,6 +464,7 @@ Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, 
 | Speaker_0 | es, es | 1 | 23 MB | mid | medium | — | MIT |
 | Speaker_0 | fa | 1 | 67 MB | mid | — | — | MIT |
 | Speaker_0 | fa, en | 1 | 67 MB | mid | — | — | MIT |
+| Speaker_0 | fr, fr | 1 | 36 MB | mid | — | — | MIT |
 | Speaker_0 | fr, fr | 1 | 21 MB | mid | — | — | MIT |
 | Speaker_0 | fr, fr | 1 | 36 MB | mid | — | — | MIT |
 | Speaker_0 | fr, fr | 1 | 21 MB | mid | — | — | MIT |

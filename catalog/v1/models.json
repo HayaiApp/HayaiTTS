@@ -3661,7 +3661,7 @@
       ],
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/matcha-icefall-en_US-ljspeech.mp3",
       "sampleRateHz": 22050,
-      "sha256": "7bed3d67f562965f1c5f7c97629e0acb3f11e8a184333ff490da18fe94b6eaa6",
+      "sha256": "c95b79578d0695239fd2541665c3722f21da924a2f90fd6a4a82a0f50eaaf24a",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3706,7 +3706,7 @@
       "license": "MIT",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/matcha-icefall-zh-baker.mp3",
       "sampleRateHz": 22050,
-      "sha256": "7d79e384a70cdf9628716afdb3290c04e3fffd297812d72a5d6b1da2589a1a51",
+      "sha256": "e5f9bf228ccdf270f058a53523372c24edfae13b698d6d6fa3f39ece4d61e125",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3910,8 +3910,8 @@
       "languages": [
         "ar",
         "bg",
-        "hr",
         "cs",
+        "hr",
         "da",
         "nl",
         "en-US",
@@ -3933,11 +3933,11 @@
         "ro",
         "ru",
         "sk",
-        "es-ES",
         "sl",
+        "es-ES",
         "sv",
-        "uk",
         "tr",
+        "uk",
         "vi"
       ],
       "license": "openrail",
@@ -6384,7 +6384,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "f2272dc1bad14bc08d19b0b8e1984b13ca90d3bfd9e63a3e4962cf512181ca2d",
+      "sha256": "a75aa976a97489963b2af1214bc71258ca545d2bb085f5c61069444d5e41b7c0",
       "speakers": [
         {
           "gender": "U",
@@ -6409,7 +6409,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "63c4a89f01c94430babe8299465caca5c1d680f6735ed444ca2c57ba3262eab8",
+      "sha256": "e3aa2de26d7e03a1ef0ca427976ad97898eb126d039997c262f57e2a6c5b7446",
       "speakers": [
         {
           "gender": "U",
@@ -37832,6 +37832,33 @@
       ],
       "tier": "high",
       "title": "Miro"
+    },
+    {
+      "approxSizeMb": 36,
+      "author": "Rhasspy / Mike Hansen",
+      "available": true,
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-fr_FR-miro-high-fp16.tar.bz2",
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "family": "piper",
+      "id": "vits-piper-fr_FR-miro-high-fp16",
+      "languages": [
+        "fr",
+        "fr"
+      ],
+      "license": "MIT",
+      "sampleRateHz": 24000,
+      "sha256": "343c3447b7a508d67f24a0c44cfc061a8667d4112b8377cd663ee1bf8ae84c16",
+      "sourceUrl": "https://github.com/rhasspy/piper",
+      "speakers": [
+        {
+          "gender": "U",
+          "genderConfidence": "unknown",
+          "id": 0,
+          "name": "speaker_0"
+        }
+      ],
+      "tier": "mid",
+      "title": "Speaker_0"
     },
     {
       "approxSizeMb": 21,
