@@ -3661,7 +3661,7 @@
       ],
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/matcha-icefall-en_US-ljspeech.mp3",
       "sampleRateHz": 22050,
-      "sha256": "c95b79578d0695239fd2541665c3722f21da924a2f90fd6a4a82a0f50eaaf24a",
+      "sha256": "ea75702da7456a8b1874728278a835220dc8a26f4e8bd93c83bf53dc27679845",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3706,7 +3706,7 @@
       "license": "MIT",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/matcha-icefall-zh-baker.mp3",
       "sampleRateHz": 22050,
-      "sha256": "e5f9bf228ccdf270f058a53523372c24edfae13b698d6d6fa3f39ece4d61e125",
+      "sha256": "20de2ec034b55562609d6362771c934905dfe11d0f41ec103d593427ad9a7efb",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3915,19 +3915,19 @@
         "da",
         "nl",
         "en-US",
-        "fi",
         "et",
+        "fi",
         "fr-FR",
         "de-DE",
         "el",
-        "hi",
         "hu",
+        "hi",
         "id",
         "it-IT",
         "ja-JP",
         "ko-KR",
-        "lv",
         "lt",
+        "lv",
         "pl",
         "pt",
         "ro",
@@ -6384,7 +6384,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "a75aa976a97489963b2af1214bc71258ca545d2bb085f5c61069444d5e41b7c0",
+      "sha256": "c5115bc85775ed15bf1121057055ed35d5d17c9b83be7769c23a2402fc2d4c74",
       "speakers": [
         {
           "gender": "U",
@@ -6409,7 +6409,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "e3aa2de26d7e03a1ef0ca427976ad97898eb126d039997c262f57e2a6c5b7446",
+      "sha256": "15a298943f0ac001e046b10d0154c0890a0f3c326a3b5d6e229eb659c8163a5d",
       "speakers": [
         {
           "gender": "U",
@@ -7967,7 +7967,7 @@
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-0/vits-piper-cy_GB-bu_tts-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "a070df0def0b3f918dfc7f38ef3c2af7ad7fb4733aa6cbb855d19edf66af36ae",
+      "sha256": "09e5fd87e68ff28ffa9fbfd58a0e307acb6a45c572db1d4c06ed98f01ff5fe6a",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -8069,7 +8069,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "dcb3f980cfd1ed986dbb03e4f46fa030334777fbe538e9289291fd67d5a33d98",
+      "sha256": "7d430878b15edb154e2c839c7a8068c9e2d641254a7c01dda13d54973fc140af",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -8098,7 +8098,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "0d76a7d29075b726359384f99ce2c79ee09f0c667abff8d09ea627907aab080b",
+      "sha256": "c16ea91af50c966b19bcd09ef4873c8320c0151a88e9b2180d9761c54f5d035c",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -8127,7 +8127,7 @@
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-0/vits-piper-cy_GB-gwryw_gogleddol-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "b192c0c9bc7cbac4d8544b17baf3de7f88b683769826dab5f231a47dde1fddd3",
+      "sha256": "f31f90afc4f28e9a768309f0b1c87272ef178936b32dd181aa1aa3a0eeddd187",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -8162,7 +8162,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "dfa3abdc0aea21e5ba8b8d549c8073098b173ea30ae62c76b84bdb1e6c259c6b",
+      "sha256": "82df824896ffadfb6254c036cd46a3369bf8260b17ab0fae5ba9a29e080d3a07",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -8190,7 +8190,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "62b27e91747de4332ac6a49ecffd741ec1553918c692459031362774c5a2293b",
+      "sha256": "ed2b9efc02a033c9be56572ee6cf4559ed752e6a608b98766f1b4ba0702ec8a0",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -40842,7 +40842,7 @@
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-0/vits-piper-ne_NP-chitwan-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "9afdb8a01c6c59c8e7a0a5bed8f62ff5a5961cc30907b55659c236c8c65c20bd",
+      "sha256": "65fa157c090844bbe5b38c1c3e4321535f569fdbb526c08aaa2ad22c09d51279",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -40877,7 +40877,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "eaa667e19092b848f80b4f179a8e6f073178bea3aca6b471d6ed43c8850f65b2",
+      "sha256": "6f3ea8504521d8545e1eb67ceb432cb55b241b347adeaa3faea83a6012dea16b",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -40905,7 +40905,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "ca82ea9b86418f688c59b39c20834c72ce6083c0e9d2c850cb69ed32826f7006",
+      "sha256": "deb1592efb99c02d38ba34443215ae94bf67ed77ecafd2e3320acffb27ae3204",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -40935,7 +40935,7 @@
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-0/vits-piper-ne_NP-google-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "7a560a62e6d1f553230d44cf2d48a39ebf3bbe6d7c95537f01665ee52f9960bd",
+      "sha256": "73c1e093451867779ec2b55cc3666de2db058019a2e7760e8c8f294a42caca2a",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -41158,7 +41158,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "c9dfc79a47a2b60ad24f7d3453e4b6fcc03f2b08afe8be02582f2c9a9cae8a0a",
+      "sha256": "c93d16e65c75f8b1e11e0a9320117538ca4e5c83e72f5d86b99f190b4d04dc13",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -41187,7 +41187,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "54f7d8a593f9df5f6df7c650b475c0186fc84d8b67f980c3243b7b67079e9116",
+      "sha256": "ca1a5a1d6ec542198709b7b30b30e42a7695eea210344675bf7d99e1fc41e7b5",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -41217,7 +41217,7 @@
       "quality": "x_low",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/vits-piper-ne_NP-google-x_low.mp3",
       "sampleRateHz": 16000,
-      "sha256": "1357c04bc6daa551f43cf9c98780b5e1582954e8736a3a2b74a555ad7777846d",
+      "sha256": "135690fa3b6d43fe8c5f270c7bbb3fa927eed0a98d6ac07494a7ec70e7607ede",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -41440,7 +41440,7 @@
       "license": "MIT",
       "quality": "x_low",
       "sampleRateHz": 24000,
-      "sha256": "5a3740a6074f304bcba137be1d7e84870ff33f8d2da3c2a87268879118d5802c",
+      "sha256": "792e4bce59538c0bad4508fa162d43ac6a4111b36cb84609cbcb42268539f8df",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -41469,7 +41469,7 @@
       "license": "MIT",
       "quality": "x_low",
       "sampleRateHz": 24000,
-      "sha256": "e79afd0e5d2cd33095f872d54462da75b7d7c6c041a8d0f2af06510ed29596c8",
+      "sha256": "4a092e639c36d3a6ce2316a936571a3c0aadb82b0ffd80cc01cfe009d39701aa",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43018,7 +43018,7 @@
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-1/vits-piper-pt_BR-cadu-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "43fc32427ac4c2cfd998adc7ba01d5dd9ee61842928a63e09b28341544e10299",
+      "sha256": "aba78157d4b89acc17ddef15a70f4b2474f4c189d4de6035002ac7fec9d5d303",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -43053,7 +43053,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "17da694712e3946677c2c8fd9a7aa8b175bb68759139dde2631c11a49ef4d897",
+      "sha256": "bed951b66aaa3f1604a393344219ab8306f740cbb608bb9ed3d620ea568662aa",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43081,7 +43081,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "fed9eaa874ca8a17787f6615192854a6759221f20721b98e95fa6d0162c4ea39",
+      "sha256": "78f1caf0a74cc6cb8dedaff87affd232ee653d5b0394d4cf4d2e97ecbfa5ff3d",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43109,7 +43109,7 @@
       "modelFileName": "pt_BR-dii-high.onnx",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/vits-piper-pt_BR-dii-high.mp3",
       "sampleRateHz": 22050,
-      "sha256": "8bcddb8f2eaf9b4e585f5af31c11078ed57a8451145dd161101ea5d24b42575f",
+      "sha256": "76bdf009bb29e69b12336de833d0d219ffa558f4281330eb141e4a0569c108a2",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -43143,7 +43143,7 @@
       ],
       "license": "MIT",
       "sampleRateHz": 24000,
-      "sha256": "8c48b8120da37ad614d28614089e1817907dbb7d24812c7ac2b11cffef359b45",
+      "sha256": "5c0eaa59ba9cd7e3a30f471436b64e75d7dd78e470030efd96da2ae60e9abcd7",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43170,7 +43170,7 @@
       ],
       "license": "MIT",
       "sampleRateHz": 24000,
-      "sha256": "39effd24a40aee5b2294f2b51ce47b374ad0d895eef8836c7033670c2d20d026",
+      "sha256": "8a5b0195eff80a0240f18a3f1d528d4bef08f1b702126cee858d700365fc4111",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43199,7 +43199,7 @@
       "quality": "low",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/vits-piper-pt_BR-edresson-low.mp3",
       "sampleRateHz": 16000,
-      "sha256": "0281da8b89b8950b03e80ceaeb43a9ae51f818807789dc4d89f0689718538d98",
+      "sha256": "670569e755cc48cda0a2f6a3ccba0698815566297069961edcd5f7daaf3d47a5",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -43234,7 +43234,7 @@
       "license": "MIT",
       "quality": "low",
       "sampleRateHz": 24000,
-      "sha256": "a78608c57b8934faef9bc985a2e8fe0e04122df04d0acb82919eb3c897716192",
+      "sha256": "f548f990fd112b3eaf3203a13135d72c5f89c176b54fe9d8b57460ed851fec91",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43262,7 +43262,7 @@
       "license": "MIT",
       "quality": "low",
       "sampleRateHz": 24000,
-      "sha256": "46967df3b3c4356060940e3ede3f581a9df562b6c83967e8b4743de296b29c9f",
+      "sha256": "9ec0b016cfab3778263406970b3ee0e2e30860b05046fa1e5cb6460edb7f8251",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43291,7 +43291,7 @@
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-1/vits-piper-pt_BR-faber-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "2227dadddfb3a2bad805d32dbace7dd4ff48053b32889dcf60d301ebac062a44",
+      "sha256": "7add3f923ad6bc25ca8a192805fd1a64d1b3893e4611c4a9719545a825039a83",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -43326,7 +43326,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "5052e3fd27c249bda4f73ce1ee94b589971a2404c91e4b82d9bcd4a1b8629c52",
+      "sha256": "a0aea0b6bf99717208571e67ce19296ce07d9cfb35ff3d66cd5c65902906d4db",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43354,7 +43354,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "05386120a50ee0c46e246bd0b9ad1c7b3116606b3f0c037db8ee4dd5dda712c5",
+      "sha256": "dbc8b1d7d729fd417ea78a350ed35696c928770ac93513d3f507bd4e88eee3fd",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43383,7 +43383,7 @@
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/vits-piper-pt_BR-jeff-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "07d5d758bcbecb1b62ccd915bb6d2db89c861b0b653e74eabcc5e9ad99ecc315",
+      "sha256": "da4c870fc7b20600c74261b3e1dd1c816da2ce063e18c46e1f2cd86dea88f3f0",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -43418,7 +43418,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "0ed471d8e324d13d03d20e88b26986bd45bfc4841b549c3f9e1b20e8ea84a743",
+      "sha256": "27074b0bef5c91f650bfa3bf32bd192867f16f268bf564adf7d2cefd4a6e0b93",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43446,7 +43446,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "9778c7e44feb01486457d251a0e7e23c25d3fa7cb3d24fc551330a738f76f575",
+      "sha256": "21a8883f9662c784dd5653fd9d5cb9aaae2551c70e16854e81ff4a9c96470e6a",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43474,7 +43474,7 @@
       "modelFileName": "pt_BR-miro-high.onnx",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-1/vits-piper-pt_BR-miro-high.mp3",
       "sampleRateHz": 22050,
-      "sha256": "a9e24a1436b7fee8601f2f73993a6eb0b0f7b0066331fa6afa89278c62617ee6",
+      "sha256": "7f30d1c3421362a60381807543aeafd7e1cd0acbcb92c349a29908526c6f4e6f",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -43508,7 +43508,7 @@
       ],
       "license": "MIT",
       "sampleRateHz": 24000,
-      "sha256": "b688a862672b474cd171c523424f54f72efd5bae3bf269fe4bcd121521cb9c2e",
+      "sha256": "20edfb0a975bb72ef48295fdc469095f72abeb2694072ecc6248bb65083649eb",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43535,7 +43535,7 @@
       ],
       "license": "MIT",
       "sampleRateHz": 24000,
-      "sha256": "b8bfc507126d207352fa8f31439bf9d1d3f2cfda8f651ebbc60a70a7ac61914d",
+      "sha256": "d6bea7c3e4176feb2fd470958fa9c72cbc4b9ed5ff29d1f7b1c935733ce2c08b",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43563,7 +43563,7 @@
       "modelFileName": "pt_PT-dii-high.onnx",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/vits-piper-pt_PT-dii-high.mp3",
       "sampleRateHz": 22050,
-      "sha256": "a40e75ec1d92f612bb8d16b3899f641ad53ec2dc8b2a2f3e1da12ca899cfb4ff",
+      "sha256": "d0859dd3e4fac69aac33a3e58958d56cd4a8721446d597e21734a7048b977225",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -43597,7 +43597,7 @@
       ],
       "license": "MIT",
       "sampleRateHz": 24000,
-      "sha256": "c8e91b80377d96ec4c31bdaeb90921bfdcdb413ab3e1b8ccacb00777474fe39f",
+      "sha256": "bbb7180d55c5d2b2a98d8286b4d9ccd4e3e4a13b90539e338980c30ae89e541b",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43624,7 +43624,7 @@
       ],
       "license": "MIT",
       "sampleRateHz": 24000,
-      "sha256": "8b834ab7555ebaf305b10e2ef10074640769d6eb65ec1de9026b7d6f6a20ef79",
+      "sha256": "7fc966c08bea9acd6b89f356e3070bf0217e0f8bcca81e40c70076cf2d5d7c66",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43652,7 +43652,7 @@
       "modelFileName": "pt_PT-miro-high.onnx",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/vits-piper-pt_PT-miro-high.mp3",
       "sampleRateHz": 22050,
-      "sha256": "8f7aa42777370aa02bbcd8fbc2c7039a22c7465fdb54e3257e5cb47b1e3a104c",
+      "sha256": "4b6d115b184104eb234cc8c955354f3c4af2db04faf18a48862d3dc199c2de31",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -43686,7 +43686,7 @@
       ],
       "license": "MIT",
       "sampleRateHz": 24000,
-      "sha256": "bcde7020f46c559921d60d51f1786cb377876f4ac962c4b512eaabd03f2a361c",
+      "sha256": "1b232d7e2600c93a41a76ba62ec3d635949a45ce9f50a9256cd4acfb72f59aa2",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43713,7 +43713,7 @@
       ],
       "license": "MIT",
       "sampleRateHz": 24000,
-      "sha256": "de6459f5b542077842b30d3d1659ae6b3716f9b935abb00c4880b65606f6aaef",
+      "sha256": "2f861fdd2986e7498c091633618e564dd5216affb5ea1f338ee3ff411fb2618c",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43741,7 +43741,7 @@
       "modelFileName": "pt_PT-tugao-medium.onnx",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/vits-piper-pt_PT-tugao-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "d9790c1527c237d20af6d57dcd784e774fe92ddae6290b62c6fb8bfc42b5a40a",
+      "sha256": "6b4f0a7bfc957bef26d6ac0703a8fa1ba659c8ab2df8b294f20206551859070c",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -43775,7 +43775,7 @@
       ],
       "license": "MIT",
       "sampleRateHz": 24000,
-      "sha256": "95324148171b37fead85147c8d86ca53e553475804ddd3ea0945031f84f3b1c5",
+      "sha256": "2faef2e66c43910c07e1683eb7eaf3fb97b0b278b20d1baabe13d412341c7d74",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -43802,7 +43802,7 @@
       ],
       "license": "MIT",
       "sampleRateHz": 24000,
-      "sha256": "aacab39abbf1b8044c79d4248d658d49b1ee7b33f0167d533a6d9dec8ad57af4",
+      "sha256": "8f4c5e4a5994d0d1a2c10fb3035631add0460ea5c776f5ea40d3d6051140dbc3",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -44660,7 +44660,7 @@
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-0/vits-piper-sv_SE-alma-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "25b469f641cc4c046f1653409e78f80db1cd089067c35505150bae7d1ab3e051",
+      "sha256": "4ab8212595575e52595bc95c37d0b4f79450c0f00b63496346cdc5941d913edc",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -44695,7 +44695,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "1c35e12eacc6854a77bebc1bfe392b1066226f00bb42a01fb262a13531654704",
+      "sha256": "7fe6adc7ae2bc2b2fe31bdc67d07aa327bd871d3cdb9a984236fce330a722b54",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -44723,7 +44723,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "eb55461c716ad57b7a3c0e9e877e4a50d2c3e4bd8a08cc0df0b3accd77f12bcf",
+      "sha256": "a1d0b72ffba2f49a5b02396ebf818cbccc7bb23a16d9978ff37dfb9a6321deaa",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -44752,7 +44752,7 @@
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/vits-piper-sv_SE-lisa-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "59a4102802f6a13e213722dec8aa46b7216eb0650499269f6a98d39b44df4e50",
+      "sha256": "78b5f6808e513d545d9284a015075ef31f09623e6c08d6186a29a1997aa577d7",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -44787,7 +44787,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "946d5b4819d7cacdec60a38a5e4451665c3fa5ab42c2fce7a4cae0f8572b92ae",
+      "sha256": "e27097a9be728669f0be3fe760c4a58e7aa9eb6a4e70b94b09dd695ecd11c34d",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -44815,7 +44815,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "cdcfa35c2485110d3bfe11f1397ebf6f0bad77651010a0265d0b3abdf01ed524",
+      "sha256": "8197eb923bd25b7801e594733fe4945f4cc86d7148339e696a3eb8758fc7162a",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -44844,7 +44844,7 @@
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/vits-piper-sv_SE-nst-medium.mp3",
       "sampleRateHz": 22050,
-      "sha256": "5123217159d88a914f2c37146d5202b1a065b67d130bc97528d65f1554c48c44",
+      "sha256": "5aed0f5ab75135fc3ba6a4f3567e171d72df753305b08a01ca42f79411587f67",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
         {
@@ -44879,7 +44879,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "de029a17001b100e2b7adfe266bc5cc64e1d1f5fa7e390108ab1f1a8488e0834",
+      "sha256": "fe2f9262af0f6506f2d69d843c511df7f116e268c03decc8e988280064c60516",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -44907,7 +44907,7 @@
       "license": "MIT",
       "quality": "medium",
       "sampleRateHz": 24000,
-      "sha256": "a7d19f05de7cd646f1acff823bbb6efa8fc5b776759ba8b3cca4b177df07c858",
+      "sha256": "ac568458aac847d44b7945ba06f9b352122ae718b50b43af924a7ded8be1a933",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
@@ -46709,35 +46709,6 @@
           "url": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-0/vits-piper-zh_CN-xiao_ya-medium__sid0__zh-CN.mp3"
         }
       ],
-      "speakers": [
-        {
-          "gender": "U",
-          "genderConfidence": "unknown",
-          "id": 0,
-          "name": "xiao_ya"
-        }
-      ],
-      "tier": "mid",
-      "title": "Xiao_ya"
-    },
-    {
-      "approxSizeMb": 29,
-      "author": "Rhasspy / Mike Hansen",
-      "available": true,
-      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-zh_CN-xiao_ya-medium-fp16.tar.bz2",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "family": "piper",
-      "id": "vits-piper-zh_CN-xiao_ya-medium-fp16",
-      "languages": [
-        "zh",
-        "cn",
-        "ya"
-      ],
-      "license": "MIT",
-      "quality": "medium",
-      "sampleRateHz": 24000,
-      "sha256": "828db6e991d19e87220997942ce7cc0ff1f9f6a172f7084bfc60ead04a188cbb",
-      "sourceUrl": "https://github.com/rhasspy/piper",
       "speakers": [
         {
           "gender": "U",
