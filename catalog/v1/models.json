@@ -3910,18 +3910,18 @@
       "languages": [
         "ar",
         "bg",
-        "cs",
         "hr",
+        "cs",
         "da",
         "nl",
         "en-US",
-        "et",
         "fi",
         "fr-FR",
+        "et",
         "de-DE",
         "el",
-        "hu",
         "hi",
+        "hu",
         "id",
         "it-IT",
         "ja-JP",
@@ -3932,12 +3932,12 @@
         "pt",
         "ro",
         "ru",
-        "sk",
         "sl",
+        "sk",
         "es-ES",
-        "sv",
         "tr",
         "uk",
+        "sv",
         "vi"
       ],
       "license": "openrail",
@@ -6410,30 +6410,6 @@
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
       "sha256": "15a298943f0ac001e046b10d0154c0890a0f3c326a3b5d6e229eb659c8163a5d",
-      "speakers": [
-        {
-          "gender": "U",
-          "genderConfidence": "unknown",
-          "id": 0,
-          "name": "speaker_0"
-        }
-      ],
-      "tier": "mid",
-      "title": "Speaker_0"
-    },
-    {
-      "approxSizeMb": 32,
-      "available": true,
-      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-icefall-zh-aishell3.tar.bz2",
-      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
-      "family": "vits",
-      "id": "vits-icefall-zh-aishell3",
-      "languages": [
-        "zh"
-      ],
-      "license": "Apache-2.0",
-      "sampleRateHz": 24000,
-      "sha256": "ab468db3a3308cdd861495e0db2f25d79418a0c00639f74944c7cdf5dd8c6ec1",
       "speakers": [
         {
           "gender": "U",
@@ -46709,6 +46685,35 @@
           "url": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-0/vits-piper-zh_CN-xiao_ya-medium__sid0__zh-CN.mp3"
         }
       ],
+      "speakers": [
+        {
+          "gender": "U",
+          "genderConfidence": "unknown",
+          "id": 0,
+          "name": "xiao_ya"
+        }
+      ],
+      "tier": "mid",
+      "title": "Xiao_ya"
+    },
+    {
+      "approxSizeMb": 29,
+      "author": "Rhasspy / Mike Hansen",
+      "available": true,
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-zh_CN-xiao_ya-medium-fp16.tar.bz2",
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "family": "piper",
+      "id": "vits-piper-zh_CN-xiao_ya-medium-fp16",
+      "languages": [
+        "zh",
+        "cn",
+        "ya"
+      ],
+      "license": "MIT",
+      "quality": "medium",
+      "sampleRateHz": 24000,
+      "sha256": "828db6e991d19e87220997942ce7cc0ff1f9f6a172f7084bfc60ead04a188cbb",
+      "sourceUrl": "https://huggingface.co/openspeech/BZNSYP",
       "speakers": [
         {
           "gender": "U",

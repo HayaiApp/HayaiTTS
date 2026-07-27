@@ -1,6 +1,6 @@
 # Voice catalog
 
-*Auto-generated from `catalog/v1/models.json` on 2026-07-20 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
+*Auto-generated from `catalog/v1/models.json` on 2026-07-27 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
 
 ## Summary
 
@@ -13,16 +13,16 @@
 
 | Family | Voices | Notes |
 |---|---:|---|
-| **piper** | 535 | Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, sub-second on a 2020+ phone, ~70 languages covered. |
+| **piper** | 536 | Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, sub-second on a 2020+ phone, ~70 languages covered. |
 | **kokoro** | 6 | Higher-quality multilingual VITS variant (Kokoro-82M). 80–360 MB per voice; English bundles ship 1–50 speakers in a single model. |
 | **kitten** | 7 | Tiny English-only VITS distillations tuned for low-end phones. <60 MB, fastest synthesis on the catalog. |
 | **matcha** | 5 | Diffusion-based Matcha-TTS voices. Ships a vocoder side-asset alongside the main weights — Browse handles the dual download. |
 | **supertonic** | 2 | Newest (2026) multilingual model from Supertone. Single 100–200 MB bundle covering ~30 languages × 10 speakers. |
 | **zipvoice** | 4 | Flow-matching voice-cloning model. Accepts a reference clip + transcript and synthesises the target text in the cloned voice. |
 | **pocket** | 2 | Compact voice-cloning model. Same reference-audio API as ZipVoice but with a smaller voice-embedding cache and lighter weights. |
-| **vits** | 68 | _(family blurb pending — add to `FAMILY_BLURB`)_ |
+| **vits** | 67 | _(family blurb pending — add to `FAMILY_BLURB`)_ |
 
-## piper (535)
+## piper (536)
 
 Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, sub-second on a 2020+ phone, ~70 languages covered.
 
@@ -561,6 +561,7 @@ Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, 
 | Vais1000 | vi, vn | 1 | 36 MB | mid | medium | — | MIT |
 | Vais1000 | vi, vn | 1 | 22 MB | mid | medium | — | MIT |
 | Xiao_ya | zh-CN | 1 | 60 MB | mid | medium | — | MIT |
+| Xiao_ya | zh, cn, ya | 1 | 29 MB | mid | medium | — | MIT |
 | Xiao_ya | zh, cn, ya | 1 | 14 MB | mid | medium | — | MIT |
 | Zenski_wg_glos | pl-PL | 1 | 67 MB | mid | — | — | MIT |
 
@@ -632,7 +633,7 @@ Compact voice-cloning model. Same reference-audio API as ZipVoice but with a sma
 | Speaker_0 · 🎤 cloning | en | 1 | 168 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 · 🎤 cloning | en | 1 | 98 MB | mid | — | — | Apache-2.0 |
 
-## vits (68)
+## vits (67)
 
 | Title | Languages | Speakers | Size | Tier | Quality | RTF | License |
 |---|---|---:|---:|---|---|---:|---|
@@ -664,7 +665,6 @@ Compact voice-cloning model. Same reference-audio API as ZipVoice but with a sma
 | Speaker_0 | uk | 1 | 67 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | en, us | 1 | 32 MB | low | — | — | Apache-2.0 |
 | Speaker_0 | en, us | 1 | 74 MB | mid | — | — | Apache-2.0 |
-| Speaker_0 | zh | 1 | 32 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | en | 1 | 109 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | en | 1 | 163 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | zh, en | 1 | 167 MB | mid | — | — | Apache-2.0 |
