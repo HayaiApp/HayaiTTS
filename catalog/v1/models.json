@@ -3915,29 +3915,29 @@
         "da",
         "nl",
         "en-US",
+        "et",
         "fi",
         "fr-FR",
-        "et",
         "de-DE",
-        "el",
         "hi",
+        "el",
         "hu",
         "id",
         "it-IT",
         "ja-JP",
         "ko-KR",
-        "lt",
         "lv",
+        "lt",
         "pl",
         "pt",
-        "ro",
         "ru",
+        "ro",
         "sl",
-        "sk",
         "es-ES",
+        "sk",
+        "sv",
         "tr",
         "uk",
-        "sv",
         "vi"
       ],
       "license": "openrail",
@@ -6420,6 +6420,78 @@
       ],
       "tier": "mid",
       "title": "Speaker_0"
+    },
+    {
+      "approxSizeMb": 32,
+      "available": true,
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-icefall-zh-aishell3.tar.bz2",
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "family": "vits",
+      "id": "vits-icefall-zh-aishell3",
+      "languages": [
+        "zh"
+      ],
+      "license": "Apache-2.0",
+      "sampleRateHz": 24000,
+      "sha256": "ab468db3a3308cdd861495e0db2f25d79418a0c00639f74944c7cdf5dd8c6ec1",
+      "speakers": [
+        {
+          "gender": "U",
+          "genderConfidence": "unknown",
+          "id": 0,
+          "name": "speaker_0"
+        }
+      ],
+      "tier": "mid",
+      "title": "Speaker_0"
+    },
+    {
+      "approxSizeMb": 43,
+      "available": true,
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-inflect-en-micro-v2.tar.bz2",
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "family": "vits",
+      "id": "vits-inflect-en-micro-v2",
+      "languages": [
+        "en-US"
+      ],
+      "license": "Apache-2.0",
+      "sampleRateHz": 24000,
+      "sha256": "ed3c594d9c49b6c64ffe27f4b368ea8a700bcc27ff80610771408ee81cd96574",
+      "speakers": [
+        {
+          "gender": "U",
+          "genderConfidence": "unknown",
+          "id": 0,
+          "name": "v2"
+        }
+      ],
+      "tier": "mid",
+      "title": "V2"
+    },
+    {
+      "approxSizeMb": 22,
+      "available": true,
+      "bundleUrl": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-inflect-en-nano-v2.tar.bz2",
+      "demoUrl": "https://huggingface.co/spaces/k2-fsa/text-to-speech",
+      "family": "vits",
+      "id": "vits-inflect-en-nano-v2",
+      "languages": [
+        "en-US"
+      ],
+      "license": "Apache-2.0",
+      "sampleRateHz": 24000,
+      "sha256": "9a6b1188b5f3be8813e0552056328495b4e88ffd1ef18ff837272bde7b3bc136",
+      "speakers": [
+        {
+          "gender": "U",
+          "genderConfidence": "unknown",
+          "id": 0,
+          "name": "v2"
+        }
+      ],
+      "tier": "mid",
+      "title": "V2"
     },
     {
       "approxSizeMb": 109,

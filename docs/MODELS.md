@@ -1,10 +1,10 @@
 # Voice catalog
 
-*Auto-generated from `catalog/v1/models.json` on 2026-07-27 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
+*Auto-generated from `catalog/v1/models.json` on 2026-08-03 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
 
 ## Summary
 
-- **629 voices** across **8 model families**
+- **632 voices** across **8 model families**
 - **136 languages** covered
 - Bundle size: 13–635 MB (median 36 MB)
 - **6 voices** support reference-audio cloning
@@ -20,7 +20,7 @@
 | **supertonic** | 2 | Newest (2026) multilingual model from Supertone. Single 100–200 MB bundle covering ~30 languages × 10 speakers. |
 | **zipvoice** | 4 | Flow-matching voice-cloning model. Accepts a reference clip + transcript and synthesises the target text in the cloned voice. |
 | **pocket** | 2 | Compact voice-cloning model. Same reference-audio API as ZipVoice but with a smaller voice-embedding cache and lighter weights. |
-| **vits** | 67 | _(family blurb pending — add to `FAMILY_BLURB`)_ |
+| **vits** | 70 | _(family blurb pending — add to `FAMILY_BLURB`)_ |
 
 ## piper (536)
 
@@ -633,7 +633,7 @@ Compact voice-cloning model. Same reference-audio API as ZipVoice but with a sma
 | Speaker_0 · 🎤 cloning | en | 1 | 168 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 · 🎤 cloning | en | 1 | 98 MB | mid | — | — | Apache-2.0 |
 
-## vits (67)
+## vits (70)
 
 | Title | Languages | Speakers | Size | Tier | Quality | RTF | License |
 |---|---|---:|---:|---|---|---:|---|
@@ -665,6 +665,7 @@ Compact voice-cloning model. Same reference-audio API as ZipVoice but with a sma
 | Speaker_0 | uk | 1 | 67 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | en, us | 1 | 32 MB | low | — | — | Apache-2.0 |
 | Speaker_0 | en, us | 1 | 74 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | zh | 1 | 32 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | en | 1 | 109 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | en | 1 | 163 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | zh, en | 1 | 167 MB | mid | — | — | Apache-2.0 |
@@ -704,6 +705,8 @@ Compact voice-cloning model. Same reference-audio API as ZipVoice but with a sma
 | Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | zh, hf | 1 | 121 MB | mid | — | — | Apache-2.0 |
+| V2 | en-US | 1 | 43 MB | mid | — | — | Apache-2.0 |
+| V2 | en-US | 1 | 22 MB | mid | — | — | Apache-2.0 |
 
 ---
 
