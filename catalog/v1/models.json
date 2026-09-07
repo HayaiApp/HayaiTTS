@@ -3910,8 +3910,8 @@
       "languages": [
         "ar",
         "bg",
-        "hr",
         "cs",
+        "hr",
         "da",
         "nl",
         "en-US",
@@ -3920,8 +3920,8 @@
         "fr-FR",
         "de-DE",
         "el",
-        "hu",
         "hi",
+        "hu",
         "id",
         "it-IT",
         "ja-JP",
@@ -3931,14 +3931,14 @@
         "pl",
         "pt",
         "ro",
-        "sk",
         "ru",
+        "sk",
         "sl",
         "es-ES",
+        "sv",
         "tr",
         "uk",
-        "vi",
-        "sv"
+        "vi"
       ],
       "license": "openrail",
       "recommendedUseCases": [
