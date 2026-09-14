@@ -1025,7 +1025,7 @@
         "audiobook"
       ],
       "sampleRateHz": 24000,
-      "sha256": "75654a84864be26f345f020f4070c2c019e96dd1b7f9bf6e2ffd59efac6aa5a3",
+      "sha256": "4c3052abaa60943a341f193888cf6abd68787dae6ab8ae5c925a706caa247e4e",
       "sourceUrl": "https://huggingface.co/hexgrad/Kokoro-82M",
       "speakers": [
         {
@@ -1070,7 +1070,7 @@
       "title": "Speaker_0"
     },
     {
-      "approxSizeMb": 349,
+      "approxSizeMb": 350,
       "author": "hexgrad",
       "available": true,
       "baseModel": "Kokoro-82M",
@@ -1092,7 +1092,7 @@
       ],
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/kokoro-multi-lang-v1_0.mp3",
       "sampleRateHz": 24000,
-      "sha256": "c133d26353d776da730870dac7da07dbfc9a5e3bc80cc5e8e83ab6e823be7046",
+      "sha256": "c5f7e2d2caf082bc1d20fb70334a61d99d20b484500aad32e7cf84c128ea3298",
       "sourceUrl": "https://huggingface.co/hexgrad/Kokoro-82M",
       "speakerSamples": [
         {
@@ -1944,6 +1944,12 @@
           "genderConfidence": "declared",
           "id": 52,
           "name": "zm_yunyang"
+        },
+        {
+          "gender": "M",
+          "genderConfidence": "declared",
+          "id": 53,
+          "name": "em_santa"
         }
       ],
       "tags": [
@@ -1952,7 +1958,7 @@
         "expressive"
       ],
       "tier": "high",
-      "title": "Kokoro (53 speakers)"
+      "title": "Kokoro (54 speakers)"
     },
     {
       "approxSizeMb": 365,
@@ -3910,24 +3916,24 @@
       "languages": [
         "ar",
         "bg",
-        "cs",
         "hr",
+        "cs",
         "da",
         "nl",
         "en-US",
-        "et",
         "fi",
+        "et",
         "fr-FR",
         "de-DE",
         "el",
         "hi",
-        "hu",
         "id",
         "it-IT",
+        "lv",
         "ja-JP",
         "ko-KR",
-        "lv",
         "lt",
+        "hu",
         "pl",
         "pt",
         "ro",
@@ -3935,8 +3941,8 @@
         "sk",
         "sl",
         "es-ES",
-        "sv",
         "tr",
+        "sv",
         "uk",
         "vi"
       ],
@@ -38395,13 +38401,13 @@
       "family": "piper",
       "id": "vits-piper-fr_FR-tom-medium",
       "languages": [
-        "fr-FR"
+        "fr",
+        "fr"
       ],
       "license": "MIT",
-      "modelFileName": "fr_FR-tom-medium.onnx",
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/vits-piper-fr_FR-tom-medium.mp3",
-      "sampleRateHz": 44100,
+      "sampleRateHz": 24000,
       "sha256": "3d8258ef8466b5d5f2cc46c06e1415d3d01c9cbaeed8b6d5b3d152073672472c",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
