@@ -1,6 +1,6 @@
 # Voice catalog
 
-*Auto-generated from `catalog/v1/models.json` on 2026-09-14 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
+*Auto-generated from `catalog/v1/models.json` on 2026-09-21 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
 
 ## Summary
 
@@ -541,7 +541,7 @@ Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, 
 | Tjiho | fr-FR | 1 | 67 MB | mid | — | — | MIT |
 | Tjiho | fr-FR | 1 | 67 MB | mid | — | — | MIT |
 | Tjiho | fr-FR | 1 | 67 MB | mid | — | — | MIT |
-| Tom | fr, fr | 1 | 67 MB | mid | medium | — | MIT |
+| Tom | fr-FR | 1 | 67 MB | mid | medium | — | MIT |
 | Tom | fr, fr | 1 | 36 MB | mid | medium | — | MIT |
 | Tom | fr, fr | 1 | 21 MB | mid | medium | — | MIT |
 | Tugao | pt-PT | 1 | 67 MB | mid | — | — | MIT |
