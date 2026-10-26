@@ -1025,7 +1025,7 @@
         "audiobook"
       ],
       "sampleRateHz": 24000,
-      "sha256": "4c3052abaa60943a341f193888cf6abd68787dae6ab8ae5c925a706caa247e4e",
+      "sha256": "72c347230107ef8a31098ec4d468a605244beef5f1ed00db97efa13518800653",
       "sourceUrl": "https://huggingface.co/hexgrad/Kokoro-82M",
       "speakers": [
         {
@@ -1056,7 +1056,7 @@
         "audiobook"
       ],
       "sampleRateHz": 24000,
-      "sha256": "a1e94694776049035c4f2c6529f003aaece993c76aae9a78995831c3c4dcafc6",
+      "sha256": "259c9c8bc906d6078e4e0570421885dabb68b539c2f970fcbb890a58eeaf3e9c",
       "sourceUrl": "https://huggingface.co/hexgrad/Kokoro-82M",
       "speakers": [
         {
@@ -1092,7 +1092,7 @@
       ],
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/kokoro-multi-lang-v1_0.mp3",
       "sampleRateHz": 24000,
-      "sha256": "c5f7e2d2caf082bc1d20fb70334a61d99d20b484500aad32e7cf84c128ea3298",
+      "sha256": "60703707bc05ccd48d60e1eb723f38b07d6e474795a0b6a588d7220400e0f7a4",
       "sourceUrl": "https://huggingface.co/hexgrad/Kokoro-82M",
       "speakerSamples": [
         {
@@ -1983,7 +1983,7 @@
       ],
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/kokoro-multi-lang-v1_1.mp3",
       "sampleRateHz": 24000,
-      "sha256": "a3f4c73d043860e3fd2e5b06f36795eb81de0fc8e8de6df703245edddd87dbad",
+      "sha256": "b78e1ac42b852e839cceaafbe88f66806bf5860992d1d7b9a3f2ad1198427aed",
       "sourceUrl": "https://huggingface.co/hexgrad/Kokoro-82M",
       "speakerSamples": [
         {
@@ -3667,7 +3667,7 @@
       ],
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/matcha-icefall-en_US-ljspeech.mp3",
       "sampleRateHz": 22050,
-      "sha256": "82f599b04e3afb0003df0d493d026d5462e9f25a600d42d329775d18ffbb82df",
+      "sha256": "7c251d9ad3fda3d21a0f8a71a0e0b1f59574c4b1cfce6eb7e3c537b6e3b4e1e8",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3712,7 +3712,7 @@
       "license": "MIT",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/matcha-icefall-zh-baker.mp3",
       "sampleRateHz": 22050,
-      "sha256": "c3e1889c1b745180445daba6c1f51fb4aeceaff8500da425da6c5ff80e8620c5",
+      "sha256": "1aeed45be50d3fa01dde083e103759a7124cde52676e24e16a93f839c4dfa215",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3921,23 +3921,23 @@
         "da",
         "nl",
         "en-US",
-        "et",
         "fr-FR",
         "fi",
+        "et",
         "de-DE",
+        "el",
         "hi",
         "hu",
-        "it-IT",
-        "el",
         "id",
+        "it-IT",
         "ja-JP",
-        "lv",
         "ko-KR",
+        "lv",
         "lt",
         "pl",
-        "ro",
         "pt",
         "ru",
+        "ro",
         "sk",
         "sl",
         "es-ES",
@@ -6390,7 +6390,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "7daab0967a865d1f5363e45c1cef7a4e0561355c811db3cdd96f45b24a528d94",
+      "sha256": "9169bee08d9cc2698fba6f56f0a5588bcfb2748d1475ea4a0a23d7e09a1ddcdd",
       "speakers": [
         {
           "gender": "U",
@@ -6415,7 +6415,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "5454413a9aa5369aa91cce12d0a80b0331981c9ae9e171d6d2f45c642fc7eb55",
+      "sha256": "cdfa6932f6be4b4be0aab2f06441bb6a6995c2e3d02b5027af23cc1dfe650209",
       "speakers": [
         {
           "gender": "U",
@@ -10695,13 +10695,13 @@
       "family": "piper",
       "id": "vits-piper-en_GB-cori-medium",
       "languages": [
-        "en-GB"
+        "en",
+        "gb"
       ],
       "license": "MIT",
-      "modelFileName": "en_GB-cori-medium.onnx",
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/vits-piper-en_GB-cori-medium.mp3",
-      "sampleRateHz": 22050,
+      "sampleRateHz": 24000,
       "sha256": "49c9a5361bbdd95d7ca9687c4de11e5908481f65e7c7c368960df79949fdac2b",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
@@ -38596,13 +38596,13 @@
       "family": "piper",
       "id": "vits-piper-hi_IN-pratham-medium",
       "languages": [
-        "hi-IN"
+        "hi",
+        "in"
       ],
       "license": "MIT",
-      "modelFileName": "hi_IN-pratham-medium.onnx",
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-0/vits-piper-hi_IN-pratham-medium.mp3",
-      "sampleRateHz": 22050,
+      "sampleRateHz": 24000,
       "sha256": "2084d321e1d2752f2b64ed3012ba27751df01a80da46f52920098cdcb7e35648",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
