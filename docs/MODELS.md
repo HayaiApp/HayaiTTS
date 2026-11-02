@@ -1,6 +1,6 @@
 # Voice catalog
 
-*Auto-generated from `catalog/v1/models.json` on 2026-10-26 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
+*Auto-generated from `catalog/v1/models.json` on 2026-11-02 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
 
 ## Summary
 
@@ -104,7 +104,7 @@ Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, 
 | Cori | en-GB | 1 | 116 MB | high | high | — | MIT |
 | Cori | en, gb | 1 | 59 MB | mid | high | — | MIT |
 | Cori | en, gb | 1 | 35 MB | mid | high | — | MIT |
-| Cori | en, gb | 1 | 67 MB | mid | medium | — | MIT |
+| Cori | en-GB | 1 | 67 MB | mid | medium | — | MIT |
 | Cori | en, gb | 1 | 36 MB | mid | medium | — | MIT |
 | Cori | en, gb | 1 | 21 MB | mid | medium | — | MIT |
 | Daniela | es-AR | 1 | 116 MB | high | high | — | MIT |
@@ -338,7 +338,7 @@ Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, 
 | Piper (8 speakers) | en-GB | 8 | 80 MB | mid | — | — | MIT |
 | Piper (904 speakers) | en-US | 904 | 131 MB | high | high | — | MIT |
 | Piper (904 speakers) | en-US | 904 | 82 MB | mid | medium | — | MIT |
-| Pratham | hi, in | 1 | 67 MB | mid | medium | — | MIT |
+| Pratham | hi-IN | 1 | 67 MB | mid | medium | — | MIT |
 | Pratham | hi, in | 1 | 36 MB | mid | medium | — | MIT |
 | Pratham | hi, in | 1 | 21 MB | mid | medium | — | MIT |
 | Priyamvada | hi-IN | 1 | 67 MB | mid | medium | — | MIT |
@@ -664,7 +664,7 @@ Compact voice-cloning model. Same reference-audio API as ZipVoice but with a sma
 | Speaker_0 | sv, cv | 1 | 67 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | uk | 1 | 67 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | en, us | 1 | 32 MB | low | — | — | Apache-2.0 |
-| Speaker_0 | en, us | 1 | 73 MB | mid | — | — | Apache-2.0 |
+| Speaker_0 | en, us | 1 | 74 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | zh | 1 | 32 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | en | 1 | 109 MB | mid | — | — | Apache-2.0 |
 | Speaker_0 | en | 1 | 163 MB | mid | — | — | Apache-2.0 |
