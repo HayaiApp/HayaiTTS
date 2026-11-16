@@ -1,6 +1,6 @@
 # Voice catalog
 
-*Auto-generated from `catalog/v1/models.json` on 2026-11-09 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
+*Auto-generated from `catalog/v1/models.json` on 2026-11-16 by `tools/catalog/build_model_list.py` (run from the weekly [catalog-refresh](../.github/workflows/catalog-refresh.yml) workflow). Do not edit by hand — the next refresh will overwrite your changes.*
 
 ## Summary
 
@@ -77,7 +77,7 @@ Compact VITS-based voices from the rhasspy/piper project. 10–60 MB per voice, 
 | Bass | pl, pl | 1 | 59 MB | mid | high | — | MIT |
 | Bass | pl, pl | 1 | 35 MB | mid | high | — | MIT |
 | Berfin_renas | ku-TR | 1 | 80 MB | mid | medium | — | MIT |
-| Berta | hu-HU | 1 | 67 MB | mid | medium | — | MIT |
+| Berta | hu, hu | 1 | 67 MB | mid | medium | — | MIT |
 | Berta | hu, hu | 1 | 36 MB | mid | medium | — | MIT |
 | Berta | hu, hu | 1 | 21 MB | mid | medium | — | MIT |
 | Bryce | en-US | 1 | 67 MB | mid | medium | — | MIT |

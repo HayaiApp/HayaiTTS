@@ -3667,7 +3667,7 @@
       ],
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-3/matcha-icefall-en_US-ljspeech.mp3",
       "sampleRateHz": 22050,
-      "sha256": "c2c7e2abb085603aa348065a86be886407c601f666bd47a31333755779eca653",
+      "sha256": "cff849fee69d7d3b22e0b0267aa6b863e32d05039a1eca963765a314a73450c0",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3712,7 +3712,7 @@
       "license": "MIT",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-2/matcha-icefall-zh-baker.mp3",
       "sampleRateHz": 22050,
-      "sha256": "8da2e113b85dfea37b11bcdc994506aa86b584ee3348c2065271fb6f75cb83b8",
+      "sha256": "ae70096b19c6e283ea351a26b8a718ce6427c8bde8c1da22eb46a5478d39a69b",
       "sourceUrl": "https://github.com/shivammehta25/Matcha-TTS",
       "speakerSamples": [
         {
@@ -3916,31 +3916,31 @@
       "languages": [
         "ar",
         "bg",
-        "hr",
         "cs",
+        "hr",
         "da",
         "nl",
         "en-US",
-        "fr-FR",
         "et",
         "fi",
+        "fr-FR",
         "de-DE",
+        "el",
         "hi",
         "hu",
-        "el",
-        "id",
         "it-IT",
+        "id",
         "ja-JP",
-        "lv",
         "ko-KR",
+        "lv",
         "lt",
         "pl",
         "pt",
-        "ru",
         "ro",
+        "ru",
+        "sl",
         "sk",
         "es-ES",
-        "sl",
         "sv",
         "tr",
         "uk",
@@ -6390,7 +6390,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "85dfae5a9c8143100a9106a90b0adb2f2c93682143759672b82c985e779d0d00",
+      "sha256": "e5ae18c97b566099a2a748f243d4d44ea7cd188acc34e3533a2adc2565c9f845",
       "speakers": [
         {
           "gender": "U",
@@ -6415,7 +6415,7 @@
       ],
       "license": "Apache-2.0",
       "sampleRateHz": 24000,
-      "sha256": "5872080507e1d2b3c92f5c827be94928782724f1486ed4dcda5dc662c1478efd",
+      "sha256": "93efae74fe0c72199c51b11ca7acb20b4966c2dc8b728109910266784f39f720",
       "speakers": [
         {
           "gender": "U",
@@ -38985,13 +38985,13 @@
       "family": "piper",
       "id": "vits-piper-hu_HU-berta-medium",
       "languages": [
-        "hu-HU"
+        "hu",
+        "hu"
       ],
       "license": "MIT",
-      "modelFileName": "hu_HU-berta-medium.onnx",
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-1/vits-piper-hu_HU-berta-medium.mp3",
-      "sampleRateHz": 22050,
+      "sampleRateHz": 24000,
       "sha256": "a00ba073fa7f8e1b2be58f881b24892e2dca16c3c5979ee4ea4bc6ccdd89dbc0",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
