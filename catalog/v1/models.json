@@ -3853,7 +3853,7 @@
         "mobile"
       ],
       "sampleRateHz": 24000,
-      "sha256": "61422a478ef09d9b2c067261fb822e11786e0c86842c76d8633b7069968be7b5",
+      "sha256": "cb2eab02aa70db813129d6d601cd5134ab0fcf55b557d0ee12460f2332200321",
       "sourceUrl": "https://github.com/csukuangfj/pocket-tts",
       "speakers": [
         {
@@ -3884,7 +3884,7 @@
         "mobile"
       ],
       "sampleRateHz": 24000,
-      "sha256": "2f3b88823cbbb9bf0b2477ec8ae7b3fec417b3a87b6bb5f256dba66f2ad967cb",
+      "sha256": "f4da7c7bd465f7b91e89191487fe90504396a51d6f0bcf94d0787633e2657293",
       "sourceUrl": "https://github.com/csukuangfj/pocket-tts",
       "speakers": [
         {
@@ -3915,36 +3915,36 @@
       "id": "sherpa-onnx-supertonic-3-tts-int8-2026-05-11",
       "languages": [
         "ar",
-        "bg",
-        "cs",
         "hr",
+        "cs",
         "da",
+        "bg",
         "nl",
         "en-US",
-        "et",
         "fi",
+        "et",
         "fr-FR",
         "de-DE",
         "el",
         "hi",
         "hu",
-        "it-IT",
         "id",
-        "ja-JP",
+        "it-IT",
         "ko-KR",
-        "lv",
+        "ja-JP",
         "lt",
+        "lv",
         "pl",
         "pt",
-        "ro",
         "ru",
-        "sl",
+        "ro",
         "sk",
+        "sl",
         "es-ES",
         "sv",
         "tr",
-        "uk",
-        "vi"
+        "vi",
+        "uk"
       ],
       "license": "openrail",
       "recommendedUseCases": [
@@ -38985,13 +38985,13 @@
       "family": "piper",
       "id": "vits-piper-hu_HU-berta-medium",
       "languages": [
-        "hu",
-        "hu"
+        "hu-HU"
       ],
       "license": "MIT",
+      "modelFileName": "hu_HU-berta-medium.onnx",
       "quality": "medium",
       "sampleAudioUrl": "https://github.com/HayaiApp/HayaiTTS-samples/releases/download/samples-1/vits-piper-hu_HU-berta-medium.mp3",
-      "sampleRateHz": 24000,
+      "sampleRateHz": 22050,
       "sha256": "a00ba073fa7f8e1b2be58f881b24892e2dca16c3c5979ee4ea4bc6ccdd89dbc0",
       "sourceUrl": "https://github.com/rhasspy/piper",
       "speakerSamples": [
