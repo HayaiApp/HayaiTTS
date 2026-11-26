@@ -11,11 +11,11 @@ import dev.ahmedmohamed.hayaitts.data.playground.VoiceTuning
 import dev.ahmedmohamed.hayaitts.data.playground.VoiceTuningRepository
 import dev.ahmedmohamed.hayaitts.data.voices.parseLocale
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
+import dev.ahmedmohamed.hayaitts.domain.repo.DefaultsRepository
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.GlobalContext
-import java.util.Locale
 
 /**
  * System-wide TTS engine. Iterates every voice the user has installed
@@ -34,28 +34,44 @@ class HayaiTtsService : TextToSpeechService() {
     @Volatile private var lastSelectedVoiceId: String = ""
 
     override fun onIsLanguageAvailable(lang: String?, country: String?, variant: String?): Int {
-        val voices = runtimeOrNull()?.listAvailableVoices().orEmpty()
-        val requested = buildBcp47(lang, country, variant)
-        return when {
-            requested.isEmpty() -> TextToSpeech.LANG_NOT_SUPPORTED
-            voices.any { it.matchesLocale(requested) } -> TextToSpeech.LANG_AVAILABLE
-            voices.any { it.matchesLanguage(lang) } -> TextToSpeech.LANG_AVAILABLE
+        val requested = TtsLocales.toBcp47(lang, country)
+        if (requested.isEmpty()) return TextToSpeech.LANG_NOT_SUPPORTED
+        val best = runtimeOrNull()?.listAvailableVoices().orEmpty()
+            .maxOfOrNull { TtsLocales.matchLevel(it.languages, requested) } ?: TtsLocales.NOT_SUPPORTED
+        return when (best) {
+            TtsLocales.COUNTRY -> TextToSpeech.LANG_COUNTRY_AVAILABLE
+            TtsLocales.LANGUAGE -> TextToSpeech.LANG_AVAILABLE
             else -> TextToSpeech.LANG_NOT_SUPPORTED
         }
     }
 
-    override fun onLoadLanguage(lang: String?, country: String?, variant: String?): Int =
-        onIsLanguageAvailable(lang, country, variant)
+    override fun onLoadLanguage(lang: String?, country: String?, variant: String?): Int {
+        val status = onIsLanguageAvailable(lang, country, variant)
+        if (status >= TextToSpeech.LANG_AVAILABLE) {
+            voiceForLocale(TtsLocales.toBcp47(lang, country))?.let { lastSelectedVoiceId = it.voiceId }
+        }
+        return status
+    }
+
+    /**
+     * The framework's default implementation returns the bare locale tag
+     * ("en-US") and then asks [onIsValidVoiceName] about it, which never
+     * matched our voice ids, so `TextToSpeech.setLanguage()` failed for every
+     * client. Return a real installed voice instead: the user's per-locale
+     * default if set, else the best locale match.
+     */
+    override fun onGetDefaultVoiceNameFor(lang: String?, country: String?, variant: String?): String? {
+        val voice = voiceForLocale(TtsLocales.toBcp47(lang, country)) ?: return null
+        return frameworkNameFor(voice)
+    }
 
     override fun onGetLanguage(): Array<String> {
-        // The framework expects ISO-639 alpha-3 + ISO-3166 alpha-3 + variant.
-        // For the currently selected voice, derive these from its first
-        // language tag. Defaults to eng/USA so the framework treats the engine
-        // as English-capable when no synthesis has run yet.
-        val voice = runtimeOrNull()?.listAvailableVoices()?.firstOrNull { it.voiceId == lastSelectedVoiceId }
-        val tag = voice?.languages?.firstOrNull() ?: "en-US"
-        val locale = parseLocale(tag)
-        return arrayOf(locale.isO3Language.ifEmpty { "eng" }, runCatching { locale.isO3Country }.getOrDefault("USA"), "")
+        // ISO-639 alpha-3 + ISO-3166 alpha-3 + variant, from the last voice we used.
+        val (voiceId, _) = parseVoiceName(lastSelectedVoiceId)
+        val voice = runtimeOrNull()?.listAvailableVoices()?.firstOrNull { it.voiceId == voiceId }
+        val iso3 = TtsLocales.toIso3(voice?.languages?.firstOrNull()?.let { TtsLocales.toBcp47(it) } ?: "en-US") ?: "eng-USA"
+        val parts = iso3.split('-')
+        return arrayOf(parts[0], parts.getOrElse(1) { "" }, "")
     }
 
     override fun onGetVoices(): List<Voice> {
@@ -64,7 +80,7 @@ class HayaiTtsService : TextToSpeechService() {
             if (voice.speakers.size > 1) {
                 voice.speakers.map { speaker ->
                     val voiceName = "${voice.voiceId}#${speaker.id}#${speaker.name}"
-                    val locale = parseLocale(voice.languages.firstOrNull() ?: "en-US")
+                    val locale = parseLocale(TtsLocales.toBcp47(voice.languages.firstOrNull() ?: "en-US"))
                     Voice(
                         voiceName,
                         locale,
@@ -124,61 +140,53 @@ class HayaiTtsService : TextToSpeechService() {
     override fun onSynthesizeText(request: SynthesisRequest, callback: SynthesisCallback) {
         stopRequested = false
 
-        val rawText = request.charSequenceText?.toString().orEmpty()
-        val text = if (rawText.length > MAX_TEXT_LENGTH) {
-            rawText.substring(0, MAX_TEXT_LENGTH)
-        } else rawText
+        val text = request.charSequenceText?.toString().orEmpty()
 
         val runtime = try {
             SherpaTtsRuntime.get(applicationContext)
         } catch (t: Throwable) {
             log.e(t) { "Failed to initialise SherpaTtsRuntime" }
-            callback.error()
+            callback.error(TextToSpeech.ERROR_SERVICE)
             return
         }
 
-        val requestVoiceName = request.voiceName ?: lastSelectedVoiceId
-        val requestLanguageHint = buildBcp47(
-            request.language,
-            request.country,
-            request.variant,
-        ).ifBlank { null }
-        val (selectedVoiceId, selectedSpeakerId) = parseVoiceName(requestVoiceName)
-        val (fallbackVoiceId, _) = parseVoiceName(lastSelectedVoiceId)
+        val requestLocale = TtsLocales.toBcp47(request.language, request.country)
+        val requestLanguageHint = requestLocale.ifBlank { null }
+        val (selectedVoiceId, selectedSpeakerId) = parseVoiceName(request.voiceName.orEmpty())
+        val (lastVoiceId, lastSpeakerId) = parseVoiceName(lastSelectedVoiceId)
 
+        // Explicit voice > the user's/best voice for the requested locale >
+        // whatever we used last > anything installed.
         val candidates = runtime.listAvailableVoices()
-        val voice = candidates.firstOrNull { it.voiceId == selectedVoiceId }
-            ?: candidates.firstOrNull { it.voiceId == fallbackVoiceId }
-            ?: candidates.firstOrNull { it.bundled }
+        val explicit = candidates.firstOrNull { it.voiceId == selectedVoiceId }
+        val voice = explicit
+            ?: voiceForLocale(requestLocale)
+            ?: candidates.firstOrNull { it.voiceId == lastVoiceId }
             ?: candidates.firstOrNull()
             ?: run {
                 log.e { "No voices available" }
-                callback.error()
+                callback.error(TextToSpeech.ERROR_NOT_INSTALLED_YET)
                 return
             }
-
-        if (text.isEmpty()) {
-            if (callback.start(voice.sampleRateHz, AudioFormat.ENCODING_PCM_16BIT, 1) ==
-                TextToSpeech.SUCCESS
-            ) callback.done()
-            return
-        }
 
         val tuningRepo = runCatching { GlobalContext.get().get<VoiceTuningRepository>() }.getOrNull()
         val tuning = tuningRepo?.let { repo ->
             runCatching { runBlocking { repo.tuningFor(voice.voiceId).first() } }.getOrNull()
         } ?: VoiceTuning.Default
 
-        val requestSpeed = (request.speechRate.toFloat() / 100f).coerceIn(0.5f, 2.0f)
-        val speed = (requestSpeed * tuning.speed).coerceIn(0.5f, 2.0f)
+        val requestSpeed = (request.speechRate.toFloat() / 100f).coerceIn(0.25f, 4.0f)
+        val speed = (requestSpeed * tuning.speed).coerceIn(0.25f, 4.0f)
+        val requestPitch = (request.pitch.toFloat() / 100f).coerceIn(0.25f, 4.0f)
+        val pitch = (requestPitch * tuning.pitch).coerceIn(0.5f, 2.0f)
 
         val settingsRepo = runCatching { GlobalContext.get().get<SettingsRepository>() }.getOrNull()
         val defaultSpeaker = settingsRepo?.let { repo ->
             runCatching { runBlocking { repo.defaultSpeakerByVoice.first()[voice.voiceId] } }.getOrNull()
         }
 
-        val sid = selectedSpeakerId
+        val sid = (if (explicit != null) selectedSpeakerId else null)
             ?: request.params?.getString("speakerId")?.toIntOrNull()
+            ?: (if (voice.voiceId == lastVoiceId) lastSpeakerId else null)
             ?: defaultSpeaker
             ?: voice.speakers.firstOrNull()?.id
             ?: 0
@@ -187,7 +195,7 @@ class HayaiTtsService : TextToSpeechService() {
             runtime.sampleRateOf(voice.voiceId, languageHint = requestLanguageHint)
         } catch (t: Throwable) {
             log.e(t) { "Could not load voice ${voice.voiceId}" }
-            callback.error()
+            callback.error(TextToSpeech.ERROR_SYNTHESIS)
             return
         }
 
@@ -197,31 +205,72 @@ class HayaiTtsService : TextToSpeechService() {
             return
         }
 
-        val output = try {
-            runtime.synthesize(
-                voiceId = voice.voiceId,
-                text = text,
-                sid = sid,
-                speed = speed,
-                pitch = tuning.pitch,
-                lengthScale = tuning.lengthScale,
-                noiseScale = tuning.noiseScale,
-                noiseScaleW = tuning.noiseScaleW,
-                languageHint = requestLanguageHint,
-            )
-        } catch (t: Throwable) {
-            log.e(t) { "sherpa-onnx synthesis failed" }
-            callback.error()
+        // Synthesize and stream one section at a time: audio starts after the
+        // first sentence, and long requests are never truncated.
+        var framesWritten = 0
+        var failed = 0
+        val sections = TextSections.split(text)
+        for (section in sections) {
+            if (stopRequested) break
+            val output = try {
+                runtime.synthesize(
+                    voiceId = voice.voiceId,
+                    text = section.text,
+                    sid = sid,
+                    speed = speed,
+                    pitch = pitch,
+                    lengthScale = tuning.lengthScale,
+                    noiseScale = tuning.noiseScale,
+                    noiseScaleW = tuning.noiseScaleW,
+                    languageHint = requestLanguageHint,
+                )
+            } catch (t: Throwable) {
+                // One unreadable section (odd characters, a model quirk)
+                // shouldn't silence the rest of the request.
+                log.e(t) { "sherpa-onnx synthesis failed for a section" }
+                failed++
+                continue
+            }
+            if (stopRequested) break
+            callback.rangeStart(framesWritten, section.start, section.end)
+            if (!streamPcm(callback, output.samples)) return
+            framesWritten += output.samples.size
+        }
+        if (sections.isNotEmpty() && failed == sections.size) {
+            callback.error(TextToSpeech.ERROR_SYNTHESIS)
             return
         }
-
-        if (stopRequested) {
-            callback.done()
-            return
-        }
-
-        streamPcm(callback, output.samples)
         callback.done()
+    }
+
+    /** User's per-locale default if installed, else the installed voice that matches [bcp47] best. */
+    private fun voiceForLocale(bcp47: String): InstalledVoice? {
+        if (bcp47.isBlank()) return null
+        val voices = runtimeOrNull()?.listAvailableVoices().orEmpty()
+        if (voices.isEmpty()) return null
+        val defaults = runCatching {
+            runBlocking { GlobalContext.get().get<DefaultsRepository>().defaults.first() }
+        }.getOrDefault(emptyMap())
+        val language = bcp47.substringBefore('-')
+        val pinned = listOf(bcp47, language).firstNotNullOfOrNull { tag ->
+            defaults.entries.firstOrNull { it.key.equals(tag, ignoreCase = true) }?.value
+        }
+        voices.firstOrNull { it.voiceId == pinned }?.let { return it }
+        return voices
+            .map { it to TtsLocales.matchLevel(it.languages, bcp47) }
+            .filter { it.second > TtsLocales.NOT_SUPPORTED }
+            .maxByOrNull { it.second }
+            ?.first
+    }
+
+    /** A name that [onGetVoices] lists, so `TextToSpeech.getVoice()` finds it. */
+    private fun frameworkNameFor(voice: InstalledVoice): String {
+        if (voice.speakers.size <= 1) return voice.voiceId
+        val preferred = runCatching {
+            runBlocking { GlobalContext.get().get<SettingsRepository>().defaultSpeakerByVoice.first()[voice.voiceId] }
+        }.getOrNull()
+        val speaker = voice.speakers.firstOrNull { it.id == preferred } ?: voice.speakers.first()
+        return "${voice.voiceId}#${speaker.id}#${speaker.name}"
     }
 
     private fun runtimeOrNull(): SherpaTtsRuntime? = runCatching {
@@ -229,7 +278,7 @@ class HayaiTtsService : TextToSpeechService() {
     }.getOrNull()
 
     private fun InstalledVoice.toFrameworkVoice(): Voice {
-        val locale = parseLocale(languages.firstOrNull() ?: "en-US")
+        val locale = parseLocale(TtsLocales.toBcp47(languages.firstOrNull() ?: "en-US"))
         return Voice(
             voiceId,
             locale,
@@ -240,53 +289,12 @@ class HayaiTtsService : TextToSpeechService() {
         )
     }
 
-    private fun InstalledVoice.matchesLocale(bcp47: String): Boolean = languages.any {
-        it.equals(bcp47, ignoreCase = true)
-    }
-
-    private fun InstalledVoice.matchesLanguage(lang: String?): Boolean {
-        if (lang.isNullOrEmpty()) return false
-        val target = parseLocale(lang).language
-        if (target.isEmpty()) return false
-        return languages.any { parseLocale(it).language.equals(target, ignoreCase = true) }
-    }
-
-    /**
-     * Best-effort BCP-47 builder for the (lang, country, variant) triple the
-     * framework hands us. The framework uses ISO-639 alpha-3 for lang and
-     * ISO-3166 alpha-3 for country; we convert via [Locale] so the comparison
-     * with the catalog's BCP-47 tags (alpha-2) works.
-     */
-    private fun buildBcp47(lang: String?, country: String?, variant: String?): String {
-        if (lang.isNullOrEmpty()) return ""
-        // Locale(String) does not accept ISO-639 alpha-3 reliably; build via Builder.
-        val locale = runCatching {
-            val builder = Locale.Builder()
-            // Try alpha-2 first; if the input is alpha-3, Locale.forLanguageTag handles it.
-            val candidate = Locale.forLanguageTag(lang)
-            if (candidate.language.isEmpty()) {
-                builder.setLanguage(lang.lowercase()).build()
-            } else {
-                candidate
-            }
-        }.getOrNull() ?: return ""
-        val final = if (!country.isNullOrEmpty()) {
-            runCatching {
-                Locale.Builder()
-                    .setLanguage(locale.language)
-                    .setRegion(country)
-                    .build()
-            }.getOrDefault(locale)
-        } else locale
-        return final.toLanguageTag()
-    }
-
     /**
      * Convert sherpa-onnx's float samples (-1..1) to little-endian 16-bit PCM
      * and stream them through [SynthesisCallback.audioAvailable] in chunks no
      * larger than [SynthesisCallback.maxBufferSize].
      */
-    private fun streamPcm(callback: SynthesisCallback, samples: FloatArray) {
+    private fun streamPcm(callback: SynthesisCallback, samples: FloatArray): Boolean {
         val maxBufferBytes = callback.maxBufferSize.coerceAtLeast(BYTES_PER_SAMPLE * 64)
         val chunkBytes = (maxBufferBytes and 0x7FFFFFFE)
         val samplesPerChunk = chunkBytes / BYTES_PER_SAMPLE
@@ -308,13 +316,13 @@ class HayaiTtsService : TextToSpeechService() {
                 buffer[writeIdx + 1] = ((clamped shr 8) and 0xFF).toByte()
                 writeIdx += 2
             }
-            if (callback.audioAvailable(buffer, 0, writeIdx) != TextToSpeech.SUCCESS) return
+            if (callback.audioAvailable(buffer, 0, writeIdx) != TextToSpeech.SUCCESS) return false
             sampleCursor += take
         }
+        return true
     }
 
     private companion object {
         const val BYTES_PER_SAMPLE = 2
-        const val MAX_TEXT_LENGTH = 2000
     }
 }
