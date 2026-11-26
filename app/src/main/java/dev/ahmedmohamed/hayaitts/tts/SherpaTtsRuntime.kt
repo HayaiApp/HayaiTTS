@@ -676,9 +676,16 @@ class SherpaTtsRuntime private constructor(
     private fun supertonicLanguageFor(voiceId: String, languageHint: String?): String? {
         val voice = installedVoiceOf(voiceId) ?: return null
         if (runtimeFamily(voice) != ModelFamily.SUPERTONIC) return null
+        // Clamp to the bundle's own languages: the English-only Supertonic
+        // would otherwise get e.g. "de" tags it was never trained on.
+        val supported = voice.languages.map { it.languageHead() }.filter { it in SUPERTONIC_LANGUAGES }
+            .ifEmpty { SUPERTONIC_LANGUAGES.toList() }
         val wanted = languageHint?.languageHead()?.takeIf { it.isNotBlank() }
-            ?: voice.languages.firstOrNull()?.languageHead()
-        return wanted?.takeIf { it in SUPERTONIC_LANGUAGES } ?: "en"
+        return when {
+            wanted != null && wanted in supported -> wanted
+            "en" in supported -> "en"
+            else -> supported.first()
+        }
     }
 
     private fun runtimeFamily(voice: InstalledVoice): ModelFamily = if (voice.family == ModelFamily.CUSTOM) {
