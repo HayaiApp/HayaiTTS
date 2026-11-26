@@ -88,7 +88,18 @@ class SherpaTtsRuntime private constructor(
         // true native SIGSEGV inside the .so is still unrecoverable, but
         // anything raised as a Java throwable will land here.
         val audio = try {
-            tts.generate(text = text, sid = safeSid, speed = speed)
+            val supertonicLang = supertonicLanguageFor(voiceId, languageHint)
+            if (supertonicLang != null) {
+                // Supertonic reads its language from GenerationConfig.extra
+                // ("lang", default "en"); plain generate() made the
+                // multilingual Supertonic 3 read every language as English.
+                tts.generateWithConfig(
+                    text,
+                    GenerationConfig(sid = safeSid, speed = speed, extra = mapOf("lang" to supertonicLang)),
+                )
+            } else {
+                tts.generate(text = text, sid = safeSid, speed = speed)
+            }
         } catch (t: Throwable) {
             log.e(t) { "tts.generate failed for $voiceId sid=$safeSid (${text.length} chars)" }
             throw SynthesisFailure(
@@ -661,6 +672,15 @@ class SherpaTtsRuntime private constructor(
         return snapshot.firstOrNull { it.voiceId == voiceId }
     }
 
+    /** Supertonic `lang` for this request, or null when [voiceId] isn't Supertonic. */
+    private fun supertonicLanguageFor(voiceId: String, languageHint: String?): String? {
+        val voice = installedVoiceOf(voiceId) ?: return null
+        if (runtimeFamily(voice) != ModelFamily.SUPERTONIC) return null
+        val wanted = languageHint?.languageHead()?.takeIf { it.isNotBlank() }
+            ?: voice.languages.firstOrNull()?.languageHead()
+        return wanted?.takeIf { it in SUPERTONIC_LANGUAGES } ?: "en"
+    }
+
     private fun runtimeFamily(voice: InstalledVoice): ModelFamily = if (voice.family == ModelFamily.CUSTOM) {
         voice.effectiveFamily ?: error(
             "Custom voice ${voice.voiceId} is missing effectiveFamily; re-import the bundle.",
@@ -698,6 +718,12 @@ class SherpaTtsRuntime private constructor(
         trim().replace('_', '-').substringBefore('-').lowercase()
 
     companion object {
+        /** Languages sherpa-onnx's Supertonic accepts; anything else returns no audio. */
+        private val SUPERTONIC_LANGUAGES = setOf(
+            "en", "ko", "ja", "ar", "bg", "cs", "da", "de", "el", "es", "et",
+            "fi", "fr", "hi", "hr", "hu", "id", "it", "lt", "lv", "nl", "pl",
+            "pt", "ro", "ru", "sk", "sl", "sv", "tr", "uk", "vi",
+        )
         private const val TOKENS_FILE = "tokens.txt"
         private const val LEXICON_FILE = "lexicon.txt"
         private const val ESPEAK_DIR = "espeak-ng-data"
