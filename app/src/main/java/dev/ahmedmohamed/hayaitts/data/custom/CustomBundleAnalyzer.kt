@@ -64,7 +64,11 @@ class CustomBundleAnalyzer(private val context: Context) {
 
     fun analyze(uri: Uri): Result<Analysis> = runCatching {
         val originalName = queryDisplayName(uri)
-        val archive = detectArchive(originalName)
+        // Picker URIs from the Recent/Downloads roots (`msf:` ids) often
+        // refuse the DISPLAY_NAME query, so the name alone can't be trusted.
+        // Fall back to the file's magic bytes.
+        val archive = detectArchive(originalName).takeIf { it != ArchiveKind.UNKNOWN }
+            ?: runCatching { openStream(uri).use { ArchiveSniffer.sniff(it) } }.getOrDefault(ArchiveKind.UNKNOWN)
         // `inlineFiles` captures the bytes of every small (<64 KB) text /
         // JSON / list file inside the archive as we stream past it, so we
         // can read speaker manifests without a second pass over the input
