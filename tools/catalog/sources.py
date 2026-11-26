@@ -216,6 +216,10 @@ def load_piper_index(cache_dir: str | None) -> dict[str, dict]:
         return data
 
 
+# Precision re-export suffix on a sherpa-onnx voice id (`…-low-int8`).
+PRECISION_SUFFIX_RE = re.compile(r"-(?:fp16|fp32|int8)$")
+
+
 def piper_key_for(voice_id: str) -> str | None:
     """Recover the piper-voices key (``en_US-amy-medium``) from a sherpa-onnx
     voice id (``vits-piper-en_US-amy-medium`` or with an ``-fp16``/``-int8``/
@@ -223,7 +227,7 @@ def piper_key_for(voice_id: str) -> str | None:
     if not voice_id.startswith("vits-piper-"):
         return None
     key = voice_id[len("vits-piper-"):]
-    key = re.sub(r"-(?:fp16|fp32|int8)$", "", key)
+    key = PRECISION_SUFFIX_RE.sub("", key)
     return key or None
 
 
