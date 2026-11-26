@@ -101,11 +101,37 @@
             </intent-filter>
         </activity>
 
+        <!-- Framework handshakes the Settings "Play" button and some clients
+             depend on before they'll speak. -->
+        <activity
+            android:name=".tts.CheckVoiceDataActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.speech.tts.engine.CHECK_TTS_DATA" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".tts.GetSampleTextActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.speech.tts.engine.GET_SAMPLE_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- No permission on purpose: TTS clients (and system_server on their
+             behalf) bind with the plain TTS_SERVICE intent. The old
+             BIND_TEXT_SERVICE guard is the spell-checker permission. -->
         <service
             android:name=".tts.HayaiTtsService"
             android:label="@string/app_name"
             android:exported="true"
-            android:permission="android.permission.BIND_TEXT_SERVICE">
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="android.intent.action.TTS_SERVICE" />
                 <category android:name="android.intent.category.DEFAULT" />
