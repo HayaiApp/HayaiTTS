@@ -208,7 +208,9 @@ class HayaiTtsService : TextToSpeechService() {
         // Synthesize and stream one section at a time: audio starts after the
         // first sentence, and long requests are never truncated.
         var framesWritten = 0
-        for (section in TextSections.split(text)) {
+        var failed = 0
+        val sections = TextSections.split(text)
+        for (section in sections) {
             if (stopRequested) break
             val output = try {
                 runtime.synthesize(
@@ -223,14 +225,20 @@ class HayaiTtsService : TextToSpeechService() {
                     languageHint = requestLanguageHint,
                 )
             } catch (t: Throwable) {
-                log.e(t) { "sherpa-onnx synthesis failed" }
-                callback.error(TextToSpeech.ERROR_SYNTHESIS)
-                return
+                // One unreadable section (odd characters, a model quirk)
+                // shouldn't silence the rest of the request.
+                log.e(t) { "sherpa-onnx synthesis failed for a section" }
+                failed++
+                continue
             }
             if (stopRequested) break
             callback.rangeStart(framesWritten, section.start, section.end)
             if (!streamPcm(callback, output.samples)) return
             framesWritten += output.samples.size
+        }
+        if (sections.isNotEmpty() && failed == sections.size) {
+            callback.error(TextToSpeech.ERROR_SYNTHESIS)
+            return
         }
         callback.done()
     }
