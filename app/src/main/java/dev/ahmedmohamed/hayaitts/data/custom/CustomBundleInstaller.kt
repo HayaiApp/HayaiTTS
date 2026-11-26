@@ -3,6 +3,9 @@ package dev.ahmedmohamed.hayaitts.data.custom
 import android.content.Context
 import android.net.Uri
 import co.touchlab.kermit.Logger
+import dev.ahmedmohamed.hayaitts.data.storage.safeChild
+import dev.ahmedmohamed.hayaitts.data.voices.BundleLayouts
+import dev.ahmedmohamed.hayaitts.data.voices.LayoutResult
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.Speaker
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
@@ -183,7 +186,7 @@ class CustomBundleInstaller(
                 entry = tar.nextEntry
                 continue
             }
-            val outFile = File(destRoot, stripped)
+            val outFile = destRoot.safeChild(stripped)
             if (entry.isDirectory) {
                 outFile.mkdirs()
             } else {
@@ -210,7 +213,7 @@ class CustomBundleInstaller(
                 entry = zip.nextEntry
                 continue
             }
-            val outFile = File(destRoot, stripped)
+            val outFile = destRoot.safeChild(stripped)
             if (entry.isDirectory) {
                 outFile.mkdirs()
             } else {
@@ -236,71 +239,12 @@ class CustomBundleInstaller(
         return if (head.contains('.')) normalized else tail
     }
 
-    /**
-     * Mirrors the same family->files matrix as [VoiceDownloadWorker]. Returns
-     * the list of missing required filenames; an empty list means the bundle
-     * is valid for [family].
-     */
-    private fun missingRequiredFiles(family: ModelFamily, dir: File): List<String> {
-        val tokens = "tokens.txt"
-        val missing = mutableListOf<String>()
-        fun requireOneOf(label: String, candidates: List<String>) {
-            if (candidates.none { File(dir, it).isFile }) missing += label
+    /** Same resolver the downloader and runtime use; empty list = loadable. */
+    private fun missingRequiredFiles(family: ModelFamily, dir: File): List<String> =
+        when (val res = BundleLayouts.resolve(family, dir)) {
+            is LayoutResult.Resolved -> emptyList()
+            is LayoutResult.Missing -> res.missing
         }
-        when (family) {
-            ModelFamily.PIPER, ModelFamily.VITS -> {
-                requireOneOf("model.onnx", listOf("model.onnx", "vits-vctk.onnx", "vits-vctk.int8.onnx"))
-                if (!File(dir, tokens).isFile) missing += tokens
-            }
-            ModelFamily.MATCHA -> {
-                requireOneOf(
-                    "model-steps-3.onnx",
-                    listOf("model-steps-3.onnx", "model-steps-6.onnx", "acoustic.onnx"),
-                )
-                if (!File(dir, tokens).isFile) missing += tokens
-                // Vocoder lives alongside the acoustic model. Accept any
-                // `*vocoder*.onnx` / `vocos*.onnx` / `hifigan*.onnx`.
-                val hasVocoder = dir.listFiles()?.any {
-                    val n = it.name.lowercase()
-                    it.isFile && n.endsWith(".onnx") &&
-                        (n.contains("vocos") || n.contains("vocoder") || n.contains("hifigan"))
-                } ?: false
-                if (!hasVocoder) missing += "vocoder.onnx"
-            }
-            ModelFamily.KOKORO, ModelFamily.KITTEN -> {
-                requireOneOf("model.onnx", listOf("model.onnx", "model.fp16.onnx", "model.int8.onnx"))
-                if (!File(dir, tokens).isFile) missing += tokens
-                if (!File(dir, "voices.bin").isFile) missing += "voices.bin"
-            }
-            ModelFamily.ZIPVOICE -> {
-                requireOneOf("encoder.onnx", listOf("encoder.int8.onnx", "encoder.onnx"))
-                requireOneOf("decoder.onnx", listOf("decoder.int8.onnx", "decoder.onnx"))
-                requireOneOf("vocoder.onnx", listOf("vocos_24khz.onnx", "vocos_22khz.onnx", "vocoder.onnx"))
-                if (!File(dir, tokens).isFile) missing += tokens
-            }
-            ModelFamily.POCKET -> {
-                listOf(
-                    "lm_flow.int8.onnx", "lm_main.int8.onnx", "encoder.onnx",
-                    "decoder.int8.onnx", "text_conditioner.onnx",
-                    "vocab.json", "token_scores.json",
-                ).forEach { if (!File(dir, it).isFile) missing += it }
-            }
-            ModelFamily.SUPERTONIC -> {
-                listOf(
-                    "duration_predictor.int8.onnx", "text_encoder.int8.onnx",
-                    "vector_estimator.int8.onnx", "vocoder.int8.onnx",
-                    "tts.json", "unicode_indexer.bin", "voice.bin",
-                ).forEach { if (!File(dir, it).isFile) missing += it }
-            }
-            ModelFamily.CUSTOM -> {
-                // Unreachable — the wizard resolves CUSTOM to a concrete
-                // effectiveFamily before calling this, but the exhaustive
-                // when needs a branch.
-                missing += "custom-must-be-resolved-to-effective-family"
-            }
-        }
-        return missing
-    }
 
     private fun sampleRateFor(family: ModelFamily): Int = when (family) {
         // Piper voices commonly emit 16 kHz (low), 22.05 kHz (medium), or
