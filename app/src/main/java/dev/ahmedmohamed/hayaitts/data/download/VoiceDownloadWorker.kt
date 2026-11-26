@@ -10,6 +10,9 @@ import co.touchlab.kermit.Logger
 import dev.ahmedmohamed.hayaitts.data.db.dao.DownloadStateDao
 import dev.ahmedmohamed.hayaitts.data.db.entities.DownloadStateEntity
 import dev.ahmedmohamed.hayaitts.data.storage.StorageMigrator
+import dev.ahmedmohamed.hayaitts.data.storage.safeChild
+import dev.ahmedmohamed.hayaitts.data.voices.BundleLayouts
+import dev.ahmedmohamed.hayaitts.data.voices.LayoutResult
 import dev.ahmedmohamed.hayaitts.domain.model.DownloadState
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.model.VoiceCard
@@ -43,7 +46,7 @@ import java.security.MessageDigest
  *   3. Verify sha256 (if present in input data). Mismatch -> fail.
  *   4. Mark `extracting`.
  *   5. Extract to `filesDir/voices/<id>/` via Commons Compress.
- *   6. Validate model.onnx + tokens.txt exist; otherwise fail.
+ *   6. Resolve the bundle layout (same resolver as the runtime); otherwise fail.
  *   7. Upsert InstalledVoice. Delete cache file.
  *   8. Mark `done`.
  *
@@ -234,8 +237,33 @@ class VoiceDownloadWorker(
                 }
             }
 
-            // 5. Validate the extracted tree using family-aware required-file lists.
-            val missing = missingRequiredFiles(voice, voiceDir)
+            // 4b. ZipVoice int8 bundles don't ship their vocoder; fetch the
+            // shared vocos_24khz.onnx (pinned sha256) when it's absent.
+            if (voice.modelFamily == ModelFamily.ZIPVOICE && !BundleLayouts.hasVocoder(voiceDir)) {
+                val target = File(voiceDir, BundleLayouts.ZIPVOICE_VOCODER_FILE)
+                val sideResult = runCatching { downloadAuxiliary(BundleLayouts.ZIPVOICE_VOCODER_URL, target) }
+                val err = sideResult.exceptionOrNull()
+                if (err != null) {
+                    if (isTransient(err) && runAttemptCount < MAX_RETRIES) return@withContext Result.retry()
+                    return@withContext failPersisted(voice.id, "Vocoder download failed: ${err.message}")
+                }
+                val actual = sha256(target)
+                if (!actual.equals(BundleLayouts.ZIPVOICE_VOCODER_SHA256, ignoreCase = true)) {
+                    target.delete()
+                    return@withContext failPersisted(voice.id, "Vocoder checksum mismatch: got $actual")
+                }
+            }
+
+            // 5. Validate with the same resolver the runtime loads through, so
+            // an installed voice is always a loadable voice.
+            val missing = when (
+                val res = BundleLayouts.resolve(voice.modelFamily, voiceDir, voice.modelFileName, voice.vocoderFileName)
+            ) {
+                is LayoutResult.Resolved -> emptyList<String>().also {
+                    log.i { "Validated ${voice.id} as ${res.layout::class.simpleName}" }
+                }
+                is LayoutResult.Missing -> res.missing
+            }
             if (missing.isNotEmpty()) {
                 return@withContext failPersisted(
                     voice.id,
@@ -363,99 +391,6 @@ class VoiceDownloadWorker(
         log.i { "Auxiliary asset saved: $target (${target.length()}B)" }
     }
 
-    /**
-     * Returns the list of required filenames missing from [dir] for this
-     * voice's family. Bundles vary in layout — VCTK calls its weights
-     * `vits-vctk.onnx` rather than `model.onnx`, Matcha uses
-     * `model-steps-3.onnx`, etc — so we accept the catalog-provided
-     * [VoiceCard.modelFileName] override when set and otherwise fall back to
-     * a family-specific candidate list.
-     */
-    private fun missingRequiredFiles(voice: VoiceCard, dir: File): List<String> {
-        val tokens = "tokens.txt"
-        val present = mutableListOf<String>()
-        val missing = mutableListOf<String>()
-
-        fun requireOneOf(label: String, candidates: List<String>) {
-            val hit = candidates.firstOrNull { File(dir, it).isFile }
-            if (hit != null) present += hit else missing += label
-        }
-
-        when (voice.modelFamily) {
-            ModelFamily.PIPER, ModelFamily.VITS -> {
-                val modelCandidates = listOfNotNull(
-                    voice.modelFileName, "model.onnx", "vits-vctk.onnx", "vits-vctk.int8.onnx",
-                )
-                requireOneOf(voice.modelFileName ?: "model.onnx", modelCandidates)
-                if (!File(dir, tokens).isFile) missing += tokens
-            }
-            ModelFamily.MATCHA -> {
-                val acoustic = listOfNotNull(
-                    voice.modelFileName, "model-steps-3.onnx", "model-steps-6.onnx", "acoustic.onnx",
-                )
-                requireOneOf(voice.modelFileName ?: "model-steps-3.onnx", acoustic)
-                if (!File(dir, tokens).isFile) missing += tokens
-                // Vocoder is downloaded as a sidecar — fail if it didn't land.
-                val vocoderCandidates = listOfNotNull(voice.vocoderFileName) + MATCHA_VOCODER_CANDIDATES
-                requireOneOf(voice.vocoderFileName ?: "vocos-22khz-univ.onnx", vocoderCandidates)
-            }
-            ModelFamily.KOKORO -> {
-                // Kokoro bundles ship `model.onnx` for the English release and
-                // `kokoro-multi-lang-v1_*.onnx` for multilingual releases.
-                val candidates = listOfNotNull(
-                    voice.modelFileName, "model.onnx",
-                    "kokoro-multi-lang-v1_1.onnx", "kokoro-multi-lang-v1_0.onnx",
-                    "kokoro-int8-multi-lang-v1_1.onnx", "kokoro-int8-multi-lang-v1_0.onnx",
-                    "kokoro-en-v0_19.onnx",
-                )
-                requireOneOf(voice.modelFileName ?: "model.onnx", candidates)
-                if (!File(dir, tokens).isFile) missing += tokens
-                if (!File(dir, KOKORO_VOICES_FILE).isFile) missing += KOKORO_VOICES_FILE
-            }
-            ModelFamily.KITTEN -> {
-                val candidates = listOfNotNull(
-                    voice.modelFileName, "model.onnx", "model.int8.onnx",
-                )
-                requireOneOf(voice.modelFileName ?: "model.onnx", candidates)
-                if (!File(dir, tokens).isFile) missing += tokens
-                if (!File(dir, KOKORO_VOICES_FILE).isFile) missing += KOKORO_VOICES_FILE
-            }
-            ModelFamily.ZIPVOICE -> {
-                // ZipVoice ships encoder + decoder + 24 kHz vocoder, plus
-                // tokens.txt and espeak-ng-data (lexicon is optional).
-                requireOneOf("encoder.onnx", listOf("encoder.int8.onnx", "encoder.onnx"))
-                requireOneOf("decoder.onnx", listOf("decoder.int8.onnx", "decoder.onnx"))
-                requireOneOf("vocoder.onnx", listOf("vocos_24khz.onnx", "vocos_22khz.onnx", "vocoder.onnx"))
-                if (!File(dir, tokens).isFile) missing += tokens
-            }
-            ModelFamily.POCKET -> {
-                // Pocket has the most fragmented layout: 5 .onnx files plus
-                // two JSON configs. Tokens come from vocab.json (not tokens.txt).
-                listOf(
-                    "lm_flow.int8.onnx", "lm_main.int8.onnx", "encoder.onnx",
-                    "decoder.int8.onnx", "text_conditioner.onnx",
-                    "vocab.json", "token_scores.json",
-                ).forEach { if (!File(dir, it).isFile) missing += it }
-            }
-            ModelFamily.SUPERTONIC -> {
-                listOf(
-                    "duration_predictor.int8.onnx", "text_encoder.int8.onnx",
-                    "vector_estimator.int8.onnx", "vocoder.int8.onnx",
-                    "tts.json", "unicode_indexer.bin", "voice.bin",
-                ).forEach { if (!File(dir, it).isFile) missing += it }
-            }
-            ModelFamily.CUSTOM -> {
-                // CUSTOM never reaches the worker (custom imports skip the
-                // download path entirely) but we still guard so an
-                // accidentally-enqueued bundle fails with a clear message.
-                if (!File(dir, "model.onnx").isFile) missing += "model.onnx"
-                if (!File(dir, tokens).isFile) missing += tokens
-            }
-        }
-        if (present.isNotEmpty()) log.i { "Validated bundle files: $present" }
-        return missing
-    }
-
     private fun extractTarBz2(voice: VoiceCard, archive: File, destRoot: File) {
         val totalBytes = archive.length()
         var lastReportedPct = -1
@@ -480,7 +415,7 @@ class VoiceDownloadWorker(
                             entry = tarIn.nextEntry
                             continue
                         }
-                        val outFile = File(destRoot, stripped)
+                        val outFile = destRoot.safeChild(stripped)
                         if (entry.isDirectory) {
                             outFile.mkdirs()
                         } else {
@@ -633,15 +568,6 @@ class VoiceDownloadWorker(
         // the pathological case where the worker fires before Koin's catalog
         // singleton has been initialised at all.
         private const val CATALOG_RESOLVE_TIMEOUT_MS = 10_000L
-
-        /** Shared embedding bank shipped by Kokoro and Kitten releases. */
-        private const val KOKORO_VOICES_FILE = "voices.bin"
-
-        private val MATCHA_VOCODER_CANDIDATES = listOf(
-            "vocos-22khz-univ.onnx",
-            "vocos-16khz-univ.onnx",
-            "vocoder.onnx",
-        )
 
         /** Max WorkManager attempts (counting from 0). */
         private const val MAX_RETRIES = 3
