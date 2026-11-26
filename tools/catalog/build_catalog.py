@@ -2,8 +2,9 @@
 """Generate ``catalog/v1/models.json`` from the upstream sherpa-onnx TTS index.
 
 Scrapes https://k2-fsa.github.io/sherpa/onnx/tts/all/, extracts every TTS
-voice's metadata + bundle URL + speaker layout, then stream-downloads each
-bundle to compute its sha256 (without persisting the tarball). Output is a
+voice's metadata + bundle URL + speaker layout, then takes each bundle's
+sha256 from the upstream release ``checksum.txt`` (stream-hashing, without
+persisting the tarball, only assets missing from that list). Output is a
 deterministic, alphabetically-sorted JSON file matching the ``VoiceCard``
 Kotlin schema used by HayaiTTS.
 
@@ -96,6 +97,69 @@ RUNTIME_SUPPORTED_FAMILIES = {
     "zipvoice", "pocket", "supertonic",
 }
 
+RELEASES = "https://github.com/k2-fsa/sherpa-onnx/releases/download/"
+# Upstream publishes `name<TAB>sha256` for every release asset. Used as the
+# primary sha source so the weekly refresh doesn't stream ~10 GB just to hash.
+TTS_CHECKSUM_URL = RELEASES + "tts-models/checksum.txt"
+VOCODER_CHECKSUM_URL = RELEASES + "vocoder-models/checksum.txt"
+
+# Precision re-exports of a documented voice (`…-low-int8`, `…-fp16`,
+# `kokoro-int8-…`) are the same voice; they inherit the base's metadata.
+PRECISION_SUFFIX_RE = sources.PRECISION_SUFFIX_RE
+INHERITED_FROM_BASE = (
+    "title", "languages", "sampleRateHz", "tier",
+    "modelFileName", "lexiconFileName", "dictDirName",
+    "vocoderUrl", "vocoderFileName",
+)  # speakers / sampleAudioUrl / speakerSamples: see write_catalog()
+
+# Per-bundle facts the doc scrape / filename can't carry. Sources: sherpa-onnx
+# scripts/apk/generate-tts-apk-script.py, the vits pretrained-models doc page,
+# and the bundles' own contents.
+_MATCHA_FA_EN = {
+    # Archive ships model.onnx + tokens.txt + espeak-ng-data only; upstream's
+    # APK script pairs it with vocos-22khz-univ.onnx (22.05 kHz output).
+    "languages": ["fa", "en"], "sampleRateHz": 22050, "modelFileName": "model.onnx",
+    "vocoderUrl": RELEASES + "vocoder-models/vocos-22khz-univ.onnx",
+    "vocoderFileName": "vocos-22khz-univ.onnx",
+}
+BUNDLE_METADATA: dict[str, dict] = {
+    "matcha-tts-fa_en-khadijah": _MATCHA_FA_EN,
+    "matcha-tts-fa_en-musa": _MATCHA_FA_EN,
+    # Docs: "sherpa-onnx-vits-zh-ll (Chinese, 5 speakers)", 16 kHz; names
+    # from the bundled G_multisperaker_latest.json.
+    "sherpa-onnx-vits-zh-ll": {
+        "languages": ["zh-CN"], "sampleRateHz": 16000,
+        "lexiconFileName": "lexicon.txt", "dictDirName": "dict",
+        "speakerNames": ["suyingxue", "gunian", "fushiyu", "bingjiao", "bazong"],
+    },
+    # Kokoro v1.0-signature Arabic fine-tune; ONNX metadata stamps voice=ar,
+    # sample_rate=24000, one speaker af_msa (scripts/kokoro/nabra/). The
+    # generic Kokoro sample clip is English, so don't point at it.
+    "nabra-82m-arabic-int8": {
+        "languages": ["ar"], "sampleRateHz": 24000,
+        "speakerNames": ["af_msa"], "sampleAudioUrl": None,
+        "license": "Apache-2.0", "author": "oddadmix", "baseModel": "Kokoro-82M",
+        "sourceUrl": "https://huggingface.co/oddadmix/Nabra-82M-v0.1",
+    },
+}
+
+
+def locale_tag(voice_id: str) -> str | None:
+    """``en_US`` / ``vi_VN`` locale segment in an id -> one BCP-47 tag
+    (``en-US``). Lowercasing first would split it into language + region."""
+    m = re.search(r'\b([a-z]{2})_([A-Z]{2})\b', voice_id)
+    return f"{m.group(1)}-{m.group(2)}" if m else None
+
+
+def variant_base_id(voice_id: str) -> str | None:
+    """``vits-piper-en_US-amy-low-int8`` -> ``vits-piper-en_US-amy-low``,
+    ``kokoro-int8-multi-lang-v1_0`` -> ``kokoro-multi-lang-v1_0``. None when
+    the id isn't a precision variant."""
+    base = PRECISION_SUFFIX_RE.sub("", voice_id)
+    if base == voice_id and voice_id.startswith("kokoro-int8-"):
+        base = "kokoro-" + voice_id[len("kokoro-int8-"):]
+    return base if base != voice_id else None
+
 
 @dataclass
 class Voice:
@@ -141,6 +205,11 @@ class Voice:
     # weights' license, e.g. MIT weights trained on a CC-BY-NC corpus). Used
     # to decide whether to append a `dataset-license:` tag. NEVER serialized.
     _dataset_license: str | None = None
+    # Internal-only: id of the documented voice this precision variant was
+    # re-exported from. NEVER serialized.
+    _base_id: str | None = None
+    # Internal-only: (language_dir, slug) of the doc page it was parsed from.
+    _page: tuple[str, str] | None = None
 
     def to_json(self) -> dict:
         d: dict = {
@@ -172,6 +241,8 @@ class RunStats:
     written: int = 0
     skipped: list[tuple[str, str]] = field(default_factory=list)
     total_bytes: int = 0
+    checksum_hits: int = 0
+    streamed: int = 0
     started_at: float = field(default_factory=time.time)
     lock: threading.Lock = field(default_factory=threading.Lock)
 
@@ -218,7 +289,10 @@ def discover_model_pages(search_js: str) -> list[tuple[str, str]]:
 
 def family_for_slug(slug: str) -> str:
     if slug.startswith("vits-piper-"): return "piper"
-    if slug.startswith("vits-"): return "vits"
+    if slug.startswith(("vits-", "sherpa-onnx-vits-")): return "vits"
+    # Nabra-82M is a Kokoro-architecture Arabic fine-tune that sherpa-onnx
+    # runs on its stock Kokoro runtime (scripts/kokoro/nabra/README.md).
+    if slug.startswith("nabra-"): return "kokoro"
     if slug.startswith("matcha-"): return "matcha"
     if slug.startswith("kokoro-"): return "kokoro"
     if slug.startswith("kitten-"): return "kitten"
@@ -231,6 +305,15 @@ def family_for_slug(slug: str) -> str:
     if "zipvoice" in slug: return "zipvoice"
     if "pocket-tts" in slug or slug.startswith("pocket-"): return "pocket"
     return "unknown"
+
+
+def speakers_from_names(voice_id: str, family: str,
+                        named: list[tuple[int, str]]) -> list[dict]:
+    out = []
+    for sid, name in named:
+        g, conf = infer_gender(voice_id, name, family)
+        out.append({"id": sid, "name": name, "gender": g, "genderConfidence": conf})
+    return out
 
 
 def parse_subpage(language: str, slug: str) -> Voice | None:
@@ -259,10 +342,7 @@ def parse_subpage(language: str, slug: str) -> Voice | None:
 
     named = parse_named_speakers(text)
     if named:
-        speakers = []
-        for sid, name in sorted(named.items()):
-            g, conf = infer_gender(voice_id, name, family)
-            speakers.append({"id": sid, "name": name, "gender": g, "genderConfidence": conf})
+        speakers = speakers_from_names(voice_id, family, sorted(named.items()))
     elif num_speakers == 1:
         single_name = derive_single_speaker_name(voice_id)
         g, conf = infer_gender(voice_id, single_name, family)
@@ -300,6 +380,7 @@ def parse_subpage(language: str, slug: str) -> Voice | None:
         dictDirName="dict" if re.search(r'\bdict/', text) else None,
         demoUrl=demo_url_for(family, voice_id),
         sampleAudioUrl=sample_audio_url_for(family, voice_id),
+        _page=(language, slug),
     )
 
 
@@ -416,6 +497,8 @@ def derive_title(speakers: list[dict], family: str) -> str:
 
 def derive_tier(voice_id: str, family: str) -> str:
     """Tier heuristic per spec section 3."""
+    # Precision variants (`…-low-int8`) share their base voice's tier.
+    voice_id = PRECISION_SUFFIX_RE.sub("", voice_id)
     # Meta MMS voices are narrowband single-speaker — always "low".
     if voice_id.startswith("vits-mms-"): return "low"
     if family in ("kokoro", "matcha", "supertonic"): return "high"
@@ -431,15 +514,18 @@ def derive_languages(voice_id: str, language_dir: str, text: str) -> list[str]:
     list -> directory."""
     mms = mms_language(voice_id)
     if mms: return mms
-    m = re.search(r'\b([a-z]{2})_([A-Z]{2})\b', voice_id)
-    if m: return [f"{m.group(1)}-{m.group(2)}"]
+    tag = locale_tag(voice_id)
+    if tag: return [tag]
     m2 = re.search(r'supports\s+\d+\s+languages?\s*:\s*([^.<]+)', text)
     if m2:
         codes = [c.strip() for c in m2.group(1).split(",") if c.strip()]
         if codes: return codes
     m3 = re.search(r'It supports only\s+([A-Za-z\-]+)', text)
-    if m3: return LANGUAGE_DIR_BCP47.get(m3.group(1), [m3.group(1).lower()])
-    return LANGUAGE_DIR_BCP47.get(language_dir, ["und"])
+    # Copies: build_voices() appends to the result when deduping, which would
+    # otherwise mutate the shared table (that's how Supertonic's 31-language
+    # list leaked onto every other voice from the Arabic dir).
+    if m3: return list(LANGUAGE_DIR_BCP47.get(m3.group(1), [m3.group(1).lower()]))
+    return list(LANGUAGE_DIR_BCP47.get(language_dir, ["und"]))
 
 
 def derive_model_filename(text: str, family: str) -> str | None:
@@ -684,8 +770,38 @@ def stream_sha256(url: str, *, label: str, cache_dir: str | None,
         err(f"  hash failed for {label}: {e}"); return None, 0
 
 
+def fetch_release_checksums(url: str) -> dict[str, str]:
+    """Parse an upstream ``checksum.txt`` (``name<TAB>sha256`` per line) into
+    ``{asset_url: sha256}``. FAIL-SOFT: {} on any error, so every asset falls
+    back to streaming."""
+    release_root = url.rsplit("/", 1)[0] + "/"
+    try:
+        r = requests.get(url, timeout=60); r.raise_for_status()
+    except Exception as e:
+        err(f"checksum list unavailable ({url}): {e}"); return {}
+    out: dict[str, str] = {}
+    for line in r.text.splitlines():
+        parts = line.split()
+        if len(parts) == 2 and re.fullmatch(r'[0-9a-fA-F]{64}', parts[1]):
+            out[release_root + parts[0]] = parts[1].lower()
+    return out
+
+
+def sha256_for(url: str, checksums: dict[str, str], *, label: str,
+               cache_dir: str | None, cache_key: str,
+               stats: RunStats) -> tuple[str | None, int]:
+    """Upstream checksum.txt first; stream (+ cache) only for assets it lacks."""
+    known = checksums.get(url)
+    if known:
+        with stats.lock: stats.checksum_hits += 1
+        return known, 0
+    with stats.lock: stats.streamed += 1
+    return stream_sha256(url, label=label, cache_dir=cache_dir,
+                         cache_key=cache_key, stats=stats)
+
+
 def hash_voice(v: Voice, *, idx: int, total: int, cache_dir: str | None,
-               skip_hash: bool, stats: RunStats,
+               skip_hash: bool, stats: RunStats, checksums: dict[str, str],
                progress_lock: threading.Lock) -> Voice | None:
     """Per-voice work for the thread pool: HEAD for size, hash bundle, hash
     vocoder if present. Returns the populated Voice or None on failure."""
@@ -694,8 +810,8 @@ def hash_voice(v: Voice, *, idx: int, total: int, cache_dir: str | None,
         with progress_lock:
             log(f"[{idx}/{total}] {v.id}: {v.approxSizeMb} MB sha256=SKIPPED")
         return v
-    digest, n = stream_sha256(v.bundleUrl, label=v.id, cache_dir=cache_dir,
-                              cache_key=v.id, stats=stats)
+    digest, n = sha256_for(v.bundleUrl, checksums, label=v.id,
+                           cache_dir=cache_dir, cache_key=v.id, stats=stats)
     if digest is None:
         with stats.lock: stats.skipped.append((v.id, "bundle hash failed"))
         return None
@@ -703,9 +819,11 @@ def hash_voice(v: Voice, *, idx: int, total: int, cache_dir: str | None,
     if not v.approxSizeMb and n:
         v.approxSizeMb = max(1, round(n / 1_000_000))
     if v.vocoderUrl:
-        vd, _ = stream_sha256(v.vocoderUrl, label=f"{v.id}#vocoder",
-                              cache_dir=cache_dir,
-                              cache_key=v.id + "__vocoder", stats=stats)
+        vd, _ = sha256_for(v.vocoderUrl, checksums, label=f"{v.id}#vocoder",
+                           cache_dir=cache_dir,
+                           # Shared vocoders (vocos-22khz-univ) hash once.
+                           cache_key="vocoder__" + v.vocoderUrl.rsplit("/", 1)[-1],
+                           stats=stats)
         if vd is None:
             with stats.lock: stats.skipped.append((v.id, "vocoder hash failed"))
             return None
@@ -858,6 +976,11 @@ def discover_release_only_bundles(known_ids: set[str]) -> list[Voice]:
             available=family in RUNTIME_SUPPORTED_FAMILIES,
             demoUrl=demo_url_for(family, voice_id),
             sampleAudioUrl=None,
+            # Kokoro int8 re-exports ship `model.int8.onnx`, which isn't in
+            # the app's Kokoro filename candidates; name it explicitly.
+            modelFileName=("model.int8.onnx"
+                           if family == "kokoro" and "int8" in voice_id.split("-")
+                           else None),
         ))
 
     # Second pass: DEFENSIVE concurrent HEAD-check. A bundle that 404s or
@@ -909,11 +1032,17 @@ def derive_languages_from_slug(voice_id: str, family: str) -> list[str]:
     mms = mms_language(voice_id)
     if mms:
         return mms
+    tag = locale_tag(voice_id)
+    if tag:
+        return [tag]
     lower = voice_id.lower()
+    if "cantonese" in lower:
+        return ["yue"]
     # Tokens that come before the language list and should be ignored.
+    # `cv` = Common Voice corpus (vits-coqui-*-cv), `hf` = HuggingFace origin.
     junk = {
         "sherpa", "onnx", "zipvoice", "pocket", "tts", "distill",
-        "int8", "fp16", "fp32", "emilia", "v1", "v2", "v3",
+        "int8", "fp16", "fp32", "emilia", "v1", "v2", "v3", "cv", "hf",
     }
     parts = re.split(r"[-_]", lower)
     languages: list[str] = []
@@ -1075,6 +1204,38 @@ def enrich_voices(voices: list[Voice], *, cache_dir: str | None,
     log("Enrichment pass complete.")
 
 
+def apply_bundle_metadata(v: Voice) -> None:
+    """Overlay BUNDLE_METADATA facts onto a scraped/release-only Voice."""
+    meta = BUNDLE_METADATA.get(v.id)
+    if not meta:
+        return
+    for k, val in meta.items():
+        if k == "speakerNames":
+            v.speakers = speakers_from_names(v.id, v.family, list(enumerate(val)))
+            v.title = derive_title(v.speakers, v.family)
+        else:
+            setattr(v, k, list(val) if isinstance(val, list) else val)
+
+
+def inherit_from_base(by_id: dict[str, Voice]) -> None:
+    """Precision variants (mostly release-only, so known only by filename)
+    used to get placeholder metadata (24 kHz, one anonymous speaker,
+    slug-split languages). Copy the base voice's metadata onto them."""
+    n = 0
+    for v in by_id.values():
+        base = by_id.get(variant_base_id(v.id) or "")
+        if base is None or base is v:
+            continue
+        v._base_id = base.id
+        for k in INHERITED_FROM_BASE:
+            val = getattr(base, k)
+            if val is not None:
+                setattr(v, k, list(val) if k == "languages" else val)
+        v.speakers = [dict(s) for s in base.speakers]
+        n += 1
+    log(f"Variants inheriting base-voice metadata: {n}")
+
+
 def build_voices(pages: list[tuple[str, str]], *, limit: int | None,
                  cache_dir: str | None, skip_hash: bool, no_enrich: bool,
                  workers: int, stats: RunStats) -> list[Voice]:
@@ -1097,6 +1258,10 @@ def build_voices(pages: list[tuple[str, str]], *, limit: int | None,
         stats.skipped.append((slug, "parse failed"))
 
     # Dedupe by id (same Kokoro lives under several language dirs); union langs.
+    # Union in page order, not completion order, so the merged language list
+    # is stable run-to-run.
+    page_order = {(lang, slug): i for i, (lang, slug) in enumerate(todo)}
+    raw.sort(key=lambda v: page_order.get(v._page, len(page_order)))
     by_id: dict[str, Voice] = {}
     for v in raw:
         if v.id in by_id:
@@ -1114,6 +1279,7 @@ def build_voices(pages: list[tuple[str, str]], *, limit: int | None,
     for extra in discover_release_only_bundles(known_ids=set(by_id.keys())):
         by_id[extra.id] = extra
     log(f"Total unique voices (incl. release-only): {len(by_id)}")
+    inherit_from_base(by_id)
 
     ordered = sorted(by_id.values(), key=lambda x: x.id)
 
@@ -1124,6 +1290,10 @@ def build_voices(pages: list[tuple[str, str]], *, limit: int | None,
     # licenses. Runs after dedupe/release-merge, before the hash pass.
     enrich_voices(ordered, cache_dir=cache_dir, no_enrich=no_enrich,
                   workers=workers)
+    # Hand-checked bundle facts win over scrape + enrichment; applied before
+    # hashing so a vocoderUrl they add gets hashed.
+    for v in ordered:
+        apply_bundle_metadata(v)
 
     # Family-count summary so catalog size growth is visible at a glance.
     by_fam_total: dict[str, int] = {}
@@ -1132,15 +1302,22 @@ def build_voices(pages: list[tuple[str, str]], *, limit: int | None,
     summary = ", ".join(f"{c}× {f}" for f, c in sorted(by_fam_total.items()))
     log(f"Catalog composition by family ({len(ordered)} total): {summary}")
 
-    # Hash pass — concurrent streaming. 8 workers is the empirical sweet spot
-    # against the GitHub release CDN (more starts hitting 429).
+    # Hash pass. Upstream checksum.txt covers nearly every asset; only the
+    # rest are streamed. 8 workers is the empirical sweet spot against the
+    # GitHub release CDN (more starts hitting 429).
+    checksums: dict[str, str] = {}
+    if not skip_hash:
+        checksums.update(fetch_release_checksums(TTS_CHECKSUM_URL))
+        checksums.update(fetch_release_checksums(VOCODER_CHECKSUM_URL))
+        log(f"Upstream checksum entries: {len(checksums)}")
     voices: list[Voice] = []
     progress_lock = threading.Lock()
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futures = [
             ex.submit(hash_voice, v, idx=i, total=len(ordered),
                       cache_dir=cache_dir, skip_hash=skip_hash,
-                      stats=stats, progress_lock=progress_lock)
+                      stats=stats, checksums=checksums,
+                      progress_lock=progress_lock)
             for i, v in enumerate(ordered, 1)
         ]
         for f in as_completed(futures):
@@ -1224,6 +1401,25 @@ def write_catalog(voices: list[Voice], output_path: str) -> None:
         row.update(carried)
         rows.append(row)
 
+    # Precision variants share their base voice's speakers + audition clips
+    # (the base row's, after preservation) until render-samples produces
+    # clips under the variant's own id.
+    by_row_id = {r["id"]: r for r in rows}
+    for v in voices:
+        base_row = by_row_id.get(v._base_id or "")
+        if base_row is None:
+            continue
+        row = by_row_id[v.id]
+        row["speakers"] = base_row["speakers"]
+        own = any(f"/{v.id}__" in (s.get("url") or "")
+                  for s in row.get("speakerSamples") or [])
+        if not own:
+            for k in ("sampleAudioUrl", "speakerSamples"):
+                if k in base_row:
+                    row[k] = base_row[k]
+                else:
+                    row.pop(k, None)
+
     payload = {"version": 1, "voices": rows}
     rendered = json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True)
     out_dir = os.path.dirname(output_path)
@@ -1265,6 +1461,7 @@ def main(argv: list[str]) -> int:
     log(f"  voices skipped : {len(stats.skipped)}")
     for sid, reason in stats.skipped:
         log(f"     - {sid}: {reason}")
+    log(f"  sha from list  : {stats.checksum_hits} (streamed {stats.streamed})")
     log(f"  bytes hashed   : {stats.total_bytes:,} "
         f"({stats.total_bytes / 1_000_000_000:.2f} GB)")
     log(f"  runtime        : {elapsed:.1f}s")
