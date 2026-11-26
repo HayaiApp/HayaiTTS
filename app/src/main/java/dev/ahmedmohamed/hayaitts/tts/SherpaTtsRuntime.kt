@@ -419,18 +419,24 @@ class SherpaTtsRuntime private constructor(
                 },
                 ruleFsts = layout.ruleFsts.joinPaths(), maxNumSentences = maxNumSentences,
             )
-            is BundleLayout.Kokoro -> OfflineTtsConfig(
-                model = model {
-                    kokoro = OfflineTtsKokoroModelConfig(
-                        model = layout.model.absolutePath, voices = layout.voices.absolutePath,
-                        tokens = layout.tokens.absolutePath, dataDir = layout.dataDir.pathOrEmpty(),
-                        lexicon = layout.lexicons.joinPaths(),
-                        lang = if (layout.isMultiLang) kokoroLanguage.ifBlank { DEFAULT_KOKORO_LANGUAGE } else "",
-                        dictDir = layout.dictDir.pathOrEmpty(), lengthScale = lengthScale,
-                    )
-                },
-                ruleFsts = layout.ruleFsts.joinPaths(), maxNumSentences = maxNumSentences,
-            )
+            is BundleLayout.Kokoro -> {
+                val isZh = kokoroLanguage == "zh"
+                val espeakVoice = if (layout.isMultiLang) {
+                    KokoroLanguage.espeakVoiceFor(kokoroLanguage, layout.dataDir)
+                } else ""
+                OfflineTtsConfig(
+                    model = model {
+                        kokoro = OfflineTtsKokoroModelConfig(
+                            model = layout.model.absolutePath, voices = layout.voices.absolutePath,
+                            tokens = layout.tokens.absolutePath, dataDir = layout.dataDir.pathOrEmpty(),
+                            lexicon = layout.lexicons.joinPaths(), lang = espeakVoice,
+                            dictDir = layout.dictDir.pathOrEmpty(), lengthScale = lengthScale,
+                        )
+                    },
+                    ruleFsts = (layout.ruleFsts + if (isZh) layout.zhRuleFsts else emptyList()).joinPaths(),
+                    maxNumSentences = maxNumSentences,
+                )
+            }
             is BundleLayout.Kitten -> OfflineTtsConfig(
                 model = model {
                     kitten = OfflineTtsKittenModelConfig(
@@ -536,7 +542,6 @@ class SherpaTtsRuntime private constructor(
          * the per-voice cap runs first then the global LRU enforces the ceiling.
          */
         private const val MAX_LENGTH_BUCKETS_PER_VOICE = 2
-        private const val DEFAULT_KOKORO_LANGUAGE = "en"
 
         // We always pass applicationContext into the constructor below, so the
         // held context is process-scoped and not an actual leak. Lint can't see
