@@ -17,6 +17,8 @@ import com.k2fsa.sherpa.onnx.OfflineTtsZipVoiceModelConfig
 import dev.ahmedmohamed.hayaitts.data.playground.PitchResampler
 import dev.ahmedmohamed.hayaitts.data.voices.VoiceRepositoryImpl
 import dev.ahmedmohamed.hayaitts.domain.model.InstalledVoice
+import dev.ahmedmohamed.hayaitts.data.voices.BundleLayout
+import dev.ahmedmohamed.hayaitts.data.voices.BundleLayouts
 import dev.ahmedmohamed.hayaitts.domain.model.ModelFamily
 import dev.ahmedmohamed.hayaitts.domain.repo.SettingsRepository
 import kotlinx.coroutines.flow.first
@@ -385,273 +387,101 @@ class SherpaTtsRuntime private constructor(
         useNnapi: Boolean,
         numThreads: Int,
         maxNumSentences: Int
-    ): OfflineTtsConfig = when (family) {
-        ModelFamily.PIPER, ModelFamily.VITS -> buildVitsConfig(dir, lengthScale, noiseScale, noiseScaleW, useNnapi, numThreads, maxNumSentences)
-        ModelFamily.MATCHA -> buildMatchaConfig(dir, lengthScale, useNnapi, numThreads, maxNumSentences)
-        ModelFamily.KOKORO -> buildKokoroConfig(dir, kokoroLanguage, lengthScale, useNnapi, numThreads, maxNumSentences)
-        ModelFamily.KITTEN -> buildKittenConfig(dir, lengthScale, useNnapi, numThreads, maxNumSentences)
-        ModelFamily.ZIPVOICE -> buildZipVoiceConfig(dir, useNnapi, numThreads, maxNumSentences)
-        ModelFamily.POCKET -> buildPocketConfig(dir, useNnapi, numThreads, maxNumSentences)
-        ModelFamily.SUPERTONIC -> buildSupertonicConfig(dir, useNnapi, numThreads, maxNumSentences)
-        ModelFamily.CUSTOM -> throw IllegalStateException(
-            "Custom voices should have been resolved to an effective family before reaching buildConfig.",
-        )
-    }
-
-    private fun buildVitsConfig(
-        dir: File,
-        lengthScale: Float,
-        noiseScale: Float,
-        noiseScaleW: Float,
-        useNnapi: Boolean,
-        numThreads: Int,
-        maxNumSentences: Int
     ): OfflineTtsConfig {
-        val modelPath = resolveModelFile(dir, VITS_MODEL_CANDIDATES)
-        val tokensPath = File(dir, TOKENS_FILE).absolutePath
-        val dataDir = File(dir, ESPEAK_DIR)
-        val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
-        val lexicon = File(dir, LEXICON_FILE)
-        val lexiconPath = if (lexicon.isFile) lexicon.absolutePath else ""
-        val dictDir = File(dir, DICT_DIR)
-        val dictDirPath = if (dictDir.isDirectory) dictDir.absolutePath else ""
-        return OfflineTtsConfig(
-            model = OfflineTtsModelConfig(
-                vits = OfflineTtsVitsModelConfig(
-                    model = modelPath, lexicon = lexiconPath, tokens = tokensPath,
-                    dataDir = dataDirPath, dictDir = dictDirPath, lengthScale = lengthScale,
-                    noiseScale = noiseScale, noiseScaleW = noiseScaleW,
-                ),
-                numThreads = numThreads, debug = false,
-                provider = if (useNnapi) "nnapi" else "cpu"
-            ),
-            ruleFsts = collectRuleFsts(dir), maxNumSentences = maxNumSentences,
-        )
+        if (family == ModelFamily.CUSTOM) {
+            throw IllegalStateException(
+                "Custom voices should have been resolved to an effective family before reaching buildConfig.",
+            )
+        }
+        val provider = if (useNnapi) "nnapi" else "cpu"
+        fun model(block: OfflineTtsModelConfig.() -> Unit) =
+            OfflineTtsModelConfig(numThreads = numThreads, debug = false, provider = provider).apply(block)
+        return when (val layout = BundleLayouts.require(family, dir)) {
+            is BundleLayout.Vits -> OfflineTtsConfig(
+                model = model {
+                    vits = OfflineTtsVitsModelConfig(
+                        model = layout.model.absolutePath, lexicon = layout.lexicon.pathOrEmpty(),
+                        tokens = layout.tokens.absolutePath, dataDir = layout.dataDir.pathOrEmpty(),
+                        dictDir = layout.dictDir.pathOrEmpty(), lengthScale = lengthScale,
+                        noiseScale = noiseScale, noiseScaleW = noiseScaleW,
+                    )
+                },
+                ruleFsts = layout.ruleFsts.joinPaths(), maxNumSentences = maxNumSentences,
+            )
+            is BundleLayout.Matcha -> OfflineTtsConfig(
+                model = model {
+                    matcha = OfflineTtsMatchaModelConfig(
+                        acousticModel = layout.acoustic.absolutePath, vocoder = layout.vocoder.absolutePath,
+                        lexicon = layout.lexicon.pathOrEmpty(), tokens = layout.tokens.absolutePath,
+                        dataDir = layout.dataDir.pathOrEmpty(), dictDir = layout.dictDir.pathOrEmpty(),
+                        lengthScale = lengthScale,
+                    )
+                },
+                ruleFsts = layout.ruleFsts.joinPaths(), maxNumSentences = maxNumSentences,
+            )
+            is BundleLayout.Kokoro -> OfflineTtsConfig(
+                model = model {
+                    kokoro = OfflineTtsKokoroModelConfig(
+                        model = layout.model.absolutePath, voices = layout.voices.absolutePath,
+                        tokens = layout.tokens.absolutePath, dataDir = layout.dataDir.pathOrEmpty(),
+                        lexicon = layout.lexicons.joinPaths(),
+                        lang = if (layout.isMultiLang) kokoroLanguage.ifBlank { DEFAULT_KOKORO_LANGUAGE } else "",
+                        dictDir = layout.dictDir.pathOrEmpty(), lengthScale = lengthScale,
+                    )
+                },
+                ruleFsts = layout.ruleFsts.joinPaths(), maxNumSentences = maxNumSentences,
+            )
+            is BundleLayout.Kitten -> OfflineTtsConfig(
+                model = model {
+                    kitten = OfflineTtsKittenModelConfig(
+                        model = layout.model.absolutePath, voices = layout.voices.absolutePath,
+                        tokens = layout.tokens.absolutePath, dataDir = layout.dataDir.pathOrEmpty(),
+                        lengthScale = lengthScale,
+                    )
+                },
+                maxNumSentences = maxNumSentences,
+            )
+            is BundleLayout.ZipVoice -> OfflineTtsConfig(
+                model = model {
+                    zipvoice = OfflineTtsZipVoiceModelConfig(
+                        tokens = layout.tokens.absolutePath, encoder = layout.encoder.absolutePath,
+                        decoder = layout.decoder.absolutePath, vocoder = layout.vocoder.absolutePath,
+                        dataDir = layout.dataDir.pathOrEmpty(), lexicon = layout.lexicon.pathOrEmpty(),
+                    )
+                },
+                maxNumSentences = maxNumSentences,
+            )
+            is BundleLayout.Pocket -> OfflineTtsConfig(
+                model = model {
+                    pocket = OfflineTtsPocketModelConfig(
+                        lmFlow = layout.lmFlow.absolutePath, lmMain = layout.lmMain.absolutePath,
+                        encoder = layout.encoder.absolutePath, decoder = layout.decoder.absolutePath,
+                        textConditioner = layout.textConditioner.absolutePath,
+                        vocabJson = layout.vocabJson.absolutePath,
+                        tokenScoresJson = layout.tokenScoresJson.absolutePath,
+                    )
+                },
+                maxNumSentences = maxNumSentences,
+            )
+            is BundleLayout.Supertonic -> OfflineTtsConfig(
+                model = model {
+                    supertonic = OfflineTtsSupertonicModelConfig(
+                        durationPredictor = layout.durationPredictor.absolutePath,
+                        textEncoder = layout.textEncoder.absolutePath,
+                        vectorEstimator = layout.vectorEstimator.absolutePath,
+                        vocoder = layout.vocoder.absolutePath, ttsJson = layout.ttsJson.absolutePath,
+                        unicodeIndexer = layout.unicodeIndexer.absolutePath,
+                        voiceStyle = layout.voiceStyle.absolutePath,
+                    )
+                },
+                maxNumSentences = maxNumSentences,
+            )
+        }
     }
 
-    private fun buildMatchaConfig(
-        dir: File,
-        lengthScale: Float,
-        useNnapi: Boolean,
-        numThreads: Int,
-        maxNumSentences: Int
-    ): OfflineTtsConfig {
-        val acoustic = resolveModelFile(dir, MATCHA_ACOUSTIC_CANDIDATES)
-        val vocoder = resolveVocoderFile(dir, MATCHA_VOCODER_CANDIDATES)
-        val tokensPath = File(dir, TOKENS_FILE).absolutePath
-        val dataDir = File(dir, ESPEAK_DIR)
-        val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
-        val lexicon = File(dir, LEXICON_FILE)
-        val lexiconPath = if (lexicon.isFile) lexicon.absolutePath else ""
-        val dictDir = File(dir, DICT_DIR)
-        val dictDirPath = if (dictDir.isDirectory) dictDir.absolutePath else ""
-        return OfflineTtsConfig(
-            model = OfflineTtsModelConfig(
-                matcha = OfflineTtsMatchaModelConfig(
-                    acousticModel = acoustic, vocoder = vocoder,
-                    lexicon = lexiconPath, tokens = tokensPath,
-                    dataDir = dataDirPath, dictDir = dictDirPath, lengthScale = lengthScale,
-                ),
-                numThreads = numThreads, debug = false,
-                provider = if (useNnapi) "nnapi" else "cpu"
-            ),
-            ruleFsts = collectRuleFsts(dir), maxNumSentences = maxNumSentences,
-        )
-    }
+    private fun File?.pathOrEmpty(): String = this?.absolutePath.orEmpty()
 
-    private fun buildKokoroConfig(
-        dir: File,
-        languageHint: String,
-        lengthScale: Float,
-        useNnapi: Boolean,
-        numThreads: Int,
-        maxNumSentences: Int
-    ): OfflineTtsConfig {
-        val modelPath = resolveModelFile(dir, KOKORO_MODEL_CANDIDATES)
-        val voices = File(dir, KOKORO_VOICES_FILE)
-        check(voices.isFile) { "Kokoro voice at $dir is missing $KOKORO_VOICES_FILE" }
-        val tokensPath = File(dir, TOKENS_FILE).absolutePath
-        val dataDir = File(dir, ESPEAK_DIR)
-        val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
-        val lexicon = File(dir, LEXICON_FILE)
-        val multiLexicons = dir.listFiles()
-            ?.filter { it.isFile && it.name.startsWith(KOKORO_LEXICON_PREFIX) && it.name.endsWith(".txt") }
-            ?.sortedBy { it.name }
-            .orEmpty()
-        val isMultiLanguage = multiLexicons.isNotEmpty() ||
-            dir.name.contains("multi-lang", ignoreCase = true) ||
-            dir.name.contains("v1_", ignoreCase = true)
-        val lexiconPath = when {
-            isMultiLanguage && multiLexicons.isNotEmpty() ->
-                multiLexicons.joinToString(",") { it.absolutePath }
-            lexicon.isFile -> lexicon.absolutePath
-            else -> ""
-        }
-        val lang = if (isMultiLanguage) languageHint.ifBlank { DEFAULT_KOKORO_LANGUAGE } else ""
-        val dictDir = File(dir, DICT_DIR)
-        val dictDirPath = if (dictDir.isDirectory) dictDir.absolutePath else ""
-        return OfflineTtsConfig(
-            model = OfflineTtsModelConfig(
-                kokoro = OfflineTtsKokoroModelConfig(
-                    model = modelPath, voices = voices.absolutePath, tokens = tokensPath,
-                    dataDir = dataDirPath, lexicon = lexiconPath, lang = lang, dictDir = dictDirPath,
-                    lengthScale = lengthScale,
-                ),
-                numThreads = numThreads, debug = false,
-                provider = if (useNnapi) "nnapi" else "cpu"
-            ),
-            ruleFsts = collectRuleFsts(dir), maxNumSentences = maxNumSentences,
-        )
-    }
-
-    private fun buildKittenConfig(
-        dir: File,
-        lengthScale: Float,
-        useNnapi: Boolean,
-        numThreads: Int,
-        maxNumSentences: Int
-    ): OfflineTtsConfig {
-        val modelPath = resolveModelFile(dir, KITTEN_MODEL_CANDIDATES)
-        val voices = File(dir, KOKORO_VOICES_FILE)
-        check(voices.isFile) { "Kitten voice at $dir is missing $KOKORO_VOICES_FILE" }
-        val tokensPath = File(dir, TOKENS_FILE).absolutePath
-        val dataDir = File(dir, ESPEAK_DIR)
-        val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
-        return OfflineTtsConfig(
-            model = OfflineTtsModelConfig(
-                kitten = OfflineTtsKittenModelConfig(
-                    model = modelPath, voices = voices.absolutePath, tokens = tokensPath,
-                    dataDir = dataDirPath, lengthScale = lengthScale,
-                ),
-                numThreads = numThreads, debug = false,
-                provider = if (useNnapi) "nnapi" else "cpu"
-            ),
-            maxNumSentences = maxNumSentences,
-        )
-    }
-
-    private fun buildZipVoiceConfig(
-        dir: File,
-        useNnapi: Boolean,
-        numThreads: Int,
-        maxNumSentences: Int
-    ): OfflineTtsConfig {
-        val encoder = resolveModelFile(dir, ZIPVOICE_ENCODER_CANDIDATES)
-        val decoder = resolveModelFile(dir, ZIPVOICE_DECODER_CANDIDATES)
-        val vocoder = resolveModelFile(dir, ZIPVOICE_VOCODER_CANDIDATES)
-        val tokensPath = File(dir, TOKENS_FILE).absolutePath
-        val dataDir = File(dir, ESPEAK_DIR)
-        val dataDirPath = if (dataDir.isDirectory) dataDir.absolutePath else ""
-        val lexicon = File(dir, LEXICON_FILE)
-        val lexiconPath = if (lexicon.isFile) lexicon.absolutePath else ""
-        return OfflineTtsConfig(
-            model = OfflineTtsModelConfig(
-                zipvoice = OfflineTtsZipVoiceModelConfig(
-                    tokens = tokensPath, encoder = encoder, decoder = decoder,
-                    vocoder = vocoder, dataDir = dataDirPath, lexicon = lexiconPath,
-                ),
-                numThreads = numThreads, debug = false,
-                provider = if (useNnapi) "nnapi" else "cpu"
-            ),
-            maxNumSentences = maxNumSentences,
-        )
-    }
-
-    private fun buildPocketConfig(
-        dir: File,
-        useNnapi: Boolean,
-        numThreads: Int,
-        maxNumSentences: Int
-    ): OfflineTtsConfig {
-        fun req(name: String): String {
-            val f = File(dir, name)
-            check(f.isFile) { "Pocket voice at $dir is missing $name" }
-            return f.absolutePath
-        }
-        return OfflineTtsConfig(
-            model = OfflineTtsModelConfig(
-                pocket = OfflineTtsPocketModelConfig(
-                    lmFlow = req("lm_flow.int8.onnx"),
-                    lmMain = req("lm_main.int8.onnx"),
-                    encoder = req("encoder.onnx"),
-                    decoder = req("decoder.int8.onnx"),
-                    textConditioner = req("text_conditioner.onnx"),
-                    vocabJson = req("vocab.json"),
-                    tokenScoresJson = req("token_scores.json"),
-                ),
-                numThreads = numThreads, debug = false,
-                provider = if (useNnapi) "nnapi" else "cpu"
-            ),
-            maxNumSentences = maxNumSentences,
-        )
-    }
-
-    private fun buildSupertonicConfig(
-        dir: File,
-        useNnapi: Boolean,
-        numThreads: Int,
-        maxNumSentences: Int
-    ): OfflineTtsConfig {
-        fun req(name: String): String {
-            val f = File(dir, name)
-            check(f.isFile) { "Supertonic voice at $dir is missing $name" }
-            return f.absolutePath
-        }
-        return OfflineTtsConfig(
-            model = OfflineTtsModelConfig(
-                supertonic = OfflineTtsSupertonicModelConfig(
-                    durationPredictor = req("duration_predictor.int8.onnx"),
-                    textEncoder = req("text_encoder.int8.onnx"),
-                    vectorEstimator = req("vector_estimator.int8.onnx"),
-                    vocoder = req("vocoder.int8.onnx"),
-                    ttsJson = req("tts.json"),
-                    unicodeIndexer = req("unicode_indexer.bin"),
-                    voiceStyle = req("voice.bin"),
-                ),
-                numThreads = numThreads, debug = false,
-                provider = if (useNnapi) "nnapi" else "cpu"
-            ),
-            maxNumSentences = maxNumSentences,
-        )
-    }
-
-    private fun resolveModelFile(dir: File, candidates: List<String>): String {
-        candidates.forEach { name ->
-            val candidate = File(dir, name)
-            if (candidate.isFile) return candidate.absolutePath
-        }
-        val firstOnnx = dir.listFiles()?.firstOrNull { it.isFile && it.extension == "onnx" }
-        if (firstOnnx != null) {
-            log.w { "Unknown bundle layout at $dir, falling back to ${firstOnnx.name}" }
-            return firstOnnx.absolutePath
-        }
-        error("No .onnx weight file found in $dir (tried $candidates)")
-    }
-
-    private fun resolveVocoderFile(dir: File, candidates: List<String>): String {
-        candidates.forEach { name ->
-            val candidate = File(dir, name)
-            if (candidate.isFile) return candidate.absolutePath
-        }
-        val fallback = dir.listFiles()?.firstOrNull { file ->
-            file.isFile &&
-                file.extension == "onnx" &&
-                (file.name.startsWith("vocos-") || file.name.contains("vocoder"))
-        }
-        if (fallback != null) {
-            log.w { "Unknown Matcha vocoder layout at $dir, falling back to ${fallback.name}" }
-            return fallback.absolutePath
-        }
-        error("No Matcha vocoder file found in $dir (tried $candidates)")
-    }
-
-    private fun collectRuleFsts(dir: File): String {
-        val present = RULE_FST_FILES.mapNotNull { name ->
-            val f = File(dir, name)
-            if (f.isFile) f.absolutePath else null
-        }
-        return present.joinToString(",")
-    }
+    private fun List<File>.joinPaths(): String = joinToString(",") { it.absolutePath }
 
     private fun installedVoiceOf(voiceId: String): InstalledVoice? {
         val repo = runCatching { GlobalContext.get().get<VoiceRepositoryImpl>() }.getOrNull()
@@ -698,10 +528,6 @@ class SherpaTtsRuntime private constructor(
         trim().replace('_', '-').substringBefore('-').lowercase()
 
     companion object {
-        private const val TOKENS_FILE = "tokens.txt"
-        private const val LEXICON_FILE = "lexicon.txt"
-        private const val ESPEAK_DIR = "espeak-ng-data"
-        private const val DICT_DIR = "dict"
         private const val MAX_LOADED_VOICES = 2
 
         /**
@@ -710,26 +536,7 @@ class SherpaTtsRuntime private constructor(
          * the per-voice cap runs first then the global LRU enforces the ceiling.
          */
         private const val MAX_LENGTH_BUCKETS_PER_VOICE = 2
-
-        private val VITS_MODEL_CANDIDATES = listOf("model.onnx", "vits-vctk.onnx", "vits-vctk.int8.onnx")
-        private val MATCHA_ACOUSTIC_CANDIDATES = listOf("model-steps-3.onnx", "model-steps-6.onnx", "acoustic.onnx")
-        private val MATCHA_VOCODER_CANDIDATES = listOf("vocos-22khz-univ.onnx", "vocos-16khz-univ.onnx", "vocoder.onnx")
-        private val KOKORO_MODEL_CANDIDATES = listOf(
-            "model.onnx",
-            "kokoro-multi-lang-v1_1.onnx",
-            "kokoro-multi-lang-v1_0.onnx",
-            "kokoro-int8-multi-lang-v1_1.onnx",
-            "kokoro-int8-multi-lang-v1_0.onnx",
-            "kokoro-en-v0_19.onnx",
-        )
-        private val KITTEN_MODEL_CANDIDATES = listOf("model.onnx", "model.int8.onnx")
-        private const val KOKORO_VOICES_FILE = "voices.bin"
-        private const val KOKORO_LEXICON_PREFIX = "lexicon-"
         private const val DEFAULT_KOKORO_LANGUAGE = "en"
-        private val ZIPVOICE_ENCODER_CANDIDATES = listOf("encoder.int8.onnx", "encoder.onnx")
-        private val ZIPVOICE_DECODER_CANDIDATES = listOf("decoder.int8.onnx", "decoder.onnx")
-        private val ZIPVOICE_VOCODER_CANDIDATES = listOf("vocos_24khz.onnx", "vocos_22khz.onnx", "vocoder.onnx")
-        private val RULE_FST_FILES = listOf("date.fst", "number.fst", "phone.fst")
 
         // We always pass applicationContext into the constructor below, so the
         // held context is process-scoped and not an actual leak. Lint can't see
